@@ -2339,6 +2339,7 @@
   }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -2352,6 +2353,12 @@
     <div class="topbar-greeting">Dober dan, <strong>Boris</strong>. Fokus: Building an empire.</div>
   </div>
   <div class="topbar-right">
+    <div id="gcal-auth-btn" style="margin-right:12px;display:none">
+      <button onclick="gcalSignIn()" style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:4px 10px;background:var(--bg3);border:1px solid var(--bg3);border-radius:4px;color:var(--text3);cursor:pointer;text-transform:uppercase">● PRIJAVA GCAL</button>
+    </div>
+    <div id="gcal-auth-ok" style="margin-right:12px;display:none">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--green)">● GCAL</div>
+    </div>
     <div>
       <div class="clock" id="clock">--:--</div>
       <div class="clock-date" id="datestr">---</div>
@@ -3471,7 +3478,66 @@ function calEventHtml(ev, src) {
 let calAllEvents = { osebni: [], sluzba: [], trening: [] };
 let calActiveTab = 'danes';
 
-const GCAL_KEY = 'AIzaSyC6Ol0BjPOLJ6hhnAg6iP-TxqHHXrK2qDU';
+// ===== GOOGLE CALENDAR OAUTH =====
+const GCAL_CLIENT_ID = '473865047869-2nfkcgaddvcnpci0ftsslv4sd39g774b.apps.googleusercontent.com';
+const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+let gcalToken = null;
+
+function gcalInit() {
+  // Preveri ali imamo shranjen token
+  const saved = localStorage.getItem('gcal_token');
+  if (saved) {
+    const t = JSON.parse(saved);
+    if (t.expires > Date.now()) {
+      gcalToken = t.access_token;
+      showGcalOk();
+      fetchCalendarEvents();
+      return;
+    }
+  }
+  // Pokaži gumb za prijavo
+  const btn = document.getElementById('gcal-auth-btn');
+  if (btn) btn.style.display = 'block';
+  // Prikaži prazen stanje v koledarju
+  renderCalWeekStrip(new Date());
+  updateCalBadge();
+}
+
+function gcalSignIn() {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPE,
+    callback: (response) => {
+      if (response.access_token) {
+        gcalToken = response.access_token;
+        // Shrani token (velja 1 uro)
+        localStorage.setItem('gcal_token', JSON.stringify({
+          access_token: response.access_token,
+          expires: Date.now() + (response.expires_in * 1000)
+        }));
+        showGcalOk();
+        fetchCalendarEvents();
+      }
+    }
+  });
+  client.requestAccessToken();
+}
+
+function gcalSignOut() {
+  gcalToken = null;
+  localStorage.removeItem('gcal_token');
+  const btn = document.getElementById('gcal-auth-btn');
+  if (btn) btn.style.display = 'block';
+  const ok = document.getElementById('gcal-auth-ok');
+  if (ok) ok.style.display = 'none';
+}
+
+function showGcalOk() {
+  const btn = document.getElementById('gcal-auth-btn');
+  if (btn) btn.style.display = 'none';
+  const ok = document.getElementById('gcal-auth-ok');
+  if (ok) ok.style.display = 'block';
+}
 
 async function fetchCalendarEvents() {
   const now = new Date();
@@ -3480,12 +3546,21 @@ async function fetchCalendarEvents() {
 
   renderCalWeekStrip(now);
 
-  // Direktni Google Calendar API klici za vse 3 koledarje
+  if (!gcalToken) {
+    renderCalEvents();
+    renderTodayTraining();
+    updateCalBadge();
+    return;
+  }
+
   const fetchCal = async (calId) => {
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${GCAL_KEY}&timeMin=${todayStart}&timeMax=${weekEnd}&singleEvents=true&orderBy=startTime&maxResults=50`;
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${todayStart}&timeMax=${weekEnd}&singleEvents=true&orderBy=startTime&maxResults=50`;
     try {
-      const res = await fetch(url);
-      if (!res.ok) { console.warn('Cal fetch error', calId, res.status); return []; }
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${gcalToken}` }
+      });
+      if (res.status === 401) { gcalSignOut(); return []; }
+      if (!res.ok) { console.warn('Cal error', calId, res.status); return []; }
       const data = await res.json();
       return (data.items || []).map(e => ({
         summary: e.summary || '',
@@ -3704,8 +3779,15 @@ function renderTodayTraining() {
   el.innerHTML = `<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--green);margin-bottom:6px">DANES — ${t.summary||'TRENING'}</div>${p ? renderTreningDetails(p) : '<div style="color:var(--text2);font-size:12px">' + (t.description||'').replace(/<[^>]+>/g,'') + '</div>'}`;
 }
 
-// Inicializiraj
-fetchCalendarEvents();
+// Inicializiraj Google Calendar (OAuth)
+window.addEventListener('load', () => {
+  // Počakaj da se Google Identity Services naloži
+  if (typeof google !== 'undefined') {
+    gcalInit();
+  } else {
+    setTimeout(gcalInit, 1500);
+  }
+});
 
 
 // ===== FINANCE =====
