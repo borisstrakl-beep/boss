@@ -3471,6 +3471,8 @@ function calEventHtml(ev, src) {
 let calAllEvents = { osebni: [], sluzba: [], trening: [] };
 let calActiveTab = 'danes';
 
+const GCAL_KEY = 'AIzaSyC6Ol0BjPOLJ6hhnAg6iP-TxqHHXrK2qDU';
+
 async function fetchCalendarEvents() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
@@ -3478,34 +3480,32 @@ async function fetchCalendarEvents() {
 
   renderCalWeekStrip(now);
 
+  // Direktni Google Calendar API klici za vse 3 koledarje
+  const fetchCal = async (calId) => {
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${GCAL_KEY}&timeMin=${todayStart}&timeMax=${weekEnd}&singleEvents=true&orderBy=startTime&maxResults=50`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) { console.warn('Cal fetch error', calId, res.status); return []; }
+      const data = await res.json();
+      return (data.items || []).map(e => ({
+        summary: e.summary || '',
+        description: e.description || '',
+        start: e.start,
+        end: e.end
+      }));
+    } catch(e) { console.warn('Cal error', calId, e); return []; }
+  };
+
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        system: 'Vrni samo JSON brez razlage. Format: {"osebni": [...], "sluzba": [...], "trening": [...]}. Vsak event: {summary, start, end, description}. start/end sta objekta z dateTime ali date.',
-        messages: [{
-          role: 'user',
-          content: `Pridobi Google Calendar dogodke za tri koledarje od ${todayStart} do ${weekEnd}.\nOsebni: boris.strakl@gmail.com\nSluzba: 9qecr3t237ecmi4h1fhrth1n90@group.calendar.google.com\nTrening: be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com\nVrni samo JSON.`
-        }],
-        mcp_servers: [{
-          type: 'url',
-          url: 'https://calendarmcp.googleapis.com/mcp/v1',
-          name: 'google-calendar'
-        }]
-      })
-    });
-    const data = await response.json();
-    const textBlock = data.content?.find(b => b.type === 'text');
-    if (textBlock) {
-      const clean = textBlock.text.replace(/```json|```/g,'').trim();
-      const parsed = JSON.parse(clean);
-      calAllEvents.osebni = parsed.osebni || [];
-      calAllEvents.sluzba = parsed.sluzba || [];
-      calAllEvents.trening = parsed.trening || [];
-    }
+    const [osebni, sluzba, trening] = await Promise.all([
+      fetchCal(CAL_IDS.osebni),
+      fetchCal(CAL_IDS.sluzba),
+      fetchCal(CAL_IDS.trening)
+    ]);
+    calAllEvents.osebni = osebni;
+    calAllEvents.sluzba = sluzba;
+    calAllEvents.trening = trening;
+    console.log('Kalendar OK:', osebni.length, 'osebnih,', sluzba.length, 'službenih,', trening.length, 'treningov');
   } catch(e) {
     console.warn('Calendar fetch error:', e);
   }
