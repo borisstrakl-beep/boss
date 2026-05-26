@@ -2353,7 +2353,7 @@
     <div class="topbar-greeting">Dober dan, <strong>Boris</strong>. Fokus: Building an empire.</div>
   </div>
   <div class="topbar-right">
-    <div id="gcal-auth-btn" style="margin-right:12px;display:none">
+    <div id="gcal-auth-btn" style="margin-right:12px">
       <button onclick="gcalSignIn()" style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:4px 10px;background:var(--bg3);border:1px solid var(--bg3);border-radius:4px;color:var(--text3);cursor:pointer;text-transform:uppercase">● PRIJAVA GCAL</button>
     </div>
     <div id="gcal-auth-ok" style="margin-right:12px;display:none">
@@ -4091,28 +4091,42 @@ async function fetchPortfeljHistory() {
   const startDate = endDate - (90 * 24 * 3600);
   finData.portfeljHistory = {};
 
-  await Promise.all(PORTFELJ.map(async p => {
+  // Preveri cache (velja 6 ur)
+  const cached = localStorage.getItem('portfelj_history');
+  if (cached) {
+    const c = JSON.parse(cached);
+    if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
+      finData.portfeljHistory = c.data;
+      console.log('Portfelj history iz cache');
+      return;
+    }
+  }
+
+  // Fetch zaporedno (ne vzporedno) da ne preobremeni brskalnika
+  for (const p of PORTFELJ) {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.sym}?interval=1d&period1=${startDate}&period2=${endDate}`;
-      const proxies2 = [
-        `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-      ];
-      let res = null;
-      for (const px of proxies2) {
-        try { res = await fetch(px, { headers:{'x-requested-with':'XMLHttpRequest'} }); break; } catch(e) {}
-      }
-      if (!res) return;
+      const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      const res = await fetch(proxy, { headers:{'x-requested-with':'XMLHttpRequest'} });
+      if (!res.ok) continue;
       const data = await res.json();
       const chart = data.chart?.result?.[0];
-      if (!chart) return;
+      if (!chart) continue;
       const timestamps = chart.timestamp || [];
       const closes = chart.indicators?.quote?.[0]?.close || [];
       finData.portfeljHistory[p.sym] = timestamps.map((t, i) => ({
         datum: new Date(t * 1000).toISOString().split('T')[0],
         cena: closes[i]
       })).filter(x => x.cena != null);
+      // Kratka pavza med klici
+      await new Promise(r => setTimeout(r, 300));
     } catch(e) { console.warn('History err', p.sym, e); }
+  }
+
+  // Shrani v cache
+  localStorage.setItem('portfelj_history', JSON.stringify({
+    ts: Date.now(),
+    data: finData.portfeljHistory
   }));
 }
 
