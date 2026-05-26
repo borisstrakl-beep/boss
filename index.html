@@ -2339,7 +2339,7 @@
   }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="gcalInit()"></script>
 </head>
 <body>
 
@@ -3483,7 +3483,7 @@ const GCAL_CLIENT_ID = '473865047869-2nfkcgaddvcnpci0ftsslv4sd39g774b.apps.googl
 const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 let gcalToken = null;
 
-function gcalInit() {
+function _gcalInit() {
   // Preveri ali imamo shranjen token
   const saved = localStorage.getItem('gcal_token');
   if (saved) {
@@ -3780,13 +3780,29 @@ function renderTodayTraining() {
 }
 
 // Inicializiraj Google Calendar (OAuth)
+// GIS se naloži prek onload="gcalInit()" na script tagu
+// Tukaj samo fallback za primer da onload ni deloval
+let gcalInitDone = false;
+function gcalInit() {
+  if (gcalInitDone) return;
+  gcalInitDone = true;
+  _gcalInit();
+}
 window.addEventListener('load', () => {
-  // Počakaj da se Google Identity Services naloži
-  if (typeof google !== 'undefined') {
-    gcalInit();
-  } else {
-    setTimeout(gcalInit, 1500);
-  }
+  // Fallback: če GIS onload ni sprožil gcalInit v 2s, poskusi sami
+  setTimeout(() => {
+    if (!gcalInitDone) {
+      if (typeof google !== 'undefined') {
+        gcalInit();
+      } else {
+        // GIS se ni naložil — pokaži gumb ampak z opozorilom
+        const btn = document.getElementById('gcal-auth-btn');
+        if (btn) btn.style.display = 'block';
+        renderCalWeekStrip(new Date());
+        updateCalBadge();
+      }
+    }
+  }, 2000);
 });
 
 
