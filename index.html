@@ -2381,8 +2381,8 @@
   <!-- 01 VREME -->
   <div class="card span3">
     <div class="card-header">
-      <div class="card-label"><span class="num">01 //</span> VREME</div>
-      <div class="card-badge" id="weather-updated">NALAGAM...</div>
+      <div class="card-label" style="cursor:pointer" onclick="lazyWeather()"><span class="num">01 //</span> VREME <span style="color:var(--text3);font-size:9px">▶ NALOŽI</span></div>
+      <div class="card-badge" id="weather-updated">KLIKNI ZA PODATKE</div>
     </div>
     <div class="card-body" style="padding:0">
       <div style="display:grid;grid-template-columns:auto 1fr;gap:0">
@@ -3271,6 +3271,17 @@ async function fetchWeatherForLocation(loc) {
   return await res.json();
 }
 
+let weatherLoaded = false;
+function lazyWeather() {
+  if (weatherLoaded) return;
+  weatherLoaded = true;
+  const lbl = document.querySelector('.card-label[onclick="lazyWeather()"]');
+  if (lbl) lbl.innerHTML = '<span class="num">01 //</span> VREME';
+  const upd = document.getElementById('weather-updated');
+  if (upd) upd.textContent = 'NALAGAM...';
+  initWeather();
+}
+
 async function initWeather() {
   // Try geolocation silently — NO browser prompt, only if already granted
   try {
@@ -3438,7 +3449,7 @@ function showWeatherForecast(key) {
 function openWeatherModal(key) { showWeatherForecast(key); }
 
 // Init weather on load
-initWeather();
+// initWeather() — se naloži lazy ob kliku
 
 // ===== GOOGLE KOLEDAR =====
 const CAL_IDS = {
@@ -3495,9 +3506,7 @@ function _gcalInit() {
       return;
     }
   }
-  // Pokaži gumb za prijavo
-  const btn = document.getElementById('gcal-auth-btn');
-  if (btn) btn.style.display = 'block';
+  // Gumb je že viden (ni display:none v HTML)
   // Prikaži prazen stanje v koledarju
   renderCalWeekStrip(new Date());
   updateCalBadge();
@@ -4300,9 +4309,11 @@ function finSaveStavnica() {
   renderStavnica();
 }
 
-// ---- INICIALIZACIJA ----
-fetchBanka();
-loadStavnica();
+// ---- INICIALIZACIJA — z zakasnitvijo da ne blokira zagona ----
+setTimeout(() => {
+  fetchBanka();
+  loadStavnica();
+}, 500);
 
 
 // ===== NAVADE =====
@@ -5890,5 +5901,3 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 </script>
 </body>
 </html>
-
-
