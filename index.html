@@ -2328,14 +2328,54 @@
   @media (max-width: 640px) {
     .dashboard {
       grid-template-columns: 1fr;
-      padding: 10px;
+      padding: 8px;
       gap: 8px;
     }
     .span2, .span3 { grid-column: span 1; }
-    .topbar { flex-wrap: wrap; gap: 8px; }
-    .topbar-center { order: 3; flex-basis: 100%; }
-    .clock { font-size: 15px; }
-    /* weather-grid now flex */
+    .topbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+    .topbar-center { order: 3; flex-basis: 100%; text-align: center; font-size: 12px; }
+    .clock { font-size: 18px; }
+    .topbar-right { gap: 8px; }
+
+    /* Vremenski pas — vertikalno zlaganje */
+    #weather-bunny-panel { display: none; }
+    #weather-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      grid-template-rows: repeat(2, 80px) !important;
+      width: 100%;
+    }
+    .w-temp { font-size: 20px !important; }
+    .w-icon { font-size: 18px !important; }
+    .w-desc { font-size: 8px !important; }
+    .w-city { font-size: 7px !important; }
+
+    #weather-forecast-panel {
+      grid-template-columns: 1fr 1fr 1fr !important;
+      height: auto !important;
+      min-height: 200px;
+    }
+    #weather-forecast-content { display: none !important; }
+    #weather-today-col, #weather-tomorrow-col, #weather-dayafter-col {
+      padding: 10px 8px !important;
+      font-size: 11px;
+    }
+
+    /* Sekcije — kompaktnejše */
+    .card-body { padding: 10px; }
+    .card-header { padding: 8px 12px; }
+    .section-label { font-size: 7px; }
+  }
+
+  @media (max-width: 480px) {
+    #weather-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      grid-template-rows: repeat(4, 72px) !important;
+    }
+    #weather-forecast-panel {
+      grid-template-columns: 1fr !important;
+    }
+    #weather-tomorrow-col, #weather-dayafter-col { display: none !important; }
+    #weather-today-col { padding: 12px !important; }
   }
 
   /* ===== WEATHER BUNNY ===== */
@@ -3702,24 +3742,26 @@ function drawBunny(variant, temp) {
     <ellipse cx="92" cy="132" rx="12" ry="9" fill="${c2}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(15,92,132)"/>`;
   }
 
-  // Noge in čevlji
+  // Noge in čevlji — hlačnice VIDNE nad čevlji
   function legs(shoeCol) {
     const s = shoeCol || '#5c4033';
     return `
-    <rect x="44" y="170" width="14" height="22" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <rect x="62" y="170" width="14" height="22" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <ellipse cx="49" cy="194" rx="16" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <ellipse cx="71" cy="194" rx="16" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+    <!-- Hlačnice (spodnji del nog) -->
+    <rect x="44" y="168" width="14" height="20" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <rect x="62" y="168" width="14" height="20" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <!-- Čevlji — LOČENO pod hlačnicami -->
+    <ellipse cx="51" cy="192" rx="17" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="69" cy="192" rx="17" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
   }
 
   // Škornji (dežni/zimski)
   function boots(col) {
     const b = col || '#1a1a1a';
     return `
-    <rect x="42" y="162" width="17" height="30" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <rect x="61" y="162" width="17" height="30" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <ellipse cx="50.5" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
-    <ellipse cx="69.5" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+    <rect x="43" y="162" width="16" height="28" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <rect x="61" y="162" width="16" height="28" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="51" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="69" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
   }
 
   // Rep (majhen oval zadaj desno)
@@ -4050,7 +4092,7 @@ function drawBunny(variant, temp) {
   const body = variants[variant] || variants.sunny;
   const acc  = accMap[variant]   || '';
 
-  return `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 -18 120 228" xmlns="http://www.w3.org/2000/svg">
   <!-- Ozadje glow -->
   <radialGradient id="gl" cx="50%" cy="60%" r="55%">
     <stop offset="0%" stop-color="${glow}" stop-opacity=".55"/>
