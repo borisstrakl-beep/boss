@@ -2337,6 +2337,47 @@
     .clock { font-size: 15px; }
     /* weather-grid now flex */
   }
+
+  /* ===== WEATHER BUNNY ===== */
+  #weather-bunny-panel {
+    width: 160px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    background: var(--bg3);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  #bunny-svg-wrap {
+    width: 120px;
+    height: 140px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  #bunny-svg-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+  #bunny-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: .12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.4;
+  }
+  #bunny-outfit {
+    font-family: var(--cond);
+    font-size: 11px;
+    color: var(--orange);
+    text-align: center;
+    line-height: 1.3;
+  }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2385,7 +2426,13 @@
       <div class="card-badge" id="weather-updated">NALAGAM...</div>
     </div>
     <div class="card-body" style="padding:0">
-      <div style="display:grid;grid-template-columns:auto 1fr;gap:0">
+      <div style="display:grid;grid-template-columns:160px auto 1fr;gap:0">
+        <!-- ZAJČEK -->
+        <div id="weather-bunny-panel">
+          <div id="bunny-svg-wrap"><!-- bunny SVG rendered by JS --></div>
+          <div id="bunny-outfit">Nalagam...</div>
+          <div id="bunny-label">VREMENSKI<br>ZAJČEK</div>
+        </div>
         <!-- Mesta: 2x4 grid s fiksno višino vrstic -->
         <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,110px);grid-template-rows:repeat(2,104px);border-right:1px solid var(--border)">
           <div class="weather-item weather-init" data-wkey="trbovlje" onclick="showWeatherForecast('trbovlje')"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
@@ -3317,6 +3364,7 @@ async function initWeather() {
           renderWeatherGrid();
           if (!document.querySelector('#weather-grid .weather-item.active')) {
             showWeatherForecast('trbovlje');
+            updateBunny('trbovlje');
           }
         }
       })
@@ -3387,6 +3435,7 @@ function showWeatherForecast(key) {
   document.querySelectorAll('#weather-grid .weather-item').forEach(el => {
     el.classList.toggle('active', el.dataset.wkey === key);
   });
+  updateBunny(key);
 
   const loc = WEATHER_LOCATIONS.find(l => l.key === key);
   const d = weatherData[key];
@@ -3480,11 +3529,220 @@ function retryWeatherForKey(key) {
           item.querySelector('.w-desc').textContent = wmoDesc(data.current.weathercode);
         }
         showWeatherForecast(key);
+        updateBunny(key);
       }
     }).catch(() => {
       const item = document.querySelector('#weather-grid [data-wkey="' + key + '"]');
       if (item) { item.querySelector('.w-icon').textContent = '❌'; item.querySelector('.w-desc').textContent = 'Napaka'; }
     });
+}
+
+
+// ===== WEATHER BUNNY =====
+function getBunnyData(code, temp) {
+  // Returns {svgInner, outfit, bg, label}
+  // Variants: sunny, partcloud, cloudy, fog, rain, heavyrain, snow, storm, cold, hot
+  let variant, outfit, label;
+  if (code <= 1) {
+    if (temp >= 28) { variant = 'hot'; outfit = 'Kratke hlače\n& majica'; label = 'Vroče & jasno'; }
+    else if (temp <= 5) { variant = 'cold'; outfit = 'Debela jakna\n& rokavice'; label = 'Mrzlo & jasno'; }
+    else { variant = 'sunny'; outfit = 'Lahka obleka\n& sončna očala'; label = 'Jasno & sončno'; }
+  } else if (code <= 2) {
+    variant = 'partcloud'; outfit = 'Majica\n& lahka jopica'; label = 'Delno oblačno';
+  } else if (code === 3) {
+    variant = 'cloudy'; outfit = 'Jopica\n& dolge hlače'; label = 'Oblačno';
+  } else if (code <= 49) {
+    variant = 'fog'; outfit = 'Jakna\n& šal'; label = 'Megla';
+  } else if (code <= 67) {
+    if (code >= 61) { variant = 'heavyrain'; outfit = 'Dežnik & plašč\n& škornji'; label = 'Dež'; }
+    else { variant = 'rain'; outfit = 'Dežnik\n& vodoodporna jopica'; label = 'Rosenje'; }
+  } else if (code <= 77) {
+    variant = 'snow'; outfit = 'Zimska jakna\n& šal & rokavice'; label = 'Sneg';
+  } else if (code <= 82) {
+    variant = 'heavyrain'; outfit = 'Dežnik & plašč\n& škornji'; label = 'Plohe';
+  } else if (code <= 86) {
+    variant = 'snow'; outfit = 'Zimska jakna\n& šal & rokavice'; label = 'Snežne plohe';
+  } else {
+    variant = 'storm'; outfit = 'Ostani doma!\nNevihtni plašč'; label = 'Nevihta';
+  }
+  return { svg: drawBunny(variant, temp), outfit, label };
+}
+
+function drawBunny(variant, temp) {
+  // Color palettes per variant
+  const palettes = {
+    sunny:     { body:'#f5e6d0', ear:'#f5c4c4', eye:'#3d2b1f', cheek:'#f0a0a0', sky:'#fff9e6', accent:'#f5a623', item:'☀️', itemBig:true },
+    hot:       { body:'#f5e6d0', ear:'#f5c4c4', eye:'#3d2b1f', cheek:'#f08080', sky:'#fff3cc', accent:'#ff6b35', item:'🕶️', itemBig:false },
+    partcloud: { body:'#f0e0cc', ear:'#f0b8b8', eye:'#3d2b1f', cheek:'#e8a0a0', sky:'#e8f0f8', accent:'#7eb8d4', item:'⛅', itemBig:true },
+    cloudy:    { body:'#e8d8c4', ear:'#e8b0b0', eye:'#3d2b1f', cheek:'#d8a0a0', sky:'#d8dce0', accent:'#8899aa', item:'☁️', itemBig:true },
+    fog:       { body:'#e0d8d0', ear:'#e0b0b0', eye:'#3d2b1f', cheek:'#c8a0a0', sky:'#d4d8dc', accent:'#9aa8b0', item:'🌫️', itemBig:false },
+    rain:      { body:'#dce8f0', ear:'#dcb8d0', eye:'#3d2b1f', cheek:'#c0a8c8', sky:'#b8ccd8', accent:'#4a90d9', item:'☂️', itemBig:false },
+    heavyrain: { body:'#ccdae8', ear:'#ccb0c8', eye:'#3d2b1f', cheek:'#a89ab8', sky:'#a0b8cc', accent:'#2060a0', item:'🌧️', itemBig:false },
+    snow:      { body:'#e8f0f8', ear:'#e0c8e0', eye:'#3d2b1f', cheek:'#c8b8d8', sky:'#d0e4f4', accent:'#80a8cc', item:'❄️', itemBig:true },
+    storm:     { body:'#d0d8e0', ear:'#d0a8b8', eye:'#2d1b0f', cheek:'#9888a8', sky:'#8090a0', accent:'#f5a623', item:'⚡', itemBig:true },
+    cold:      { body:'#dce8f4', ear:'#dcb8d0', eye:'#3d2b1f', cheek:'#b0c0d8', sky:'#c8dce8', accent:'#5080b0', item:'🧤', itemBig:false },
+  };
+  const p = palettes[variant] || palettes.sunny;
+
+  // Outfit layers per variant (clothes drawn as SVG paths on top of body)
+  const outfitLayers = {
+    sunny: `<rect x="38" y="88" width="44" height="38" rx="8" fill="#f5a623" opacity=".85"/>
+            <rect x="42" y="92" width="36" height="6" rx="3" fill="#e8901a" opacity=".7"/>
+            <rect x="38" y="88" width="10" height="38" rx="5" fill="#e8901a" opacity=".5"/>
+            <rect x="72" y="88" width="10" height="38" rx="5" fill="#e8901a" opacity=".5"/>`,
+    hot:   `<rect x="40" y="90" width="40" height="14" rx="5" fill="#ff6b35" opacity=".9"/>
+            <rect x="38" y="104" width="44" height="22" rx="4" fill="#4a90d9" opacity=".85"/>
+            <line x1="60" y1="104" x2="60" y2="126" stroke="#2060a0" stroke-width="2" opacity=".5"/>`,
+    partcloud:`<rect x="36" y="86" width="48" height="40" rx="8" fill="#7eb8d4" opacity=".8"/>
+               <rect x="36" y="86" width="48" height="14" rx="6" fill="#5aa0c0" opacity=".7"/>
+               <rect x="36" y="86" width="8" height="40" rx="5" fill="#5aa0c0" opacity=".5"/>
+               <rect x="76" y="86" width="8" height="40" rx="5" fill="#5aa0c0" opacity=".5"/>`,
+    cloudy: `<rect x="36" y="86" width="48" height="40" rx="8" fill="#8899aa" opacity=".85"/>
+             <rect x="36" y="86" width="48" height="14" rx="6" fill="#6677aa" opacity=".7"/>
+             <rect x="44" y="100" width="32" height="4" rx="2" fill="white" opacity=".2"/>`,
+    fog:   `<rect x="36" y="86" width="48" height="40" rx="8" fill="#9aa8b0" opacity=".8"/>
+            <rect x="30" y="90" width="8" height="32" rx="4" fill="#9aa8b0" opacity=".7"/>
+            <rect x="82" y="90" width="8" height="32" rx="4" fill="#9aa8b0" opacity=".7"/>
+            <rect x="44" y="118" width="32" height="8" rx="3" fill="#ccc" opacity=".4"/>`,
+    rain:  `<rect x="34" y="84" width="52" height="42" rx="10" fill="#4a90d9" opacity=".85"/>
+            <rect x="34" y="84" width="52" height="16" rx="8" fill="#2060a0" opacity=".8"/>
+            <path d="M34 92 Q60 98 86 92" stroke="white" stroke-width="1.5" fill="none" opacity=".3"/>
+            <rect x="34" y="84" width="8" height="42" rx="5" fill="#2060a0" opacity=".5"/>
+            <rect x="78" y="84" width="8" height="42" rx="5" fill="#2060a0" opacity=".5"/>`,
+    heavyrain:`<rect x="32" y="82" width="56" height="44" rx="10" fill="#2060a0" opacity=".9"/>
+               <rect x="32" y="82" width="56" height="18" rx="8" fill="#103060" opacity=".85"/>
+               <rect x="32" y="82" width="8" height="44" rx="5" fill="#103060" opacity=".5"/>
+               <rect x="80" y="82" width="8" height="44" rx="5" fill="#103060" opacity=".5"/>
+               <path d="M40 126 L36 138 M52 126 L48 138 M64 126 L60 138 M76 126 L72 138" stroke="#4a90d9" stroke-width="2" stroke-linecap="round" opacity=".8"/>`,
+    snow:  `<rect x="34" y="84" width="52" height="42" rx="10" fill="white" opacity=".9"/>
+            <rect x="34" y="84" width="52" height="16" rx="8" fill="#c8dce8" opacity=".85"/>
+            <rect x="34" y="84" width="8" height="42" rx="5" fill="#c8dce8" opacity=".6"/>
+            <rect x="78" y="84" width="8" height="42" rx="5" fill="#c8dce8" opacity=".6"/>
+            <rect x="38" y="120" width="44" height="14" rx="5" fill="#c8dce8" opacity=".7"/>
+            <rect x="44" y="100" width="32" height="5" rx="2" fill="#a0b8cc" opacity=".5"/>`,
+    storm: `<rect x="32" y="82" width="56" height="44" rx="10" fill="#404858" opacity=".95"/>
+            <rect x="32" y="82" width="56" height="18" rx="8" fill="#282e38" opacity=".9"/>
+            <rect x="32" y="82" width="8" height="44" rx="5" fill="#282e38" opacity=".6"/>
+            <rect x="80" y="82" width="8" height="44" rx="5" fill="#282e38" opacity=".6"/>
+            <path d="M56 100 L50 114 L58 114 L52 128" stroke="#f5a623" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
+    cold:  `<rect x="32" y="80" width="56" height="46" rx="10" fill="#5080b0" opacity=".9"/>
+            <rect x="32" y="80" width="56" height="18" rx="8" fill="#3060a0" opacity=".85"/>
+            <rect x="32" y="80" width="8" height="46" rx="5" fill="#3060a0" opacity=".6"/>
+            <rect x="80" y="80" width="8" height="46" rx="5" fill="#3060a0" opacity=".6"/>
+            <rect x="38" y="118" width="44" height="14" rx="5" fill="#3060a0" opacity=".7"/>
+            <path d="M26 88 Q20 96 26 104 Q20 112 26 120" stroke="#e8f0f8" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M94 88 Q100 96 94 104 Q100 112 94 120" stroke="#e8f0f8" stroke-width="3" stroke-linecap="round" fill="none"/>`,
+  };
+
+  const clothes = outfitLayers[variant] || outfitLayers.sunny;
+
+  // Background gradient
+  const bgMap = {
+    sunny:'#fff9e6,#ffe8a0', hot:'#fff3cc,#ffd080', partcloud:'#e8f0f8,#c8d8e8',
+    cloudy:'#d8dce0,#b8bcc0', fog:'#d4d8dc,#b8bcc0', rain:'#b8ccd8,#8898a8',
+    heavyrain:'#a0b8cc,#708090', snow:'#d0e4f4,#a8c8e0', storm:'#708090,#485060',
+    cold:'#c8dce8,#a0b8cc'
+  };
+  const [bg1, bg2] = (bgMap[variant]||'#f5f0e8,#e0d8cc').split(',');
+
+  // Accessories (item displayed above bunny)
+  const accessoryMap = {
+    sunny: `<text x="60" y="30" text-anchor="middle" font-size="22">☀️</text>`,
+    hot: `<text x="60" y="30" text-anchor="middle" font-size="20">🌡️</text>`,
+    partcloud: `<text x="60" y="30" text-anchor="middle" font-size="20">⛅</text>`,
+    cloudy: `<text x="60" y="30" text-anchor="middle" font-size="20">☁️</text>`,
+    fog: `<text x="60" y="30" text-anchor="middle" font-size="20">🌫️</text>`,
+    rain: `<text x="48" y="28" text-anchor="middle" font-size="26">☂️</text>
+           <line x1="48" y1="30" x2="48" y2="58" stroke="#4a90d9" stroke-width="1.5" opacity=".5"/>`,
+    heavyrain: `<text x="45" y="28" text-anchor="middle" font-size="26">☂️</text>
+                <line x1="45" y1="30" x2="45" y2="58" stroke="#4a90d9" stroke-width="1.5" opacity=".5"/>`,
+    snow: `<text x="60" y="32" text-anchor="middle" font-size="22">❄️</text>`,
+    storm: `<text x="60" y="30" text-anchor="middle" font-size="22">⚡</text>`,
+    cold: `<text x="60" y="30" text-anchor="middle" font-size="20">🧊</text>`,
+  };
+  const acc = accessoryMap[variant] || '';
+
+  return `<svg viewBox="0 0 120 165" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg-g" cx="50%" cy="60%" r="60%">
+      <stop offset="0%" stop-color="${bg1}"/>
+      <stop offset="100%" stop-color="${bg2}"/>
+    </radialGradient>
+    <radialGradient id="body-g" cx="45%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="${p.body}"/>
+      <stop offset="100%" stop-color="${p.body}CC"/>
+    </radialGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="60" cy="90" r="62" fill="url(#bg-g)" opacity=".6"/>
+
+  <!-- Accessory / weather item -->
+  ${acc}
+
+  <!-- Ears -->
+  <ellipse cx="42" cy="62" rx="10" ry="22" fill="${p.body}"/>
+  <ellipse cx="42" cy="62" rx="5" ry="16" fill="${p.ear}" opacity=".8"/>
+  <ellipse cx="78" cy="62" rx="10" ry="22" fill="${p.body}"/>
+  <ellipse cx="78" cy="62" rx="5" ry="16" fill="${p.ear}" opacity=".8"/>
+
+  <!-- Body -->
+  <ellipse cx="60" cy="110" rx="28" ry="34" fill="url(#body-g)"/>
+
+  <!-- Head -->
+  <circle cx="60" cy="82" r="24" fill="${p.body}"/>
+
+  <!-- Cheeks -->
+  <circle cx="49" cy="87" r="6" fill="${p.cheek}" opacity=".45"/>
+  <circle cx="71" cy="87" r="6" fill="${p.cheek}" opacity=".45"/>
+
+  <!-- Eyes -->
+  <circle cx="53" cy="80" r="3.5" fill="${p.eye}"/>
+  <circle cx="67" cy="80" r="3.5" fill="${p.eye}"/>
+  <circle cx="54.2" cy="79" r="1.2" fill="white"/>
+  <circle cx="68.2" cy="79" r="1.2" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="60" cy="87" rx="2.5" ry="1.8" fill="${p.ear}"/>
+  <!-- Mouth -->
+  <path d="M57 89.5 Q60 92 63 89.5" stroke="${p.eye}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Clothes layer -->
+  ${clothes}
+
+  <!-- Belly (white patch) -->
+  <ellipse cx="60" cy="112" rx="16" ry="20" fill="white" opacity=".25"/>
+
+  <!-- Paws -->
+  <ellipse cx="42" cy="130" rx="9" ry="6" fill="${p.body}" opacity=".9"/>
+  <ellipse cx="78" cy="130" rx="9" ry="6" fill="${p.body}" opacity=".9"/>
+
+  <!-- Feet -->
+  <ellipse cx="48" cy="148" rx="12" ry="7" fill="${p.body}"/>
+  <ellipse cx="72" cy="148" rx="12" ry="7" fill="${p.body}"/>
+
+  <!-- Tail -->
+  <circle cx="88" cy="118" r="8" fill="white" opacity=".8"/>
+</svg>`;
+}
+
+function updateBunny(key) {
+  const d = weatherData[key];
+  const panel = document.getElementById('weather-bunny-panel');
+  if (!panel) return;
+  const svgWrap = document.getElementById('bunny-svg-wrap');
+  const outfitEl = document.getElementById('bunny-outfit');
+  if (!svgWrap || !outfitEl) return;
+
+  if (!d) {
+    svgWrap.innerHTML = '<div style="font-size:40px;text-align:center;line-height:140px">🐰</div>';
+    outfitEl.textContent = '...';
+    return;
+  }
+  const temp = Math.round(d.current.temperature_2m);
+  const code = d.current.weathercode;
+  const { svg, outfit, label } = getBunnyData(code, temp);
+  svgWrap.innerHTML = svg;
+  outfitEl.innerHTML = outfit.replace('\n', '<br>');
 }
 
 // Init weather on load
