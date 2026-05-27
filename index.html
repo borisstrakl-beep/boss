@@ -3262,16 +3262,27 @@ function wmoDesc(code) {
 const DAY_SL = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
 const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
 
-async function fetchWeatherForLocation(loc) {
+async function fetchWeatherForLocation(loc, attempt) {
+  attempt = attempt || 1;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
+  const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}`
       + `&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m,is_day`
       + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max`
       + `&timezone=Europe%2FBerlin&forecast_days=11`;
     const res = await fetch(url, { signal: controller.signal });
-    return await res.json();
+    const data = await res.json();
+    if (!data || !data.current) throw new Error('bad data');
+    return data;
+  } catch(e) {
+    clearTimeout(timer);
+    // En ponovni poskus po 1 sekundi
+    if (attempt < 2) {
+      await new Promise(r => setTimeout(r, 1000));
+      return fetchWeatherForLocation(loc, 2);
+    }
+    throw e;
   } finally {
     clearTimeout(timer);
   }
@@ -3340,27 +3351,24 @@ async function initWeather() {
 function renderWeatherGrid() {
   const grid = document.getElementById('weather-grid');
   if (!grid) return;
-  grid.innerHTML = WEATHER_LOCATIONS.map((loc, i) => {
+  const items = grid.querySelectorAll('.weather-item');
+  WEATHER_LOCATIONS.forEach((loc, i) => {
     const d = weatherData[loc.key];
+    const el = items[i];
+    if (!el) return;
     if (!d) {
-      return '<div class="weather-item weather-init" onclick="showWeatherForecast(\'' + loc.key + '\')">'
-        + '<div class="w-city">' + loc.name + '</div>'
-        + '<div class="w-icon">❓</div>'
-        + '<div class="w-temp">--°</div>'
-        + '<div class="w-desc">Ni podatkov</div></div>';
+      // Ni podatkov — ohrani obstoječe stanje (ne brišemo ⏳)
+      return;
     }
     const c = d.current;
     const temp = Math.round(c.temperature_2m);
     const icon = wmoIcon(c.weathercode, c.is_day);
     const desc = wmoDesc(c.weathercode);
-    const isActive = i === 0 ? ' active' : '';
-    return '<div class="weather-item' + isActive + '" onclick="showWeatherForecast(\'' + loc.key + '\')">'
-      + '<div class="w-city">' + loc.name + '</div>'
-      + '<div class="w-icon">' + icon + '</div>'
-      + '<div class="w-temp">' + temp + '°</div>'
-      + '<div class="w-desc">' + desc + '</div>'
-      + '</div>';
-  }).join('');
+    el.classList.remove('weather-init');
+    el.querySelector('.w-icon').textContent = icon;
+    el.querySelector('.w-temp').textContent = temp + '°';
+    el.querySelector('.w-desc').textContent = desc;
+  });
 }
 
 function buildDayCol(daily, idx, label, isNight) {
@@ -3401,8 +3409,9 @@ function showWeatherForecast(key) {
 
   if (!d) {
     [todayEl, tomorrowEl, dayAfterEl, forecastEl].forEach(el => {
-      if (el) el.innerHTML = '<div style="font-family:var(--cond);font-size:11px;color:var(--text3)">Ni podatkov</div>';
+      if (el) el.innerHTML = '<div style="font-family:var(--cond);font-size:11px;color:var(--text3)">⏳ Nalagam...</div>';
     });
+    retryWeatherForKey(key);
     return;
   }
 
@@ -3460,6 +3469,31 @@ function showWeatherForecast(key) {
 }
 
 function openWeatherModal(key) { showWeatherForecast(key); }
+
+// Če klikneš na ploščico brez podatkov — poskusi znova fetchati
+function retryWeatherForKey(key) {
+  const loc = WEATHER_LOCATIONS.find(l => l.key === key);
+  if (!loc || weatherData[key]) return;
+  const el = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+  if (el) { el.querySelector('.w-icon').textContent = '⏳'; el.querySelector('.w-desc').textContent = 'Nalagam...'; }
+  fetchWeatherForLocation(loc)
+    .then(data => {
+      if (data && data.current) {
+        weatherData[key] = data;
+        const item = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+        if (item) {
+          item.classList.remove('weather-init');
+          item.querySelector('.w-icon').textContent = wmoIcon(data.current.weathercode, data.current.is_day);
+          item.querySelector('.w-temp').textContent = Math.round(data.current.temperature_2m) + '°';
+          item.querySelector('.w-desc').textContent = wmoDesc(data.current.weathercode);
+        }
+        showWeatherForecast(key);
+      }
+    }).catch(() => {
+      const item = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+      if (item) { item.querySelector('.w-icon').textContent = '❌'; item.querySelector('.w-desc').textContent = 'Napaka'; }
+    });
+}
 
 // Init weather on load
 initWeather();
