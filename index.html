@@ -868,26 +868,26 @@
 
   .w-temp {
     font-family: var(--mono);
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 700;
     color: var(--orange);
     line-height: 1;
   }
 
   .w-icon {
-    font-size: 22px;
+    font-size: 28px;
     display: block;
     line-height: 1;
   }
 
   .w-desc {
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text3);
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 104px;
   }
 
   /* NAVADE */
@@ -2341,26 +2341,28 @@
   /* ===== WEATHER BUNNY ===== */
   #weather-bunny-panel {
     width: 160px;
+    height: 370px;
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 10px 8px;
+    padding: 12px 8px;
     background: var(--bg3);
     flex-shrink: 0;
     overflow: hidden;
   }
   #bunny-svg-wrap {
-    width: 120px;
-    height: 140px;
+    width: 152px;
+    height: 285px;
     position: relative;
     flex-shrink: 0;
   }
   #bunny-svg-wrap svg {
     width: 100%;
     height: 100%;
+    display: block;
   }
   #bunny-label {
     font-family: var(--mono);
@@ -2434,7 +2436,7 @@
           <div id="bunny-label">VREMENSKI<br>ZAJČEK</div>
         </div>
         <!-- Mesta: 2x4 grid s fiksno višino vrstic -->
-        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,110px);grid-template-rows:repeat(2,104px);border-right:1px solid var(--border)">
+        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,110px);grid-template-rows:repeat(2,185px);border-right:1px solid var(--border)">
           <div class="weather-item weather-init" data-wkey="trbovlje" onclick="showWeatherForecast('trbovlje')"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ziri" onclick="showWeatherForecast('ziri')"><div class="w-city">ŽIRI</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ljubljana" onclick="showWeatherForecast('ljubljana')"><div class="w-city">LJUBLJANA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
@@ -2445,17 +2447,17 @@
           <div class="weather-item weather-init" data-wkey="current" onclick="showWeatherForecast('current')"><div class="w-city">TRENUTNO</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
         </div>
         <!-- Napoved desno -->
-        <div id="weather-forecast-panel" style="height:208px;overflow:hidden;display:grid;grid-template-columns:160px 160px 160px 1fr;gap:0">
-          <div id="weather-today-col" style="border-right:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;justify-content:center">
+        <div id="weather-forecast-panel" style="height:370px;overflow:hidden;display:grid;grid-template-columns:128px 128px 128px 1fr;gap:0">
+          <div id="weather-today-col" style="border-right:1px solid var(--border);padding:14px 14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
-          <div id="weather-tomorrow-col" style="border-right:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;justify-content:center">
+          <div id="weather-tomorrow-col" style="border-right:1px solid var(--border);padding:14px 14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
-          <div id="weather-dayafter-col" style="border-right:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;justify-content:center">
+          <div id="weather-dayafter-col" style="border-right:1px solid var(--border);padding:14px 14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
-          <div id="weather-forecast-content" style="padding:6px 10px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between">
+          <div id="weather-forecast-content" style="padding:8px 12px;overflow:hidden;display:flex;flex-direction:column">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
         </div>
@@ -3307,6 +3309,7 @@ function wmoDesc(code) {
 }
 
 const DAY_SL = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
+const DAY_SL_FULL = ['Nedelja','Ponedeljek','Torek','Sreda','Četrtek','Petek','Sobota'];
 const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
 
 async function fetchWeatherForLocation(loc, attempt) {
@@ -3412,25 +3415,44 @@ function renderWeatherGrid() {
 }
 
 function buildDayCol(daily, idx, label, isNight) {
-  const icon = wmoIcon(daily.weathercode[idx], isNight ? 0 : 1);
-  const tMax = Math.round(daily.temperature_2m_max[idx]);
-  const tMin = Math.round(daily.temperature_2m_min[idx]);
-  const precip = daily.precipitation_sum[idx];
-  const wind = Math.round(daily.windspeed_10m_max[idx]);
-  return '<div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">' + label + '</div>'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-    + '<div style="font-size:32px;line-height:1;flex-shrink:0">' + icon + '</div>'
-    + '<div>'
-    + '<div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--orange);line-height:1">' + tMax + '°</div>'
-    + '<div style="font-family:var(--cond);font-size:11px;color:var(--text2);margin-top:1px">' + wmoDesc(daily.weathercode[idx]) + '</div>'
-    + '</div></div>'
-    + '<div style="display:flex;flex-direction:column;gap:2px">'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">↑ ' + tMax + '° ↓ ' + tMin + '°</div>'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">💨 ' + wind + ' km/h</div>'
-    + (precip > 0.1 ? '<div style="font-family:var(--mono);font-size:10px;color:#3b82f6">🌧 ' + precip.toFixed(1) + ' mm</div>' : '')
+  const icon    = wmoIcon(daily.weathercode[idx], isNight ? 0 : 1);
+  const tMax    = Math.round(daily.temperature_2m_max[idx]);
+  const tMin    = Math.round(daily.temperature_2m_min[idx]);
+  const precip  = daily.precipitation_sum[idx];
+  const wind    = Math.round(daily.windspeed_10m_max[idx]);
+  const desc    = wmoDesc(daily.weathercode[idx]);
+  const date    = new Date(daily.time[idx]);
+  const dateStr  = date.getDate() + '. ' + MONTH_SL[date.getMonth()];
+  const dayFull  = DAY_SL_FULL[date.getDay()];
+  const FS = '12px';
+
+  const precipRow = precip > 0.1
+    ? '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">🌧</span>'
+      + '<span style="font-family:var(--mono);font-size:11px;color:#5ba3f5;font-weight:700">' + precip.toFixed(1) + ' mm</span></div>'
+    : '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">🌤</span>'
+      + '<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Brez padavin</span></div>';
+
+  return ''
+    + '<div style="flex-shrink:0;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px">'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';letter-spacing:.08em;color:var(--orange);font-weight:700;line-height:1.4;text-transform:uppercase">' + label + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';color:var(--text1);font-weight:700;line-height:1.4">' + dayFull + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';color:var(--text3);line-height:1.4">' + dateStr + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';line-height:1.4">'
+    +     '<span style="color:var(--orange);font-weight:700">↑' + tMax + '°</span>'
+    +     '<span style="color:var(--text3)"> ↓' + tMin + '°</span>'
+    +   '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;justify-content:center">'
+    +   '<div style="font-size:40px;line-height:1">' + icon + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--orange);line-height:1">' + tMax + '°</div>'
+    +   '<div style="font-family:var(--cond);font-size:11px;color:var(--text2);margin-top:2px">' + desc + '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;border-top:1px solid var(--border);padding-top:7px">'
+    +   '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">💨</span>'
+    +     '<span style="font-family:var(--mono);font-size:11px;color:var(--text2)">' + wind + ' km/h</span></div>'
+    +   precipRow
     + '</div>';
 }
-
 function showWeatherForecast(key) {
   document.querySelectorAll('#weather-grid .weather-item').forEach(el => {
     el.classList.toggle('active', el.dataset.wkey === key);
@@ -3461,51 +3483,71 @@ function showWeatherForecast(key) {
   const locName = loc ? loc.name : '';
 
   // TODAY — left column (current conditions)
-  todayEl.innerHTML =
-    '<div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">' + locName + ' · DANES</div>'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-    + '<div style="font-size:32px;line-height:1;flex-shrink:0">' + wmoIcon(c.weathercode, c.is_day) + '</div>'
-    + '<div>'
-    + '<div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--orange);line-height:1">' + Math.round(c.temperature_2m) + '°</div>'
-    + '<div style="font-family:var(--cond);font-size:11px;color:var(--text2);margin-top:1px">' + wmoDesc(c.weathercode) + '</div>'
-    + '</div></div>'
-    + '<div style="display:flex;flex-direction:column;gap:2px">'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">↑ ' + Math.round(daily.temperature_2m_max[0]) + '° ↓ ' + Math.round(daily.temperature_2m_min[0]) + '°</div>'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">💨 ' + Math.round(c.windspeed_10m) + ' km/h</div>'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">💧 ' + c.relativehumidity_2m + '%</div>'
-    + (daily.precipitation_sum[0] > 0.1 ? '<div style="font-family:var(--mono);font-size:10px;color:#3b82f6">🌧 ' + daily.precipitation_sum[0].toFixed(1) + ' mm</div>' : '')
+  const todayDate    = new Date(daily.time[0]);
+  const todayDateStr = todayDate.getDate() + '. ' + MONTH_SL[todayDate.getMonth()];
+  const todayDayFull = DAY_SL_FULL[todayDate.getDay()];
+  const todayPrecip  = daily.precipitation_sum[0] > 0.1
+    ? '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">🌧</span><span style="font-family:var(--mono);font-size:11px;color:#5ba3f5;font-weight:700">' + daily.precipitation_sum[0].toFixed(1) + ' mm</span></div>'
+    : '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">🌤</span><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Brez padavin</span></div>';
+  const FS = '12px';
+  todayEl.innerHTML = ''
+    + '<div style="flex-shrink:0;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px">'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';letter-spacing:.08em;color:var(--orange);font-weight:700;line-height:1.4;text-transform:uppercase">DANES</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';color:var(--text1);font-weight:700;line-height:1.4">' + todayDayFull + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';color:var(--text3);line-height:1.4">' + todayDateStr + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:' + FS + ';line-height:1.4">'
+    +     '<span style="color:var(--orange);font-weight:700">↑' + Math.round(daily.temperature_2m_max[0]) + '°</span>'
+    +     '<span style="color:var(--text3)"> ↓' + Math.round(daily.temperature_2m_min[0]) + '°</span>'
+    +   '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;justify-content:center">'
+    +   '<div style="font-size:40px;line-height:1">' + wmoIcon(c.weathercode, c.is_day) + '</div>'
+    +   '<div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--orange);line-height:1">' + Math.round(c.temperature_2m) + '°</div>'
+    +   '<div style="font-family:var(--cond);font-size:11px;color:var(--text2);margin-top:2px">' + wmoDesc(c.weathercode) + '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;border-top:1px solid var(--border);padding-top:7px">'
+    +   '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">💨</span>'
+    +     '<span style="font-family:var(--mono);font-size:11px;color:var(--text2)">' + Math.round(c.windspeed_10m) + ' km/h</span></div>'
+    +   '<div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">💧</span>'
+    +     '<span style="font-family:var(--mono);font-size:11px;color:var(--text2)">' + c.relativehumidity_2m + '%</span></div>'
+    +   todayPrecip
     + '</div>';
-
   // TOMORROW
   if (tomorrowEl) tomorrowEl.innerHTML = buildDayCol(daily, 1, 'JUTRI', false);
 
   // DAY AFTER
   if (dayAfterEl) dayAfterEl.innerHTML = buildDayCol(daily, 2, 'POJUTRIŠNJEM', false);
 
-  // 7-DAY FORECAST (days 3-9, skipping today/tomorrow/day-after)
-  let fHtml = '';
+  // 7-DAY FORECAST — dan, datum, ikona, max/min temp
+  const fHeight = 370 - 16; // panel height minus padding
+  const rowH = Math.floor(fHeight / 7);
+  let fHtml = '<div style="display:flex;flex-direction:column;height:100%">';
   daily.time.slice(3, 10).forEach((dateStr, i) => {
     const di = i + 3;
     const date = new Date(dateStr);
     const dayName = DAY_SL[date.getDay()];
-    const dayNum = date.getDate() + '. ' + MONTH_SL[date.getMonth()];
-    const icon = wmoIcon(daily.weathercode[di], 1);
-    const tMax = Math.round(daily.temperature_2m_max[di]);
-    const tMin = Math.round(daily.temperature_2m_min[di]);
-    const precip = daily.precipitation_sum[di];
-    const isLast = i === 6;
-    fHtml += '<div style="display:flex;align-items:center;gap:6px;height:26px;flex-shrink:0;'
+    const dayNum  = date.getDate() + '. ' + MONTH_SL[date.getMonth()];
+    const icon    = wmoIcon(daily.weathercode[di], 1);
+    const tMax    = Math.round(daily.temperature_2m_max[di]);
+    const tMin    = Math.round(daily.temperature_2m_min[di]);
+    const isLast  = (i === 6);
+    fHtml += '<div style="display:flex;align-items:center;flex:1;min-height:0;gap:0;padding:0 4px;'
       + (isLast ? '' : 'border-bottom:1px solid var(--border);') + '">'
-      + '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text2);width:26px;flex-shrink:0">' + dayName + '</div>'
-      + '<div style="font-family:var(--cond);font-size:9px;color:var(--text3);width:44px;flex-shrink:0">' + dayNum + '</div>'
-      + '<div style="font-size:13px;flex-shrink:0">' + icon + '</div>'
-      + '<div style="font-family:var(--cond);font-size:11px;color:var(--text3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + wmoDesc(daily.weathercode[di]) + '</div>'
-      + (precip > 0.1 ? '<div style="font-family:var(--mono);font-size:9px;color:#3b82f6;flex-shrink:0">' + precip.toFixed(1) + 'mm</div>' : '')
-      + '<div style="font-family:var(--mono);font-size:10px;flex-shrink:0">'
-      + '<span style="color:var(--orange)">' + tMax + '°</span>'
-      + '<span style="color:var(--text3)"> /' + tMin + '°</span>'
-      + '</div></div>';
+      // Dan — bold, fiksna širina
+      + '<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text1);width:32px;flex-shrink:0">' + dayName + '</div>'
+      // Datum — manjši, subtilen
+      + '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:46px;flex-shrink:0">' + dayNum + '</div>'
+      // Ikona — večja
+      + '<div style="font-size:20px;width:32px;text-align:center;flex-shrink:0;line-height:1">' + icon + '</div>'
+      // Spacer
+      + '<div style="flex:1"></div>'
+      // Max temp — oranžna, poudarjena
+      + '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--orange);text-align:right;width:36px;flex-shrink:0">' + tMax + '°</div>'
+      // Min temp — siva
+      + '<div style="font-family:var(--mono);font-size:12px;color:var(--text3);text-align:right;width:32px;flex-shrink:0">/' + tMin + '°</div>'
+      + '</div>';
   });
+  fHtml += '</div>';
   forecastEl.innerHTML = fHtml;
 }
 
@@ -3540,188 +3582,485 @@ function retryWeatherForKey(key) {
 
 // ===== WEATHER BUNNY =====
 function getBunnyData(code, temp) {
-  // Returns {svgInner, outfit, bg, label}
-  // Variants: sunny, partcloud, cloudy, fog, rain, heavyrain, snow, storm, cold, hot
   let variant, outfit, label;
-  if (code <= 1) {
-    if (temp >= 28) { variant = 'hot'; outfit = 'Kratke hlače\n& majica'; label = 'Vroče & jasno'; }
-    else if (temp <= 5) { variant = 'cold'; outfit = 'Debela jakna\n& rokavice'; label = 'Mrzlo & jasno'; }
-    else { variant = 'sunny'; outfit = 'Lahka obleka\n& sončna očala'; label = 'Jasno & sončno'; }
-  } else if (code <= 2) {
-    variant = 'partcloud'; outfit = 'Majica\n& lahka jopica'; label = 'Delno oblačno';
-  } else if (code === 3) {
-    variant = 'cloudy'; outfit = 'Jopica\n& dolge hlače'; label = 'Oblačno';
-  } else if (code <= 49) {
-    variant = 'fog'; outfit = 'Jakna\n& šal'; label = 'Megla';
-  } else if (code <= 67) {
-    if (code >= 61) { variant = 'heavyrain'; outfit = 'Dežnik & plašč\n& škornji'; label = 'Dež'; }
-    else { variant = 'rain'; outfit = 'Dežnik\n& vodoodporna jopica'; label = 'Rosenje'; }
-  } else if (code <= 77) {
-    variant = 'snow'; outfit = 'Zimska jakna\n& šal & rokavice'; label = 'Sneg';
-  } else if (code <= 82) {
-    variant = 'heavyrain'; outfit = 'Dežnik & plašč\n& škornji'; label = 'Plohe';
-  } else if (code <= 86) {
-    variant = 'snow'; outfit = 'Zimska jakna\n& šal & rokavice'; label = 'Snežne plohe';
-  } else {
-    variant = 'storm'; outfit = 'Ostani doma!\nNevihtni plašč'; label = 'Nevihta';
-  }
+  if      (code >= 95)             { variant='storm';     outfit='Nevihtna jakna'; label='Nevihta'; }
+  else if (code >= 71 && code<=77) { variant='snow';      outfit='Zimska jakna + šal'; label='Sneg'; }
+  else if (code >= 80 && code<=86) { variant=temp<5?'snow':'heavyrain'; outfit=temp<5?'Zimska jakna + šal':'Dežna jakna + škornji'; label='Plohe'; }
+  else if (code >= 63)             { variant='heavyrain'; outfit='Dežna jakna + škornji'; label='Močan dež'; }
+  else if (code >= 51)             { variant='rain';      outfit='Dežna jakna + dežnik'; label='Dež'; }
+  else if (code >= 45)             { variant='fog';       outfit='Plašč + šal'; label='Megla'; }
+  else if (temp <  0)              { variant='cold';      outfit='Zimska bunda + šal'; label='Zmrzuje'; }
+  else if (temp <  8)              { variant='snow';      outfit='Debela jakna + šal'; label='Mrzlo'; }
+  else if (temp < 15)              { variant='cloudy';    outfit='Hoodie + hlače'; label='Sveže'; }
+  else if (temp < 22)              { variant='partcloud'; outfit='Jopa + kavbojke'; label='Prijetno'; }
+  else if (temp < 28)              { variant='sunny';     outfit='Srajca + šorc'; label='Sončno'; }
+  else                             { variant='hot';       outfit='Brezrokavnik + šorc'; label='Vroče!'; }
   return { svg: drawBunny(variant, temp), outfit, label };
 }
 
 function drawBunny(variant, temp) {
-  // Color palettes per variant
-  const palettes = {
-    sunny:     { body:'#f5e6d0', ear:'#f5c4c4', eye:'#3d2b1f', cheek:'#f0a0a0', sky:'#fff9e6', accent:'#f5a623', item:'☀️', itemBig:true },
-    hot:       { body:'#f5e6d0', ear:'#f5c4c4', eye:'#3d2b1f', cheek:'#f08080', sky:'#fff3cc', accent:'#ff6b35', item:'🕶️', itemBig:false },
-    partcloud: { body:'#f0e0cc', ear:'#f0b8b8', eye:'#3d2b1f', cheek:'#e8a0a0', sky:'#e8f0f8', accent:'#7eb8d4', item:'⛅', itemBig:true },
-    cloudy:    { body:'#e8d8c4', ear:'#e8b0b0', eye:'#3d2b1f', cheek:'#d8a0a0', sky:'#d8dce0', accent:'#8899aa', item:'☁️', itemBig:true },
-    fog:       { body:'#e0d8d0', ear:'#e0b0b0', eye:'#3d2b1f', cheek:'#c8a0a0', sky:'#d4d8dc', accent:'#9aa8b0', item:'🌫️', itemBig:false },
-    rain:      { body:'#dce8f0', ear:'#dcb8d0', eye:'#3d2b1f', cheek:'#c0a8c8', sky:'#b8ccd8', accent:'#4a90d9', item:'☂️', itemBig:false },
-    heavyrain: { body:'#ccdae8', ear:'#ccb0c8', eye:'#3d2b1f', cheek:'#a89ab8', sky:'#a0b8cc', accent:'#2060a0', item:'🌧️', itemBig:false },
-    snow:      { body:'#e8f0f8', ear:'#e0c8e0', eye:'#3d2b1f', cheek:'#c8b8d8', sky:'#d0e4f4', accent:'#80a8cc', item:'❄️', itemBig:true },
-    storm:     { body:'#d0d8e0', ear:'#d0a8b8', eye:'#2d1b0f', cheek:'#9888a8', sky:'#8090a0', accent:'#f5a623', item:'⚡', itemBig:true },
-    cold:      { body:'#dce8f4', ear:'#dcb8d0', eye:'#3d2b1f', cheek:'#b0c0d8', sky:'#c8dce8', accent:'#5080b0', item:'🧤', itemBig:false },
+  // Pristop: krepka črna kontura (stroke=3), fill bež/krem ozadje kože
+  // Identično referenčni sliki WeatherBunny
+  // ViewBox="0 0 120 210", zajček center cx=60
+
+  const bgGlow = {
+    sunny:'#fff8e0', hot:'#fff0cc', partcloud:'#e8f2f8',
+    cloudy:'#d8dce4', fog:'#d0d4dc', rain:'#b8ccd8',
+    heavyrain:'#98b4cc', snow:'#d0e4f4', storm:'#606070', cold:'#b8d0e8'
   };
-  const p = palettes[variant] || palettes.sunny;
+  const glow = bgGlow[variant] || '#f0ece8';
 
-  // Outfit layers per variant (clothes drawn as SVG paths on top of body)
-  const outfitLayers = {
-    sunny: `<rect x="38" y="88" width="44" height="38" rx="8" fill="#f5a623" opacity=".85"/>
-            <rect x="42" y="92" width="36" height="6" rx="3" fill="#e8901a" opacity=".7"/>
-            <rect x="38" y="88" width="10" height="38" rx="5" fill="#e8901a" opacity=".5"/>
-            <rect x="72" y="88" width="10" height="38" rx="5" fill="#e8901a" opacity=".5"/>`,
-    hot:   `<rect x="40" y="90" width="40" height="14" rx="5" fill="#ff6b35" opacity=".9"/>
-            <rect x="38" y="104" width="44" height="22" rx="4" fill="#4a90d9" opacity=".85"/>
-            <line x1="60" y1="104" x2="60" y2="126" stroke="#2060a0" stroke-width="2" opacity=".5"/>`,
-    partcloud:`<rect x="36" y="86" width="48" height="40" rx="8" fill="#7eb8d4" opacity=".8"/>
-               <rect x="36" y="86" width="48" height="14" rx="6" fill="#5aa0c0" opacity=".7"/>
-               <rect x="36" y="86" width="8" height="40" rx="5" fill="#5aa0c0" opacity=".5"/>
-               <rect x="76" y="86" width="8" height="40" rx="5" fill="#5aa0c0" opacity=".5"/>`,
-    cloudy: `<rect x="36" y="86" width="48" height="40" rx="8" fill="#8899aa" opacity=".85"/>
-             <rect x="36" y="86" width="48" height="14" rx="6" fill="#6677aa" opacity=".7"/>
-             <rect x="44" y="100" width="32" height="4" rx="2" fill="white" opacity=".2"/>`,
-    fog:   `<rect x="36" y="86" width="48" height="40" rx="8" fill="#9aa8b0" opacity=".8"/>
-            <rect x="30" y="90" width="8" height="32" rx="4" fill="#9aa8b0" opacity=".7"/>
-            <rect x="82" y="90" width="8" height="32" rx="4" fill="#9aa8b0" opacity=".7"/>
-            <rect x="44" y="118" width="32" height="8" rx="3" fill="#ccc" opacity=".4"/>`,
-    rain:  `<rect x="34" y="84" width="52" height="42" rx="10" fill="#4a90d9" opacity=".85"/>
-            <rect x="34" y="84" width="52" height="16" rx="8" fill="#2060a0" opacity=".8"/>
-            <path d="M34 92 Q60 98 86 92" stroke="white" stroke-width="1.5" fill="none" opacity=".3"/>
-            <rect x="34" y="84" width="8" height="42" rx="5" fill="#2060a0" opacity=".5"/>
-            <rect x="78" y="84" width="8" height="42" rx="5" fill="#2060a0" opacity=".5"/>`,
-    heavyrain:`<rect x="32" y="82" width="56" height="44" rx="10" fill="#2060a0" opacity=".9"/>
-               <rect x="32" y="82" width="56" height="18" rx="8" fill="#103060" opacity=".85"/>
-               <rect x="32" y="82" width="8" height="44" rx="5" fill="#103060" opacity=".5"/>
-               <rect x="80" y="82" width="8" height="44" rx="5" fill="#103060" opacity=".5"/>
-               <path d="M40 126 L36 138 M52 126 L48 138 M64 126 L60 138 M76 126 L72 138" stroke="#4a90d9" stroke-width="2" stroke-linecap="round" opacity=".8"/>`,
-    snow:  `<rect x="34" y="84" width="52" height="42" rx="10" fill="white" opacity=".9"/>
-            <rect x="34" y="84" width="52" height="16" rx="8" fill="#c8dce8" opacity=".85"/>
-            <rect x="34" y="84" width="8" height="42" rx="5" fill="#c8dce8" opacity=".6"/>
-            <rect x="78" y="84" width="8" height="42" rx="5" fill="#c8dce8" opacity=".6"/>
-            <rect x="38" y="120" width="44" height="14" rx="5" fill="#c8dce8" opacity=".7"/>
-            <rect x="44" y="100" width="32" height="5" rx="2" fill="#a0b8cc" opacity=".5"/>`,
-    storm: `<rect x="32" y="82" width="56" height="44" rx="10" fill="#404858" opacity=".95"/>
-            <rect x="32" y="82" width="56" height="18" rx="8" fill="#282e38" opacity=".9"/>
-            <rect x="32" y="82" width="8" height="44" rx="5" fill="#282e38" opacity=".6"/>
-            <rect x="80" y="82" width="8" height="44" rx="5" fill="#282e38" opacity=".6"/>
-            <path d="M56 100 L50 114 L58 114 L52 128" stroke="#f5a623" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
-    cold:  `<rect x="32" y="80" width="56" height="46" rx="10" fill="#5080b0" opacity=".9"/>
-            <rect x="32" y="80" width="56" height="18" rx="8" fill="#3060a0" opacity=".85"/>
-            <rect x="32" y="80" width="8" height="46" rx="5" fill="#3060a0" opacity=".6"/>
-            <rect x="80" y="80" width="8" height="46" rx="5" fill="#3060a0" opacity=".6"/>
-            <rect x="38" y="118" width="44" height="14" rx="5" fill="#3060a0" opacity=".7"/>
-            <path d="M26 88 Q20 96 26 104 Q20 112 26 120" stroke="#e8f0f8" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <path d="M94 88 Q100 96 94 104 Q100 112 94 120" stroke="#e8f0f8" stroke-width="3" stroke-linecap="round" fill="none"/>`,
+  // Barve oblačil
+  const colors = {
+    sunny:     { shirt:'#f5c842', shorts:'#4a90d9', shoe:'#d4956a' },
+    hot:       { shirt:'#f5f5f5', shorts:'#87ceeb', shoe:'#d4956a' },
+    partcloud: { shirt:'#4a8c5c', shorts:'#4a8c5c', shoe:'#5c4033' },
+    cloudy:    { shirt:'#6b7fa8', shorts:'#3d4f6b', shoe:'#3d2f28' },
+    fog:       { shirt:'#c8b898', shorts:'#8a7a60', shoe:'#5c4033' },
+    rain:      { shirt:'#e8940a', shorts:'#1a1a1a', shoe:'#1a1a1a' },
+    heavyrain: { shirt:'#2a5298', shorts:'#1a1a1a', shoe:'#1a1a1a' },
+    snow:      { shirt:'#f0f4f8', shorts:'#f0f4f8', shoe:'#4a6fa5' },
+    storm:     { shirt:'#2a2a3a', shorts:'#1a1a2a', shoe:'#1a1a1a' },
+    cold:      { shirt:'#3a6fa5', shorts:'#3a6fa5', shoe:'#1a3a5a' },
+  };
+  const c = colors[variant] || colors.sunny;
+  const sk  = '#f0dfc0'; // koža
+  const skd = '#e0c8a0'; // koža temnejša
+  const lw  = 2.8;       // line width konture
+
+  // ── SKUPNI DELI ─────────────────────────────────────────────
+
+  // Ušesa — dolgi, rahlo nagnjena
+  const ears = `
+    <ellipse cx="43" cy="36" rx="10" ry="26" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="43" cy="36" rx="5"  ry="19" fill="#f0b8c0" stroke="none"/>
+    <ellipse cx="77" cy="34" rx="10" ry="26" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="77" cy="34" rx="5"  ry="19" fill="#f0b8c0" stroke="none"/>`;
+
+  // Glava
+  const headBase = `
+    <circle cx="60" cy="80" r="26" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+
+  // Obraz — oči, nos, usta, lički
+  const faceNormal = `
+    <circle cx="52" cy="77" r="4.5" fill="#1a1a1a"/>
+    <circle cx="68" cy="77" r="4.5" fill="#1a1a1a"/>
+    <circle cx="53.5" cy="75.5" r="1.5" fill="white"/>
+    <circle cx="69.5" cy="75.5" r="1.5" fill="white"/>
+    <ellipse cx="60" cy="85" rx="3" ry="2" fill="#e08090"/>
+    <path d="M54 88.5 Q60 94 66 88.5" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="48" cy="85" r="6" fill="#f09090" opacity=".28"/>
+    <circle cx="72" cy="85" r="6" fill="#f09090" opacity=".28"/>`;
+
+  const faceHappy = `
+    <circle cx="52" cy="76" r="4.5" fill="#1a1a1a"/>
+    <circle cx="68" cy="76" r="4.5" fill="#1a1a1a"/>
+    <circle cx="53.5" cy="74.5" r="1.5" fill="white"/>
+    <circle cx="69.5" cy="74.5" r="1.5" fill="white"/>
+    <ellipse cx="60" cy="84" rx="3" ry="2" fill="#e08090"/>
+    <path d="M52 88 Q60 96 68 88" stroke="#1a1a1a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <circle cx="48" cy="84" r="6" fill="#f09090" opacity=".3"/>
+    <circle cx="72" cy="84" r="6" fill="#f09090" opacity=".3"/>`;
+
+  const faceScared = `
+    <circle cx="52" cy="75" r="5.5" fill="#1a1a1a"/>
+    <circle cx="68" cy="75" r="5.5" fill="#1a1a1a"/>
+    <circle cx="53.5" cy="73.5" r="1.8" fill="white"/>
+    <circle cx="69.5" cy="73.5" r="1.8" fill="white"/>
+    <path d="M46 68 Q52 64 58 68" stroke="#1a1a1a" stroke-width="2.2" fill="none"/>
+    <path d="M62 68 Q68 64 74 68" stroke="#1a1a1a" stroke-width="2.2" fill="none"/>
+    <ellipse cx="60" cy="84" rx="3" ry="2.2" fill="#e08090"/>
+    <ellipse cx="60" cy="91" rx="5" ry="4.5" fill="#1a1a1a"/>
+    <ellipse cx="60" cy="91" rx="3.5" ry="3" fill="#c03030"/>`;
+
+  const faceCold = `
+    <path d="M47 75 Q52 71 57 75" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M63 75 Q68 71 73 75" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="60" cy="84" rx="3" ry="2" fill="#b0c0e0"/>
+    <path d="M53 87 Q57 91 60 88 Q63 91 67 87" stroke="#8090c0" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="48" cy="83" r="5" fill="#a0b8d8" opacity=".3"/>
+    <circle cx="72" cy="83" r="5" fill="#a0b8d8" opacity=".3"/>`;
+
+  const faceSquint = `
+    <path d="M47 76 Q52 72 57 76" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M63 76 Q68 72 73 76" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="60" cy="84" rx="3" ry="2" fill="#e08090"/>
+    <path d="M54 88 Q60 93 66 88" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="48" cy="84" r="6" fill="#f09090" opacity=".25"/>
+    <circle cx="72" cy="84" r="6" fill="#f09090" opacity=".25"/>
+    <path d="M36 62 Q38 68 36 74" stroke="#87ceeb" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/>`;
+
+  // Telo (osnova)
+  const bodyBase = `
+    <ellipse cx="60" cy="140" rx="26" ry="38" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+
+  // Roke/šape
+  function arms(col, angle) {
+    const c2 = col || sk;
+    return `
+    <ellipse cx="28" cy="132" rx="12" ry="9" fill="${c2}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-15,28,132)"/>
+    <ellipse cx="92" cy="132" rx="12" ry="9" fill="${c2}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(15,92,132)"/>`;
+  }
+
+  // Noge in čevlji
+  function legs(shoeCol) {
+    const s = shoeCol || '#5c4033';
+    return `
+    <rect x="44" y="170" width="14" height="22" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <rect x="62" y="170" width="14" height="22" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="49" cy="194" rx="16" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="71" cy="194" rx="16" ry="9" fill="${s}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+  }
+
+  // Škornji (dežni/zimski)
+  function boots(col) {
+    const b = col || '#1a1a1a';
+    return `
+    <rect x="42" y="162" width="17" height="30" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <rect x="61" y="162" width="17" height="30" rx="6" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="50.5" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>
+    <ellipse cx="69.5" cy="192" rx="17" ry="9" fill="${b}" stroke="#1a1a1a" stroke-width="${lw}"/>`;
+  }
+
+  // Rep (majhen oval zadaj desno)
+  const tail = `<ellipse cx="84" cy="152" rx="9" ry="7" fill="white" stroke="#1a1a1a" stroke-width="2"/>`;
+
+  // ── VARIANTE ────────────────────────────────────────────────
+
+  const variants = {
+
+    // ☀️ SONČNO — rumena havajska srajca, modri šorc, sončna očala, natikači
+    sunny: `
+      ${ears}
+      ${bodyBase}
+      <!-- Rumena srajca na telesu -->
+      <ellipse cx="60" cy="136" rx="25" ry="34" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- V ovratnik -->
+      <path d="M53 106 L60 118 L67 106" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Cvetlice -->
+      <circle cx="50" cy="124" r="5" fill="#ff6888" stroke="#1a1a1a" stroke-width="1.5"/>
+      <circle cx="50" cy="124" r="2" fill="white"/>
+      <circle cx="70" cy="128" r="4.5" fill="#ff6888" stroke="#1a1a1a" stroke-width="1.5"/>
+      <circle cx="70" cy="128" r="1.8" fill="white"/>
+      <circle cx="52" cy="142" r="4" fill="#ffe040" stroke="#1a1a1a" stroke-width="1.5"/>
+      <!-- Modri šorc -->
+      <rect x="36" y="152" width="48" height="22" rx="8" fill="${c.shorts}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <line x1="60" y1="152" x2="60" y2="174" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Roke (rumena srajca) -->
+      <ellipse cx="28" cy="134" rx="13" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-15,28,134)"/>
+      <ellipse cx="92" cy="134" rx="13" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(15,92,134)"/>
+      ${tail}
+      ${headBase}
+      <!-- Sončna očala -->
+      <rect x="38" y="73" width="16" height="11" rx="5.5" fill="#1a1a1a"/>
+      <rect x="66" y="73" width="16" height="11" rx="5.5" fill="#1a1a1a"/>
+      <line x1="54" y1="78.5" x2="66" y2="78.5" stroke="#1a1a1a" stroke-width="2.5"/>
+      <line x1="38" y1="78.5" x2="32" y2="77" stroke="#1a1a1a" stroke-width="2.5"/>
+      <line x1="82" y1="78.5" x2="88" y2="77" stroke="#1a1a1a" stroke-width="2.5"/>
+      <rect x="39" y="74" width="14" height="9" rx="4.5" fill="#1a1a1a" opacity=".85"/>
+      <rect x="67" y="74" width="14" height="9" rx="4.5" fill="#1a1a1a" opacity=".85"/>
+      ${faceHappy}
+      <!-- Natikači -->
+      <ellipse cx="49" cy="196" rx="17" ry="9" fill="${c.shoe}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <ellipse cx="71" cy="196" rx="17" ry="9" fill="${c.shoe}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <rect x="44" y="170" width="12" height="24" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <rect x="63" y="170" width="12" height="24" rx="4" fill="${sk}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <line x1="49" y1="188" x2="49" y2="196" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="71" y1="188" x2="71" y2="196" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>`,
+
+    // 🌡️ VROČE — bela majica, svetle kratke hlače, sandali
+    hot: `
+      ${ears}
+      ${bodyBase}
+      <!-- Bela kratka majica -->
+      <ellipse cx="60" cy="132" rx="24" ry="28" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Ovratnik okrogel -->
+      <ellipse cx="60" cy="106" rx="10" ry="5" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Svetle kratke hlače -->
+      <rect x="37" y="152" width="46" height="20" rx="7" fill="${c.shorts}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <line x1="60" y1="152" x2="60" y2="172" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Roke (majica bela) -->
+      <ellipse cx="28" cy="130" rx="13" ry="9" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-10,28,130)"/>
+      <ellipse cx="92" cy="130" rx="13" ry="9" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(10,92,130)"/>
+      ${tail}
+      ${headBase}
+      ${faceSquint}
+      <!-- Potna kaplja -->
+      <path d="M38 54 Q35 63 39 63 Q44 63 43 54 Q41 48 38 54Z" fill="#87ceeb" stroke="#1a1a1a" stroke-width="1.5"/>
+      ${legs(c.shoe)}`,
+
+    // ⛅ DELNO OBLAČNO — zelena jopa + kavbojke
+    partcloud: `
+      ${ears}
+      ${bodyBase}
+      <!-- Zelena jopa -->
+      <ellipse cx="60" cy="136" rx="26" ry="36" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca (oval) -->
+      <ellipse cx="60" cy="100" rx="20" ry="11" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Oranžen šal -->
+      <ellipse cx="60" cy="110" rx="18" ry="8" fill="#e8940a" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Žep -->
+      <rect x="47" y="140" width="26" height="16" rx="5" fill="#3a7a4a" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Kavbojke -->
+      <rect x="37" y="156" width="46" height="22" rx="8" fill="#3a5888" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <line x1="60" y1="156" x2="60" y2="178" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Roke (jopa) -->
+      <ellipse cx="26" cy="132" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-12,26,132)"/>
+      <ellipse cx="94" cy="132" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(12,94,132)"/>
+      ${tail}
+      ${headBase}
+      ${faceNormal}
+      ${legs('#5c4033')}`,
+
+    // ☁️ OBLAČNO — siv hoodie
+    cloudy: `
+      ${ears}
+      ${bodyBase}
+      <!-- Siv hoodie -->
+      <ellipse cx="60" cy="136" rx="27" ry="37" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca -->
+      <ellipse cx="60" cy="100" rx="22" ry="13" fill="#5a6e90" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Žep kenguru -->
+      <path d="M42 138 Q60 134 78 138 L78 156 Q60 160 42 156 Z" fill="#5a6e90" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Rebrast spodnji rob -->
+      <path d="M34 170 Q60 175 86 170" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>
+      <!-- Hlače -->
+      <rect x="37" y="168" width="46" height="20" rx="7" fill="${c.shorts}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <line x1="60" y1="168" x2="60" y2="188" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Roke (hoodie) -->
+      <ellipse cx="25" cy="134" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-15,25,134)"/>
+      <ellipse cx="95" cy="134" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(15,95,134)"/>
+      ${tail}
+      ${headBase}
+      ${faceNormal}
+      ${legs('#3d2f28')}`,
+
+    // 🌫️ MEGLA — bež plašč, šal, zbegan izraz
+    fog: `
+      ${ears}
+      ${bodyBase}
+      <!-- Bež plašč -->
+      <ellipse cx="60" cy="136" rx="28" ry="38" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Lapel / ovratnik -->
+      <path d="M50 104 L56 122 L60 116 L64 122 L70 104" fill="#b0a078" stroke="#1a1a1a" stroke-width="2.2"/>
+      <!-- Pas -->
+      <rect x="34" y="148" width="52" height="8" rx="4" fill="#a09070" stroke="#1a1a1a" stroke-width="2"/>
+      <rect x="54" y="144" width="12" height="16" rx="3" fill="#888050" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Gumbi -->
+      <circle cx="60" cy="134" r="3" fill="#908060" stroke="#1a1a1a" stroke-width="1.5"/>
+      <circle cx="60" cy="142" r="3" fill="#908060" stroke="#1a1a1a" stroke-width="1.5"/>
+      <!-- Hlače -->
+      <rect x="37" y="168" width="46" height="18" rx="6" fill="${c.shorts}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Roke (plašč) -->
+      <ellipse cx="24" cy="134" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-18,24,134)"/>
+      <ellipse cx="96" cy="134" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(18,96,134)"/>
+      ${tail}
+      ${headBase}
+      <!-- Zbegan izraz — × oči -->
+      <path d="M46 73 L52 79 M52 73 L46 79" stroke="#1a1a1a" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M68 73 L74 79 M74 73 L68 79" stroke="#1a1a1a" stroke-width="2.8" stroke-linecap="round"/>
+      <ellipse cx="60" cy="86" rx="3" ry="2" fill="#e08090"/>
+      <path d="M53 90 Q60 88 67 90" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+      <circle cx="48" cy="84" r="5" fill="#f09090" opacity=".25"/>
+      <circle cx="72" cy="84" r="5" fill="#f09090" opacity=".25"/>
+      <!-- ? na čelu -->
+      <text x="60" y="57" text-anchor="middle" font-size="16" fill="#1a1a1a" font-weight="bold" opacity=".45">?</text>
+      ${legs(c.shoe)}`,
+
+    // 🌧️ DEŽ — rumena dežna jakna, črni škornji, dežnik
+    rain: `
+      ${ears}
+      ${bodyBase}
+      <!-- Rumena dežna jakna -->
+      <ellipse cx="60" cy="134" rx="28" ry="36" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca -->
+      <ellipse cx="60" cy="100" rx="24" ry="14" fill="#d48000" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Oranžen šal -->
+      <ellipse cx="60" cy="112" rx="20" ry="8" fill="#c86000" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Gumbi -->
+      <circle cx="60" cy="124" r="3.5" fill="#c86000" stroke="#1a1a1a" stroke-width="1.8"/>
+      <circle cx="60" cy="136" r="3.5" fill="#c86000" stroke="#1a1a1a" stroke-width="1.8"/>
+      <!-- Leva roka drži dežnik -->
+      <ellipse cx="24" cy="130" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-20,24,130)"/>
+      <!-- Dežnik nad glavo -->
+      <line x1="22" y1="100" x2="22" y2="58" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>
+      <path d="M22 58 Q22 40 4 40 Q-14 40 -14 52 Q-5 46 4 49 Q13 46 22 52" fill="#e8940a" stroke="#1a1a1a" stroke-width="2.5"/>
+      <path d="M22 96 Q22 104 17 104 Q12 104 12 96" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Desna roka -->
+      <ellipse cx="96" cy="130" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(20,96,130)"/>
+      ${tail}
+      ${headBase}
+      ${faceNormal}
+      ${boots(c.shoe)}`,
+
+    // ⛈️ PLOHE — temno modra jakna, rumeni reflektorji, škornji
+    heavyrain: `
+      ${ears}
+      ${bodyBase}
+      <!-- Temno modra jakna -->
+      <ellipse cx="60" cy="134" rx="28" ry="36" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca -->
+      <ellipse cx="60" cy="98" rx="25" ry="15" fill="#1a3870" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Rumeni reflektorji (karakteristično) -->
+      <path d="M33 122 Q60 127 87 122" fill="none" stroke="#f5c020" stroke-width="5" stroke-linecap="round"/>
+      <path d="M33 138 Q60 143 87 138" fill="none" stroke="#f5c020" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      <!-- Zip -->
+      <line x1="60" y1="112" x2="60" y2="168" stroke="#1a1a1a" stroke-width="4"/>
+      <!-- Roke -->
+      <ellipse cx="24" cy="128" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-18,24,128)"/>
+      <ellipse cx="96" cy="128" rx="14" ry="10" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(18,96,128)"/>
+      ${tail}
+      ${headBase}
+      ${faceScared}
+      ${boots(c.shoe)}`,
+
+    // ❄️ SNEG — bela puffy jakna, rdeč šal, zimski škornji
+    snow: `
+      ${ears}
+      ${bodyBase}
+      <!-- Bela puffy jakna -->
+      <ellipse cx="60" cy="134" rx="29" ry="37" fill="#eef4fc" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca z rjavim krznom -->
+      <ellipse cx="60" cy="99" rx="24" ry="14" fill="#d8ecf8" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <path d="M36 99 Q60 87 84 99" fill="none" stroke="#c8a050" stroke-width="7" stroke-linecap="round"/>
+      <path d="M36 99 Q60 87 84 99" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Rdeč šal -->
+      <ellipse cx="60" cy="112" rx="22" ry="9" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      <!-- Puffy šivi -->
+      <path d="M32 122 Q60 127 88 122" fill="none" stroke="#c8dce8" stroke-width="4" stroke-linecap="round"/>
+      <path d="M32 136 Q60 141 88 136" fill="none" stroke="#c8dce8" stroke-width="4" stroke-linecap="round"/>
+      <path d="M32 150 Q60 155 88 150" fill="none" stroke="#c8dce8" stroke-width="4" stroke-linecap="round"/>
+      <!-- Roke (jakna) z rdečimi rokavicami -->
+      <ellipse cx="22" cy="128" rx="15" ry="11" fill="#eef4fc" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-18,22,128)"/>
+      <ellipse cx="98" cy="128" rx="15" ry="11" fill="#eef4fc" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(18,98,128)"/>
+      <!-- Rdeče rokavice -->
+      <ellipse cx="13" cy="134" rx="12" ry="9" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      <ellipse cx="107" cy="134" rx="12" ry="9" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      ${tail}
+      ${headBase}
+      ${faceNormal}
+      ${boots(c.shoe)}`,
+
+    // ⚡ NEVIHTA — črna jakna, oranžni pas, škornji
+    storm: `
+      ${ears}
+      ${bodyBase}
+      <!-- Črna nevihta jakna -->
+      <ellipse cx="60" cy="134" rx="29" ry="37" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca -->
+      <ellipse cx="60" cy="98" rx="25" ry="14" fill="#141820" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Oranžni reflektor (junak nevihte) -->
+      <path d="M32 120 Q60 125 88 120" fill="none" stroke="#f5a020" stroke-width="6" stroke-linecap="round"/>
+      <!-- Zip -->
+      <line x1="60" y1="112" x2="60" y2="169" stroke="#2a2a2a" stroke-width="4.5"/>
+      <!-- Roke -->
+      <ellipse cx="23" cy="128" rx="15" ry="11" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-20,23,128)"/>
+      <ellipse cx="97" cy="128" rx="15" ry="11" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(20,97,128)"/>
+      ${tail}
+      ${headBase}
+      ${faceScared}
+      ${boots(c.shoe)}`,
+
+    // 🧊 MRZLO — debela modra bunda, šal, rokavice, zmrz. trepalnice
+    cold: `
+      ${ears}
+      ${bodyBase}
+      <!-- Debela modra bunda -->
+      <ellipse cx="60" cy="132" rx="30" ry="38" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <!-- Kapuca z zlatim krznom -->
+      <ellipse cx="60" cy="97" rx="26" ry="15" fill="#1c5090" stroke="#1a1a1a" stroke-width="${lw}"/>
+      <path d="M34 97 Q60 84 86 97" fill="none" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+      <path d="M34 97 Q60 84 86 97" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Rdeč šal -->
+      <ellipse cx="60" cy="110" rx="24" ry="9.5" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      <!-- Šivi bunde -->
+      <path d="M30 122 Q60 127 90 122" fill="none" stroke="#1c5090" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M30 138 Q60 143 90 138" fill="none" stroke="#1c5090" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M30 154 Q60 159 90 154" fill="none" stroke="#1c5090" stroke-width="3.5" stroke-linecap="round"/>
+      <!-- Roke -->
+      <ellipse cx="20" cy="126" rx="16" ry="12" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(-20,20,126)"/>
+      <ellipse cx="100" cy="126" rx="16" ry="12" fill="${c.shirt}" stroke="#1a1a1a" stroke-width="${lw}" transform="rotate(20,100,126)"/>
+      <!-- Rdeče rokavice -->
+      <ellipse cx="9"  cy="132" rx="14" ry="10" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      <ellipse cx="111" cy="132" rx="14" ry="10" fill="#e03030" stroke="#1a1a1a" stroke-width="2.2"/>
+      ${tail}
+      ${headBase}
+      ${faceCold}
+      ${boots(c.shoe)}`,
   };
 
-  const clothes = outfitLayers[variant] || outfitLayers.sunny;
-
-  // Background gradient
-  const bgMap = {
-    sunny:'#fff9e6,#ffe8a0', hot:'#fff3cc,#ffd080', partcloud:'#e8f0f8,#c8d8e8',
-    cloudy:'#d8dce0,#b8bcc0', fog:'#d4d8dc,#b8bcc0', rain:'#b8ccd8,#8898a8',
-    heavyrain:'#a0b8cc,#708090', snow:'#d0e4f4,#a8c8e0', storm:'#708090,#485060',
-    cold:'#c8dce8,#a0b8cc'
+  // Vremenski simbol (nad glavo)
+  const accMap = {
+    sunny:`
+      <circle cx="90" cy="22" r="13" fill="#f5c842" stroke="#1a1a1a" stroke-width="2.2"/>
+      <line x1="90" y1="5"  x2="90" y2="2"  stroke="#f5c842" stroke-width="3" stroke-linecap="round"/>
+      <line x1="90" y1="39" x2="90" y2="42" stroke="#f5c842" stroke-width="3" stroke-linecap="round"/>
+      <line x1="73" y1="22" x2="70" y2="22" stroke="#f5c842" stroke-width="3" stroke-linecap="round"/>
+      <line x1="74" y1="12" x2="72" y2="10" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="106" y1="12" x2="108" y2="10" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>`,
+    hot:`
+      <rect x="88" y="6" width="9" height="30" rx="4.5" fill="white" stroke="#1a1a1a" stroke-width="2"/>
+      <rect x="90.5" y="18" width="4" height="17" rx="2" fill="#e03030"/>
+      <circle cx="92.5" cy="34" r="5.5" fill="#e03030" stroke="#1a1a1a" stroke-width="1.8"/>`,
+    partcloud:`
+      <circle cx="30" cy="22" r="10" fill="#f5c842" stroke="#1a1a1a" stroke-width="2"/>
+      <ellipse cx="74" cy="28" rx="20" ry="13" fill="white" stroke="#1a1a1a" stroke-width="2"/>
+      <ellipse cx="62" cy="31" rx="15" ry="11" fill="white" stroke="#1a1a1a" stroke-width="2"/>
+      <ellipse cx="82" cy="32" rx="15" ry="11" fill="white" stroke="#1a1a1a" stroke-width="2"/>`,
+    cloudy:`
+      <ellipse cx="60" cy="18" rx="26" ry="14" fill="#d8dce4" stroke="#1a1a1a" stroke-width="2"/>
+      <ellipse cx="44" cy="23" rx="20" ry="12" fill="#dde0e8" stroke="#1a1a1a" stroke-width="2"/>
+      <ellipse cx="76" cy="24" rx="20" ry="12" fill="#d8dce4" stroke="#1a1a1a" stroke-width="2"/>`,
+    fog:`
+      <rect x="6"  y="12" width="108" height="5.5" rx="2.75" fill="#b8bec8" stroke="none" opacity=".7"/>
+      <rect x="12" y="22" width="96"  height="5.5" rx="2.75" fill="#b8bec8" stroke="none" opacity=".55"/>
+      <rect x="4"  y="32" width="112" height="5.5" rx="2.75" fill="#b8bec8" stroke="none" opacity=".4"/>`,
+    rain:`
+      <line x1="46" y1="6"  x2="42" y2="22" stroke="#4a80c8" stroke-width="3" stroke-linecap="round"/>
+      <line x1="62" y1="4"  x2="58" y2="20" stroke="#4a80c8" stroke-width="3" stroke-linecap="round"/>
+      <line x1="78" y1="8"  x2="74" y2="24" stroke="#4a80c8" stroke-width="2.5" stroke-linecap="round"/>`,
+    heavyrain:`
+      <polygon points="84,2 68,24 78,24 62,46 80,20 70,20" fill="#f5c020" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="20" y1="4"  x2="16" y2="20" stroke="#4a80c8" stroke-width="3" stroke-linecap="round"/>
+      <line x1="36" y1="0"  x2="32" y2="16" stroke="#4a80c8" stroke-width="3" stroke-linecap="round"/>`,
+    snow:`
+      <line x1="60" y1="4"  x2="60" y2="40" stroke="#78b0e0" stroke-width="4" stroke-linecap="round"/>
+      <line x1="41" y1="13" x2="79" y2="31" stroke="#78b0e0" stroke-width="4" stroke-linecap="round"/>
+      <line x1="79" y1="13" x2="41" y2="31" stroke="#78b0e0" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="4"  x2="52" y2="12" stroke="#78b0e0" stroke-width="3" stroke-linecap="round"/>
+      <line x1="60" y1="4"  x2="68" y2="12" stroke="#78b0e0" stroke-width="3" stroke-linecap="round"/>
+      <line x1="60" y1="40" x2="52" y2="32" stroke="#78b0e0" stroke-width="3" stroke-linecap="round"/>
+      <line x1="60" y1="40" x2="68" y2="32" stroke="#78b0e0" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="60" cy="22" r="5.5" fill="#b8dcf4" stroke="#78b0e0" stroke-width="2"/>`,
+    storm:`
+      <polygon points="80,0 60,26 72,26 52,54 74,22 62,22" fill="#f5c020" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>`,
+    cold:`
+      <line x1="60" y1="4"  x2="60" y2="40" stroke="#60a0d8" stroke-width="4.5" stroke-linecap="round"/>
+      <line x1="41" y1="13" x2="79" y2="31" stroke="#60a0d8" stroke-width="4.5" stroke-linecap="round"/>
+      <line x1="79" y1="13" x2="41" y2="31" stroke="#60a0d8" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="60" cy="22" r="6.5" fill="#b8dcf4" stroke="#60a0d8" stroke-width="2.5"/>
+      <circle cx="60" cy="4"  r="4" fill="#60a0d8"/>
+      <circle cx="60" cy="40" r="4" fill="#60a0d8"/>
+      <circle cx="41" cy="13" r="4" fill="#60a0d8"/>
+      <circle cx="79" cy="13" r="4" fill="#60a0d8"/>
+      <circle cx="41" cy="31" r="4" fill="#60a0d8"/>
+      <circle cx="79" cy="31" r="4" fill="#60a0d8"/>`,
   };
-  const [bg1, bg2] = (bgMap[variant]||'#f5f0e8,#e0d8cc').split(',');
 
-  // Accessories (item displayed above bunny)
-  const accessoryMap = {
-    sunny: `<text x="60" y="30" text-anchor="middle" font-size="22">☀️</text>`,
-    hot: `<text x="60" y="30" text-anchor="middle" font-size="20">🌡️</text>`,
-    partcloud: `<text x="60" y="30" text-anchor="middle" font-size="20">⛅</text>`,
-    cloudy: `<text x="60" y="30" text-anchor="middle" font-size="20">☁️</text>`,
-    fog: `<text x="60" y="30" text-anchor="middle" font-size="20">🌫️</text>`,
-    rain: `<text x="48" y="28" text-anchor="middle" font-size="26">☂️</text>
-           <line x1="48" y1="30" x2="48" y2="58" stroke="#4a90d9" stroke-width="1.5" opacity=".5"/>`,
-    heavyrain: `<text x="45" y="28" text-anchor="middle" font-size="26">☂️</text>
-                <line x1="45" y1="30" x2="45" y2="58" stroke="#4a90d9" stroke-width="1.5" opacity=".5"/>`,
-    snow: `<text x="60" y="32" text-anchor="middle" font-size="22">❄️</text>`,
-    storm: `<text x="60" y="30" text-anchor="middle" font-size="22">⚡</text>`,
-    cold: `<text x="60" y="30" text-anchor="middle" font-size="20">🧊</text>`,
-  };
-  const acc = accessoryMap[variant] || '';
+  const body = variants[variant] || variants.sunny;
+  const acc  = accMap[variant]   || '';
 
-  return `<svg viewBox="0 0 120 165" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="bg-g" cx="50%" cy="60%" r="60%">
-      <stop offset="0%" stop-color="${bg1}"/>
-      <stop offset="100%" stop-color="${bg2}"/>
-    </radialGradient>
-    <radialGradient id="body-g" cx="45%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="${p.body}"/>
-      <stop offset="100%" stop-color="${p.body}CC"/>
-    </radialGradient>
-  </defs>
-  <!-- Background circle -->
-  <circle cx="60" cy="90" r="62" fill="url(#bg-g)" opacity=".6"/>
-
-  <!-- Accessory / weather item -->
+  return `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ozadje glow -->
+  <radialGradient id="gl" cx="50%" cy="60%" r="55%">
+    <stop offset="0%" stop-color="${glow}" stop-opacity=".55"/>
+    <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="60" cy="120" r="90" fill="url(#gl)"/>
+  <!-- Vremenski simbol -->
   ${acc}
-
-  <!-- Ears -->
-  <ellipse cx="42" cy="62" rx="10" ry="22" fill="${p.body}"/>
-  <ellipse cx="42" cy="62" rx="5" ry="16" fill="${p.ear}" opacity=".8"/>
-  <ellipse cx="78" cy="62" rx="10" ry="22" fill="${p.body}"/>
-  <ellipse cx="78" cy="62" rx="5" ry="16" fill="${p.ear}" opacity=".8"/>
-
-  <!-- Body -->
-  <ellipse cx="60" cy="110" rx="28" ry="34" fill="url(#body-g)"/>
-
-  <!-- Head -->
-  <circle cx="60" cy="82" r="24" fill="${p.body}"/>
-
-  <!-- Cheeks -->
-  <circle cx="49" cy="87" r="6" fill="${p.cheek}" opacity=".45"/>
-  <circle cx="71" cy="87" r="6" fill="${p.cheek}" opacity=".45"/>
-
-  <!-- Eyes -->
-  <circle cx="53" cy="80" r="3.5" fill="${p.eye}"/>
-  <circle cx="67" cy="80" r="3.5" fill="${p.eye}"/>
-  <circle cx="54.2" cy="79" r="1.2" fill="white"/>
-  <circle cx="68.2" cy="79" r="1.2" fill="white"/>
-
-  <!-- Nose -->
-  <ellipse cx="60" cy="87" rx="2.5" ry="1.8" fill="${p.ear}"/>
-  <!-- Mouth -->
-  <path d="M57 89.5 Q60 92 63 89.5" stroke="${p.eye}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-
-  <!-- Clothes layer -->
-  ${clothes}
-
-  <!-- Belly (white patch) -->
-  <ellipse cx="60" cy="112" rx="16" ry="20" fill="white" opacity=".25"/>
-
-  <!-- Paws -->
-  <ellipse cx="42" cy="130" rx="9" ry="6" fill="${p.body}" opacity=".9"/>
-  <ellipse cx="78" cy="130" rx="9" ry="6" fill="${p.body}" opacity=".9"/>
-
-  <!-- Feet -->
-  <ellipse cx="48" cy="148" rx="12" ry="7" fill="${p.body}"/>
-  <ellipse cx="72" cy="148" rx="12" ry="7" fill="${p.body}"/>
-
-  <!-- Tail -->
-  <circle cx="88" cy="118" r="8" fill="white" opacity=".8"/>
+  <!-- Zajček -->
+  ${body}
 </svg>`;
 }
 
@@ -3734,14 +4073,31 @@ function updateBunny(key) {
   if (!svgWrap || !outfitEl) return;
 
   if (!d) {
-    svgWrap.innerHTML = '<div style="font-size:40px;text-align:center;line-height:140px">🐰</div>';
+    svgWrap.innerHTML = '<svg viewBox="0 0 120 165" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="90" r="55" fill="#2a2a2a"/><text x="60" y="100" text-anchor="middle" font-size="48" font-family="serif">&#x1F430;</text></svg>';
     outfitEl.textContent = '...';
     return;
   }
   const temp = Math.round(d.current.temperature_2m);
   const code = d.current.weathercode;
   const { svg, outfit, label } = getBunnyData(code, temp);
-  svgWrap.innerHTML = svg;
+  // Render SVG kot data URI img — deluje zanesljivo v vseh okoljih
+  try {
+    const blob = new Blob([svg], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function() {
+      svgWrap.innerHTML = '';
+      img.style.cssText = 'width:100%;height:100%;display:block;';
+      svgWrap.appendChild(img);
+    };
+    img.onerror = function() {
+      // Fallback: direktni innerHTML
+      svgWrap.innerHTML = svg;
+    };
+    img.src = url;
+  } catch(e) {
+    svgWrap.innerHTML = svg;
+  }
   outfitEl.innerHTML = outfit.replace('\n', '<br>');
 }
 
@@ -4593,7 +4949,7 @@ function finSaveStavnica() {
 }
 
 // ---- INICIALIZACIJA ----
-fetchBanka();
+// fetchBanka(); // ZAČASNO ONEMOGOČENO — upočasni stran
 loadStavnica();
 
 
