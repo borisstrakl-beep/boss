@@ -2388,14 +2388,14 @@
       <div style="display:grid;grid-template-columns:auto 1fr;gap:0">
         <!-- Mesta: 2x4 grid s fiksno višino vrstic -->
         <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,110px);grid-template-rows:repeat(2,104px);border-right:1px solid var(--border)">
-          <div class="weather-item weather-init"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">ŽIRI</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">LJUBLJANA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">G. RADGONA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">NOVIGRAD</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">DUNAJ</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">ROGLA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
-          <div class="weather-item weather-init"><div class="w-city">TRENUTNO</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="trbovlje" onclick="showWeatherForecast('trbovlje')"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="ziri" onclick="showWeatherForecast('ziri')"><div class="w-city">ŽIRI</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="ljubljana" onclick="showWeatherForecast('ljubljana')"><div class="w-city">LJUBLJANA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="radgona" onclick="showWeatherForecast('radgona')"><div class="w-city">G. RADGONA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="novigrad" onclick="showWeatherForecast('novigrad')"><div class="w-city">NOVIGRAD</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="dunaj" onclick="showWeatherForecast('dunaj')"><div class="w-city">DUNAJ</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="rogla" onclick="showWeatherForecast('rogla')"><div class="w-city">ROGLA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
+          <div class="weather-item weather-init" data-wkey="current" onclick="showWeatherForecast('current')"><div class="w-city">TRENUTNO</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
         </div>
         <!-- Napoved desno -->
         <div id="weather-forecast-panel" style="height:208px;overflow:hidden;display:grid;grid-template-columns:160px 160px 160px 1fr;gap:0">
@@ -3351,23 +3351,15 @@ async function initWeather() {
 function renderWeatherGrid() {
   const grid = document.getElementById('weather-grid');
   if (!grid) return;
-  const items = grid.querySelectorAll('.weather-item');
-  WEATHER_LOCATIONS.forEach((loc, i) => {
+  WEATHER_LOCATIONS.forEach(loc => {
     const d = weatherData[loc.key];
-    const el = items[i];
-    if (!el) return;
-    if (!d) {
-      // Ni podatkov — ohrani obstoječe stanje (ne brišemo ⏳)
-      return;
-    }
+    const el = grid.querySelector('[data-wkey="' + loc.key + '"]');
+    if (!el || !d) return;
     const c = d.current;
-    const temp = Math.round(c.temperature_2m);
-    const icon = wmoIcon(c.weathercode, c.is_day);
-    const desc = wmoDesc(c.weathercode);
     el.classList.remove('weather-init');
-    el.querySelector('.w-icon').textContent = icon;
-    el.querySelector('.w-temp').textContent = temp + '°';
-    el.querySelector('.w-desc').textContent = desc;
+    el.querySelector('.w-icon').textContent = wmoIcon(c.weathercode, c.is_day);
+    el.querySelector('.w-temp').textContent = Math.round(c.temperature_2m) + '°';
+    el.querySelector('.w-desc').textContent = wmoDesc(c.weathercode);
   });
 }
 
@@ -3392,8 +3384,8 @@ function buildDayCol(daily, idx, label, isNight) {
 }
 
 function showWeatherForecast(key) {
-  document.querySelectorAll('#weather-grid .weather-item').forEach((el, i) => {
-    el.classList.toggle('active', WEATHER_LOCATIONS[i] && WEATHER_LOCATIONS[i].key === key);
+  document.querySelectorAll('#weather-grid .weather-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.wkey === key);
   });
 
   const loc = WEATHER_LOCATIONS.find(l => l.key === key);
@@ -3474,13 +3466,13 @@ function openWeatherModal(key) { showWeatherForecast(key); }
 function retryWeatherForKey(key) {
   const loc = WEATHER_LOCATIONS.find(l => l.key === key);
   if (!loc || weatherData[key]) return;
-  const el = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+  const el = document.querySelector('#weather-grid [data-wkey="' + key + '"]');
   if (el) { el.querySelector('.w-icon').textContent = '⏳'; el.querySelector('.w-desc').textContent = 'Nalagam...'; }
   fetchWeatherForLocation(loc)
     .then(data => {
       if (data && data.current) {
         weatherData[key] = data;
-        const item = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+        const item = document.querySelector('#weather-grid [data-wkey="' + key + '"]');
         if (item) {
           item.classList.remove('weather-init');
           item.querySelector('.w-icon').textContent = wmoIcon(data.current.weathercode, data.current.is_day);
@@ -3490,7 +3482,7 @@ function retryWeatherForKey(key) {
         showWeatherForecast(key);
       }
     }).catch(() => {
-      const item = document.querySelector('#weather-grid .weather-item[onclick*="' + key + '"]');
+      const item = document.querySelector('#weather-grid [data-wkey="' + key + '"]');
       if (item) { item.querySelector('.w-icon').textContent = '❌'; item.querySelector('.w-desc').textContent = 'Napaka'; }
     });
 }
