@@ -3267,8 +3267,16 @@ async function fetchWeatherForLocation(loc) {
     + `&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m,is_day`
     + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max`
     + `&timezone=Europe%2FBerlin&forecast_days=11`;
-  const res = await fetch(url);
-  return await res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    return await res.json();
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
 }
 
 let weatherLoaded = false;
@@ -3301,13 +3309,27 @@ async function initWeather() {
     // If 'prompt' or 'denied' — silently use Trbovlje as fallback (already set)
   } catch(e) {}
 
-  // Fetch all in parallel
-  const results = await Promise.all(WEATHER_LOCATIONS.map(loc => fetchWeatherForLocation(loc).catch(() => null)));
-  results.forEach((data, i) => {
-    if (data) weatherData[WEATHER_LOCATIONS[i].key] = data;
-  });
+  // Fetch progresivno — vsako mesto prikaži takoj ko prispe
+  let anyData = false;
+  let firstShown = false;
+  const promises = WEATHER_LOCATIONS.map((loc, i) =>
+    fetchWeatherForLocation(loc)
+      .then(data => {
+        weatherData[loc.key] = data;
+        anyData = true;
+        renderWeatherGrid();
+        if (!firstShown) {
+          firstShown = true;
+          showWeatherForecast('trbovlje');
+        }
+      })
+      .catch(() => {
+        // Mesto ostane z ❓
+        renderWeatherGrid();
+      })
+  );
+  await Promise.all(promises);
 
-  const anyData = results.some(r => r !== null);
   if (!anyData) {
     const upd = document.getElementById('weather-updated');
     if (upd) upd.textContent = 'NA STREŽNIKU';
@@ -3316,9 +3338,6 @@ async function initWeather() {
     return;
   }
 
-  renderWeatherGrid();
-  // Show Trbovlje forecast by default
-  showWeatherForecast('trbovlje');
   const now = new Date();
   const upd = document.getElementById('weather-updated');
   if (upd) upd.textContent = 'POSOD. ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -5901,4 +5920,3 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 </script>
 </body>
 </html>
-
