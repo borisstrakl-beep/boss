@@ -3535,23 +3535,6 @@
 </div><!-- /main-sections -->
 
 <script>
-
-// ===== TAB STRIP TOGGLE =====
-function toggleAccordion(header, bodyId) {
-  const body = document.getElementById(bodyId);
-  const isOpen = header.classList.contains('open');
-  header.classList.toggle('open', !isOpen);
-  if (body) body.classList.toggle('closed', isOpen);
-}
-
-function toggleTab(head, bodyId) {
-  const body = document.getElementById(bodyId);
-  if (!body) return;
-  const isOpen = head.classList.contains('open');
-  head.classList.toggle('open', !isOpen);
-  body.classList.toggle('open', !isOpen);
-}
-
 // ===== URA & DATUM =====
 function updateClock() {
   const now = new Date();
@@ -3688,27 +3671,10 @@ async function initWeather() {
   ]);
 
   if (!anyLoaded) {
-    const isFile = window.location.protocol === 'file:';
     const upd = document.getElementById('weather-updated');
-    if (upd) upd.textContent = isFile ? 'LOKALNA DATOTEKA' : 'NAPAKA';
-    // Pokažemo sporočilo v vremenskem pasu
-    const wGrid = document.getElementById('weather-grid');
-    if (wGrid) {
-      wGrid.innerHTML = '<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;height:100%;padding:16px">'
-        + (isFile
-          ? '<div style="font-family:var(--mono);font-size:10px;color:var(--text2);text-align:center;line-height:1.8">'
-            + '<div style="font-size:14px;margin-bottom:8px">⚠️</div>'
-            + '<div style="color:var(--orange);font-weight:700;letter-spacing:.1em;margin-bottom:6px">LOKALNA DATOTEKA</div>'
-            + '<div>API klici ne delujejo iz <span style="color:var(--orange)">file://</span></div>'
-            + '<div style="margin-top:6px">Odpri na <strong>GitHub Pages</strong> ali zaženi lokalni strežnik:</div>'
-            + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px 10px;margin-top:6px;font-size:9px;color:var(--text)">'
-            + 'python3 -m http.server 8080</div>'
-            + '<div style="margin-top:4px;font-size:9px;color:var(--text3)">→ http://localhost:8080</div>'
-            + '</div>'
-          : '<div style="font-family:var(--mono);font-size:10px;color:var(--text2)">⚠️ Vreme se ni naložilo — preveri internetno povezavo</div>'
-        )
-        + '</div>';
-    }
+    if (upd) upd.textContent = 'NA STREŽNIKU';
+    const fc = document.getElementById('weather-forecast-content');
+    if (fc) fc.innerHTML = '<div style="font-family:var(--cond);font-size:12px;color:var(--text3);padding:10px">🖥️ Podatki se naložijo na strežniku.</div>';
     return;
   }
 
@@ -6507,7 +6473,14 @@ function toggleAccordion(header, bodyId) {
   if (body) body.classList.toggle('closed', isOpen);
 }
 
-// ===== ELEKTRIČNI AVTO =====
+function toggleTab(head, bodyId) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  const isOpen = head.classList.contains('open');
+  head.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
 // ===== EV KONFIGURACIJA =====
 // MOŽNOST A — Google Sheets direkten CSV (zahteva javni dostop preglednice)
 const EV_KM_SHEET_ID     = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
@@ -6533,7 +6506,21 @@ function switchEvTab(el, tab) {
   });
 }
 
-// ===== EV DATA FETCH — Apps Script proxy ali direkten Sheets CSV =====
+function switchEvTab(el, tab) {
+  document.querySelectorAll('[data-evtab]').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['ev-overview','ev-charges','ev-stats'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+  });
+}
+
+async function fetchSheetCSV(sheetId, gid) {
+  const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Load failed');
+  return await res.text();
+}
+
 async function fetchEVData(type) {
   // Če je Apps Script URL nastavljen, uporabi proxy (brez CORS)
   if (EV_APPS_SCRIPT_URL) {
@@ -6545,22 +6532,6 @@ async function fetchEVData(type) {
   const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
   const gid     = type === 'km' ? '0' : '852588494';
   return await fetchSheetCSV(sheetId, gid);
-}
-
-async async function fetchSheetCSV(sheetId, gid) {
-  const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000); // 10s timeout
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' — Preveri da je preglednica javno dostopna (Deli → Kdorkoli s povezavo → Ogledovalec)');
-    return await res.text();
-  } catch(e) {
-    if (e.name === 'AbortError') throw new Error('Timeout — Google Sheets se ni odzvala v 10s');
-    throw e;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function parseCSV(text) {
@@ -6937,23 +6908,6 @@ function renderEvCharges() {
   el.__evFilters = filters;
 }
 
-function evApplyFilter() {
-  const el = document.getElementById('ev-charges-content');
-  if (!el) return;
-  el.__evFilters = {
-    mesec:    document.getElementById('ev-f-mesec')?.value||'',
-    lokacija: document.getElementById('ev-f-lokacija')?.value||'',
-    postaja:  document.getElementById('ev-f-postaja')?.value||''
-  };
-  renderEvCharges();
-}
-
-function evClearFilters() {
-  const el = document.getElementById('ev-charges-content');
-  if (el) el.__evFilters = {mesec:'',postaja:'',lokacija:''};
-  renderEvCharges();
-}
-
 function renderEvStats() {
   const el = document.getElementById('ev-stats-content');
   if (!el) return;
@@ -7134,6 +7088,24 @@ function renderEvStats() {
   el.__evStatsFilters = filters;
 }
 
+
+function evApplyFilter() {
+  const el = document.getElementById('ev-charges-content');
+  if (!el) return;
+  el.__evFilters = {
+    mesec:    document.getElementById('ev-f-mesec')?.value||'',
+    lokacija: document.getElementById('ev-f-lokacija')?.value||'',
+    postaja:  document.getElementById('ev-f-postaja')?.value||''
+  };
+  renderEvCharges();
+}
+
+function evClearFilters() {
+  const el = document.getElementById('ev-charges-content');
+  if (el) el.__evFilters = {mesec:'',postaja:'',lokacija:''};
+  renderEvCharges();
+}
+
 function evsApplyFilter() {
   const el = document.getElementById('ev-stats-content');
   if (!el) return;
@@ -7150,11 +7122,10 @@ function evsClearFilters() {
   renderEvStats();
 }
 
-
-
 initEV();
 // EV auto-refresh vsako uro
 setInterval(initEV, 60 * 60 * 1000);
+
 
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.add('hidden'); });
