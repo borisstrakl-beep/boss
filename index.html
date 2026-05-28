@@ -3450,10 +3450,35 @@
   <div class="tab-head open" onclick="toggleTab(this,'tab-evsledenje')">
     <div class="tab-head-left">
       <span class="tab-num">12 //</span>
-      <span class="tab-title">EV SLEDENJE</span>
+      <span class="tab-title">EV — ENYAQ</span>
+      <!-- Mini SVG silhueta Enyaqa v tab glavi -->
+      <svg viewBox="0 0 120 38" width="72" height="22" style="margin-left:10px;opacity:.7;flex-shrink:0" xmlns="http://www.w3.org/2000/svg">
+        <!-- Karoserija -->
+        <path d="M8 26 Q10 16 22 13 Q38 9 60 8 Q80 8 96 13 Q108 17 112 22 L115 26 Q116 28 114 29 L8 29 Q5 28 8 26Z" fill="#1a2a4a" stroke="#f97316" stroke-width="1"/>
+        <!-- Streha -->
+        <path d="M28 13 Q38 6 60 5 Q80 5 92 12" fill="none" stroke="#f97316" stroke-width="0.8" stroke-dasharray="2,1"/>
+        <!-- Okno spredaj -->
+        <path d="M72 13 Q80 9 90 11 L90 20 L72 20Z" fill="#0d1f38" stroke="#2a4a7a" stroke-width="0.5"/>
+        <!-- Okno zadaj -->
+        <path d="M38 12 Q52 8 68 11 L68 20 L40 20Z" fill="#0d1f38" stroke="#2a4a7a" stroke-width="0.5"/>
+        <!-- Pokrov prtljažnika -->
+        <path d="M90 13 Q102 15 108 20" fill="none" stroke="#f97316" stroke-width="0.8"/>
+        <!-- Sprednje kolo -->
+        <circle cx="88" cy="29" r="6" fill="#111" stroke="#555" stroke-width="1"/>
+        <circle cx="88" cy="29" r="3" fill="#333"/>
+        <!-- Zadnje kolo -->
+        <circle cx="32" cy="29" r="6" fill="#111" stroke="#555" stroke-width="1"/>
+        <circle cx="32" cy="29" r="3" fill="#333"/>
+        <!-- Sprednja luč -->
+        <path d="M108 20 L114 22" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Zadnja luč -->
+        <rect x="8" y="21" width="6" height="4" rx="1" fill="#c2550f"/>
+        <!-- ⚡ -->
+        <text x="58" y="23" font-size="8" fill="#f97316" text-anchor="middle" font-family="monospace">⚡</text>
+      </svg>
     </div>
     <div class="tab-head-right">
-      <span class="tab-badge">NALAGAM...</span>
+      <span class="tab-badge" id="ev-updated-badge">NALAGAM...</span>
       <span class="tab-arrow">▼</span>
     </div>
   </div>
@@ -3462,8 +3487,8 @@
 <div class="library-section" style="margin-top:0">
       <div class="library-card">
         <div class="library-header">
-          <div class="card-label" style="font-size:11px"><span class="num">12 //</span> EV SLEDENJE</div>
-          <div id="ev-updated-badge" class="card-badge">NALAGAM...</div>
+          <div class="card-label" style="font-size:11px"><span class="num">12 //</span> EV — ENYAQ</div>
+          <div id="ev-updated-badge-inner" class="card-badge"></div>
         </div>
         <div class="library-tabs">
           <div class="lib-tab active" onclick="switchEvTab(this,'ev-overview')" data-evtab="ev-overview">PREGLED</div>
@@ -6459,6 +6484,47 @@ function toggleAccordion(header, bodyId) {
 // ===== ELEKTRIČNI AVTO =====
 const EV_KM_SHEET_ID = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
 const EV_CHARGE_SHEET_ID = '14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU';
+
+// ===== SKODA ENYAQ SVG =====
+const ENYAQ_SVG = '<svg viewBox="0 0 420 130" xmlns="http://www.w3.org/2000/svg">'
+  + '<defs>'
+  + '<linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0a1628"/></linearGradient>'
+  + '<linearGradient id="glassGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a3a5c" stop-opacity="0.9"/><stop offset="100%" stop-color="#0a1e35" stop-opacity="0.7"/></linearGradient>'
+  + '<filter id="evglow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+  + '</defs>'
+  + '<ellipse cx="210" cy="115" rx="185" ry="8" fill="#0a1628" opacity="0.5"/>'
+  + '<path d="M28 88 Q32 58 58 46 Q90 32 150 26 Q210 22 265 26 Q320 30 355 48 Q382 62 390 80 L396 88 Q398 94 394 96 L28 96 Q22 94 28 88Z" fill="url(#bodyGrad)" stroke="#f97316" stroke-width="1.2"/>'
+  + '<path d="M105 46 Q135 22 210 18 Q282 18 318 40" fill="none" stroke="#f97316" stroke-width="1" opacity="0.6"/>'
+  + '<path d="M248 46 Q272 30 315 36 L318 38 L316 68 L250 68Z" fill="url(#glassGrad)" stroke="#2a5a8a" stroke-width="0.8"/>'
+  + '<path d="M256 50 Q270 40 298 44" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round"/>'
+  + '<path d="M118 44 Q162 26 240 30 L242 68 L120 68Z" fill="url(#glassGrad)" stroke="#2a5a8a" stroke-width="0.8"/>'
+  + '<path d="M128 50 Q170 36 225 38" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-linecap="round"/>'
+  + '<path d="M116 46 L118 68" stroke="#0a1628" stroke-width="3"/>'
+  + '<path d="M244 30 L242 68" stroke="#0a1628" stroke-width="3"/>'
+  + '<path d="M318 38 L316 68" stroke="#0a1628" stroke-width="3"/>'
+  + '<path d="M38 82 Q120 74 210 73 Q300 73 388 80" fill="none" stroke="#f97316" stroke-width="0.8" opacity="0.5"/>'
+  + '<path d="M355 50 Q378 62 388 76 L392 84 Q378 80 358 78" fill="#0d1f3a" stroke="#f97316" stroke-width="0.8"/>'
+  + '<circle cx="375" cy="68" r="7" fill="#0d1f3a" stroke="#f97316" stroke-width="1"/>'
+  + '<text x="375" y="72" font-size="8" fill="#f97316" text-anchor="middle" font-family="sans-serif">S</text>'
+  + '<path d="M356 50 Q368 48 382 54" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" filter="url(#evglow)"/>'
+  + '<path d="M358 56 Q370 54 380 58" stroke="#f0c040" stroke-width="1" stroke-linecap="round" opacity="0.6"/>'
+  + '<rect x="26" y="72" width="18" height="8" rx="2" fill="#c2550f"/>'
+  + '<rect x="28" y="73" width="14" height="6" rx="1.5" fill="#f97316" opacity="0.8"/>'
+  + '<path d="M32 70 L44 68" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>'
+  + '<circle cx="318" cy="98" r="24" fill="#0a0f1a" stroke="#2a3a5a" stroke-width="2"/>'
+  + '<circle cx="318" cy="98" r="18" fill="#0f1825" stroke="#1a2a4a" stroke-width="1.5"/>'
+  + '<g transform="translate(318,98)" stroke="#4a6a9a" stroke-width="1.2" fill="none"><line x1="0" y1="-14" x2="0" y2="14"/><line x1="-13.3" y1="4.3" x2="13.3" y2="-4.3"/><line x1="-13.3" y1="-4.3" x2="13.3" y2="4.3"/><line x1="-8.2" y1="-11.2" x2="8.2" y2="11.2"/><line x1="8.2" y1="-11.2" x2="-8.2" y2="11.2"/><circle r="4" fill="#1a2a4a" stroke="#3a5a8a" stroke-width="1"/></g>'
+  + '<circle cx="318" cy="98" r="2" fill="#f97316"/>'
+  + '<circle cx="108" cy="98" r="24" fill="#0a0f1a" stroke="#2a3a5a" stroke-width="2"/>'
+  + '<circle cx="108" cy="98" r="18" fill="#0f1825" stroke="#1a2a4a" stroke-width="1.5"/>'
+  + '<g transform="translate(108,98)" stroke="#4a6a9a" stroke-width="1.2" fill="none"><line x1="0" y1="-14" x2="0" y2="14"/><line x1="-13.3" y1="4.3" x2="13.3" y2="-4.3"/><line x1="-13.3" y1="-4.3" x2="13.3" y2="4.3"/><line x1="-8.2" y1="-11.2" x2="8.2" y2="11.2"/><line x1="8.2" y1="-11.2" x2="-8.2" y2="11.2"/><circle r="4" fill="#1a2a4a" stroke="#3a5a8a" stroke-width="1"/></g>'
+  + '<circle cx="108" cy="98" r="2" fill="#f97316"/>'
+  + '<rect x="58" y="56" width="12" height="8" rx="2" fill="#0a1628" stroke="#f97316" stroke-width="1"/>'
+  + '<rect x="60" y="58" width="8" height="4" rx="1" fill="#f97316" opacity="0.6"/>'
+  + '<text x="64" y="63" font-size="5" fill="#fff" text-anchor="middle">E</text>'
+  + '<text x="198" y="90" font-size="9" fill="#f97316" text-anchor="middle" font-family="monospace" letter-spacing="2" opacity="0.7">iV 60</text>'
+  + '</svg>';
+
 const ENYAQ_BAT_KWH = 55.1; // 58 kWh neto * 95% SOH
 
 let evKmData = [];
@@ -6474,9 +6540,18 @@ function switchEvTab(el, tab) {
 
 async function fetchSheetCSV(sheetId, gid) {
   const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Load failed');
-  return await res.text();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' — Preveri da je preglednica javno dostopna (Deli → Kdorkoli s povezavo → Ogledovalec)');
+    return await res.text();
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('Timeout — Google Sheets se ni odzvala v 10s');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function parseCSV(text) {
@@ -6557,7 +6632,7 @@ async function initEV() {
 
     // Fetch km data
     try {
-      const kmCsv = await fetchSheetCSV(EV_KM_SHEET_ID);
+      const kmCsv = await fetchSheetCSV(EV_KM_SHEET_ID, '0'); // bere prvi list (2026)
       const kmRaw = parseCSV(kmCsv);
       evKmData = kmRaw.filter(r => r['Datum']).map(r => ({
         date: parseSlDate(r['Datum']),
@@ -6576,16 +6651,34 @@ async function initEV() {
     if (badge) badge.textContent = 'POSOD. '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
   } catch(e) {
-    const isPreview = window.location.hostname === '' || window.location.protocol === 'blob:';
-    const msg = isPreview
-      ? '<div class="empty-state"><div class="empty-icon">🖥️</div><strong style="color:var(--orange)">Samo predogled</strong><br><br>Google Sheets podatki se naložijo na tvojem strežniku.<br><small style="color:var(--text3)">CORS omejitev v Claude sandbox.</small></div>'
-      : '<div class="empty-state"><div class="empty-icon">⚠️</div>Napaka: '+e.message+'<br><small style="color:var(--text3)">Preveri: Preglednica → Deli → Kdorkoli s povezavo → Ogledovalec</small></div>';
+    const is403 = e.message && (e.message.includes('403') || e.message.includes('Load failed'));
+    const msg = '<div style="padding:16px 12px">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'
+      + '<div style="font-size:28px">⚠️</div>'
+      + '<div>'
+      + '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.1em">NAPAKA PRI NALAGANJU PODATKOV</div>'
+      + '<div style="font-family:var(--cond);font-size:12px;color:var(--text3);margin-top:2px">' + e.message + '</div>'
+      + '</div></div>'
+      + '<div style="background:var(--bg3);border:1px solid var(--orange-dim);border-radius:3px;padding:12px;margin-bottom:10px">'
+      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--orange);text-transform:uppercase;margin-bottom:8px">⚡ OBVEZNO — Nastavi javni dostop do preglednic</div>'
+      + '<div style="font-family:var(--cond);font-size:12px;color:var(--text2);line-height:1.7">'
+      + '1. Odpri <strong>Km preglednico</strong> (Google Sheets)<br>'
+      + '2. Klikni <strong>Deli</strong> (gumb zgoraj desno)<br>'
+      + '3. Nastavi: <strong style="color:var(--orange)">Kdorkoli s povezavo → Ogledovalec</strong><br>'
+      + '4. Ponovi za <strong>Polnilno preglednico</strong><br>'
+      + '5. Osveži to stran'
+      + '</div></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<a href="https://docs.google.com/spreadsheets/d/1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">📊 KM PREGLEDNICA</a>'
+      + '<a href="https://docs.google.com/spreadsheets/d/14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">⚡ POLNILNA PREGLEDNICA</a>'
+      + '<button onclick="initEV()" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--orange);border:1px solid var(--orange);border-radius:3px;color:#000;font-weight:700;cursor:pointer;letter-spacing:.08em">↺ POSKUSI ZNOVA</button>'
+      + '</div></div>';
     ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
     const badge = document.getElementById('ev-updated-badge');
-    if (badge) badge.textContent = isPreview ? 'SANDBOX' : 'NAPAKA';
+    if (badge) badge.textContent = 'NAPAKA';
   }
 }
 
