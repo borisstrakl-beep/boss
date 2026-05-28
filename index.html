@@ -2377,17 +2377,109 @@
     .span3 { grid-column: span 2; }
   }
 
+  /* ===== MOBILNI PRIKAZ (≤ 640px) ===== */
+
+  /* Privzeto — mobilni weather skriti */
+  #weather-mobile      { display: none; }
+  #weather-mobile-top  { display: none; }
+  #weather-right-col   { display: none; }
+  #weather-7day-mobile { display: none; }
+
   @media (max-width: 640px) {
+
+    /* TOPBAR */
+    .topbar {
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 12px;
+      height: auto;
+    }
+    .topbar-center { order: 3; flex-basis: 100%; text-align: center; font-size: 12px; }
+    .clock { font-size: 16px; }
+    .topbar-right { gap: 8px; }
+    #gcal-auth-btn { margin-right: 0 !important; }
+
+    /* TAB STRIP */
+    .tab-head {
+      padding: 0 12px;
+      height: 40px;
+    }
+    .tab-num { font-size: 8px; letter-spacing: .1em; }
+    .tab-title { font-size: 8px; letter-spacing: .1em; }
+    .tab-badge { font-size: 8px; }
+
+    /* TAB BODY — višina se prilagodi vsebini na mobu */
+    .tab-body {
+      height: auto !important;
+      max-height: none !important;
+    }
+    .tab-content {
+      height: auto;
+      overflow: visible;
+    }
+
+    /* WEATHER: desktop skrij, mobile pokaži */
+    #weather-desktop { display: none !important; }
+    #weather-mobile  { display: flex !important; flex-direction: column; }
+
+    /* Zajček — manjši na mobilu */
+    #weather-bunny-panel {
+      width: 110px !important;
+      min-width: 110px !important;
+      height: auto !important;
+      padding: 8px 4px !important;
+    }
+    #bunny-svg-wrap {
+      width: 102px !important;
+      height: 150px !important;
+    }
+    #bunny-outfit { font-size: 9px !important; }
+    #bunny-label  { font-size: 7px !important; }
+
+    /* Mreža mest — prilagodljiva širina */
+    #weather-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      grid-template-rows: repeat(2, 72px) !important;
+      width: 100% !important;
+    }
+    .w-city { font-size: 6.5px !important; }
+    .w-icon { font-size: 14px !important; }
+    .w-temp { font-size: 14px !important; }
+    .w-desc { font-size: 7px !important; }
+
+    /* DASHBOARD GRID — en stolpec */
     .dashboard {
       grid-template-columns: 1fr;
-      padding: 10px;
+      padding: 8px;
       gap: 8px;
     }
     .span2, .span3 { grid-column: span 1; }
-    .topbar { flex-wrap: wrap; gap: 8px; }
-    .topbar-center { order: 3; flex-basis: 100%; }
-    .clock { font-size: 15px; }
-    /* weather-grid now flex */
+
+    /* FINANCE — manjši tab gumbi */
+    .proj-tab {
+      font-size: 9px !important;
+      padding: 5px 8px !important;
+    }
+
+    /* LIBRARY */
+    .library-card { border-radius: 0; }
+    .lib-tab { font-size: 10px !important; padding: 7px 10px !important; }
+
+    /* BOOKS GRID */
+    .books-grid { grid-template-columns: 1fr !important; }
+
+    /* EXERCISE GRID */
+    .exercise-grid { grid-template-columns: 1fr !important; }
+
+    /* MODALI — polna širina */
+    .modal { max-width: calc(100vw - 24px) !important; margin: 12px !important; }
+    .modal-body { padding: 12px !important; }
+
+    /* EV GRID */
+    .ev-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* EVENT CARDS */
+    .event-card-wrap { grid-template-columns: 1fr !important; }
   }
   /* ===== WEATHER BUNNY ===== */
   #weather-bunny-panel {
