@@ -2551,13 +2551,13 @@
     <div class="tab-content" style="padding:0">
 <div class="card-body" style="padding:0">
       <!-- DESKTOP layout -->
-      <div id="weather-desktop" style="display:grid;grid-template-columns:160px minmax(440px,auto) 1fr;gap:0">
+      <div id="weather-desktop" style="display:flex;gap:0">
         <div id="weather-bunny-panel">
           <div id="bunny-svg-wrap"><!-- bunny SVG rendered by JS --></div>
           <div id="bunny-outfit">Nalagam...</div>
           <div id="bunny-label">VREMENSKI<br>ZAJČEK</div>
         </div>
-        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,185px);border-right:1px solid var(--border)">
+        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,185px);border-right:1px solid var(--border);flex:1 1 0;min-width:0">
           <div class="weather-item weather-init" data-wkey="trbovlje" onclick="showWeatherForecast('trbovlje')"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ziri" onclick="showWeatherForecast('ziri')"><div class="w-city">ŽIRI</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ljubljana" onclick="showWeatherForecast('ljubljana')"><div class="w-city">LJUBLJANA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
@@ -2567,7 +2567,7 @@
           <div class="weather-item weather-init" data-wkey="rogla" onclick="showWeatherForecast('rogla')"><div class="w-city">ROGLA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="current" onclick="showWeatherForecast('current')"><div class="w-city">TRENUTNO</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
         </div>
-        <div id="weather-forecast-panel" style="height:370px;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(100px,128px)) 1fr;gap:0">
+        <div id="weather-forecast-panel" style="flex:2 1 0;min-width:0;height:370px;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr) minmax(160px,25%);gap:0">
           <div id="weather-today-col" style="border-right:1px solid var(--border);padding:14px 14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
@@ -6627,319 +6627,366 @@ function renderEvOverview() {
   if (!el) return;
   const now = new Date();
   const thisMonth = getMonthKey(now);
-
-  // Zberi podatke
-  const mCharges = evChargeData.filter(r => getMonthKey(r.dateStart) === thisMonth);
-  const mKwh     = mCharges.reduce((s,r) => s+r.kWh, 0);
-  const mEur     = mCharges.reduce((s,r) => s+r.skupajEur, 0);
-  const mFree    = mCharges.filter(r => r.skupajEur === 0).length;
-  const mPaid    = mCharges.filter(r => r.skupajEur > 0).length;
-  const allKwh   = evChargeData.reduce((s,r) => s+r.kWh, 0);
-
-  // Km podatki
-  const latestKm  = evKmData.length ? evKmData[evKmData.length-1].kmStanje : 0;
-  const mKmData   = evKmData.filter(r => getMonthKey(r.date) === thisMonth);
-  const mKm       = mKmData.length ? mKmData.reduce((s,r) => s+(r.kmDnevno||0), 0) : 0;
-  const kwhPer100 = mKm > 0 ? (mKwh / mKm * 100) : 0;
-  const doseg     = kwhPer100 > 0 ? Math.round(ENYAQ_BAT_KWH / kwhPer100 * 100) : 0;
-
-  // Zadnje polnjenje
-  const last = evChargeData.length ? evChargeData[evChargeData.length-1] : null;
-  const lastSoc = last ? last.socPo : 0;
-  const socColor = lastSoc >= 80 ? 'var(--green)' : lastSoc >= 40 ? 'var(--orange)' : '#e05';
-
-  // Mesec
   const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
   const mLabel = MONTH_SL[now.getMonth()].toUpperCase() + ' ' + now.getFullYear();
 
-  // --- HEADER STRIP: skupaj km + poraba + doseg ---
-  let html_out = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)">';
+  const mCharges = evChargeData.filter(r => getMonthKey(r.dateStart) === thisMonth);
+  const mKwh   = mCharges.reduce((s,r)=>s+r.kWh,0);
+  const mEur   = mCharges.reduce((s,r)=>s+r.skupajEur,0);
+  const mFree  = mCharges.filter(r=>r.skupajEur===0).length;
+  const mPaid  = mCharges.filter(r=>r.skupajEur>0).length;
+  const latestKm = evKmData.length ? evKmData[evKmData.length-1].kmStanje : 0;
+  const mKmData  = evKmData.filter(r=>getMonthKey(r.date)===thisMonth);
+  const mKm    = mKmData.reduce((s,r)=>s+(r.kmDnevno||0),0);
+  const kwhPer100 = mKm>0 ? (mKwh/mKm*100) : 0;
+  const doseg  = kwhPer100>0 ? Math.round(ENYAQ_BAT_KWH/kwhPer100*100) : 0;
+  const last   = evChargeData.length ? evChargeData[evChargeData.length-1] : null;
+  const lastSoc = last ? last.socPo : 0;
+  const socCol = lastSoc>=80?'#22c55e':lastSoc>=40?'#f97316':'#ef4444';
 
-  const hItem = (val, unit, sub) =>
-    `<div style="padding:14px 18px;border-right:1px solid var(--border)">
-      <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--orange);letter-spacing:-.02em">
-        ${val}<span style="font-size:12px;font-weight:400;margin-left:4px;color:var(--text3)">${unit}</span>
+  // Helper tile
+  const T = (label, val, unit, col) =>
+    `<div style="padding:14px 16px;border-right:1px solid #252525;display:flex;flex-direction:column;gap:8px;background:#0d0d0d">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:#a3a3a3;text-transform:uppercase">${label}</div>
+      <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${col};line-height:1;letter-spacing:-.02em">
+        ${val}<span style="font-size:11px;font-weight:400;color:#a3a3a3;margin-left:5px">${unit}</span>
       </div>
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text3);margin-top:3px;text-transform:uppercase">${sub}</div>
     </div>`;
 
-  html_out += hItem(latestKm.toLocaleString('sl'), 'km', 'SKUPAJ KM');
-  html_out += hItem(kwhPer100 > 0 ? kwhPer100.toFixed(1) : '—', 'kWh/100', 'PORABA TM');
-  html_out += `<div style="padding:14px 18px">
-    <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--green);letter-spacing:-.02em">
-      ${doseg > 0 ? doseg : '—'}<span style="font-size:12px;font-weight:400;margin-left:4px;color:var(--text3)">km</span>
-    </div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text3);margin-top:3px;text-transform:uppercase">OC. DOSEG</div>
-  </div>`;
-  html_out += '</div>';
+  let h = '';
 
-  // --- BATERIJA BAR ---
-  html_out += `<div style="padding:10px 18px 8px;border-bottom:1px solid var(--border)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">Baterija (SOC po zadnjem polnjenju)</div>
-      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${socColor}">${lastSoc}%</div>
+  // ROW 1: 4 glavne metrike
+  h += `<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #252525">`;
+  h += T('SKUPAJ KM', latestKm.toLocaleString('sl'), 'km', '#e8e8e8');
+  h += T('KM — '+mLabel, mKm>0?mKm.toLocaleString('sl'):'—', 'km', '#f97316');
+  h += T('PORABA', kwhPer100>0?kwhPer100.toFixed(1):'—', 'kWh/100km', '#60a5fa');
+  h += T('OC. DOSEG', doseg>0?doseg:'—', 'km', '#22c55e');
+  h += '</div>';
+
+  // BATERIJA BAR
+  h += `<div style="padding:12px 16px;border-bottom:1px solid #252525;background:#0d0d0d">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:#a3a3a3;text-transform:uppercase">BATERIJA — SOC po zadnjem polnjenju</span>
+      <span style="font-family:var(--mono);font-size:16px;font-weight:700;color:${socCol}">${lastSoc}%</span>
     </div>
-    <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border)">
-      <div style="height:100%;width:${lastSoc}%;background:${socColor};border-radius:4px;transition:width .6s ease"></div>
+    <div style="height:12px;background:#1a1a1a;border-radius:6px;overflow:hidden;border:1px solid #2a2a2a">
+      <div style="height:100%;width:${lastSoc}%;background:linear-gradient(90deg,${socCol}99,${socCol});border-radius:6px;transition:width .6s"></div>
     </div>
   </div>`;
 
-  // --- ZADNJE POLNJENJE ---
+  // ZADNJE POLNJENJE
   if (last) {
-    const ago = Math.round((now - last.dateStart) / 86400000);
-    const agoTxt = ago === 0 ? 'danes' : ago === 1 ? 'včeraj' : ago + ' dni nazaj';
-    const isFree = last.skupajEur === 0;
-    html_out += `<div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;flex-shrink:0">ZADNJE POLNJENJE</div>
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
-        <span style="color:${isFree?'var(--green)':'var(--orange)'};font-size:14px">${isFree?'🟢':'⚡'}</span>
-        <div style="min-width:0">
-          <span style="font-family:var(--cond);font-size:13px;color:var(--text2)">${last.lokacija || last.postaja || '—'}</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:8px">${agoTxt}</span>
+    const ago = Math.round((now-last.dateStart)/86400000);
+    const agoTxt = ago===0?'danes':ago===1?'včeraj':`${ago}d nazaj`;
+    const isFree = last.skupajEur===0;
+    const d = last.dateStart;
+    const dateStr = d?`${d.getDate()}. ${MONTH_SL[d.getMonth()]}. ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'';
+    h += `<div style="padding:12px 16px;border-bottom:1px solid #252525;background:#0d0d0d;display:flex;align-items:center;gap:14px">
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:#a3a3a3;white-space:nowrap;text-transform:uppercase">ZADNJE POLNJENJE</span>
+      <div style="width:1px;height:28px;background:#2a2a2a"></div>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px">
+        <span style="font-size:18px">${isFree?'🟢':'⚡'}</span>
+        <div style="flex:1;min-width:0">
+          <span style="font-family:var(--cond);font-size:15px;font-weight:600;color:#e8e8e8">${last.lokacija||last.postaja||'—'}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:#a3a3a3;margin-left:10px">${dateStr} · ${agoTxt}</span>
         </div>
-        <div style="margin-left:auto;display:flex;gap:16px;flex-shrink:0">
-          <span style="font-family:var(--mono);font-size:11px;color:var(--text2)">${last.socPred}% → ${last.socPo}%</span>
-          <span style="font-family:var(--mono);font-size:11px;color:var(--text2)">+${Math.round(last.socPo-last.socPred)}%</span>
-          <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${last.kWh.toFixed(1)} kWh</span>
-          <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${isFree?'var(--green)':'var(--orange)'}">
-            ${isFree ? 'BREZPL.' : last.skupajEur.toFixed(2)+' €'}
-          </span>
+        <div style="display:flex;gap:20px;align-items:center">
+          <span style="font-family:var(--mono);font-size:12px;color:#e8e8e8">${last.socPred}<span style="color:#555">%→</span><span style="color:${socCol}">${last.socPo}%</span></span>
+          <span style="font-family:var(--mono);font-size:12px;color:#60a5fa">${last.kWh.toFixed(1)} kWh</span>
+          <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:${isFree?'#22c55e':'#f97316'}">${isFree?'BREZPL.':last.skupajEur.toFixed(2)+' €'}</span>
         </div>
       </div>
     </div>`;
   }
 
-  // --- MESEČNE STAT PLOŠČICE ---
-  const tile = (val, unit, sub, col) =>
-    `<div style="padding:14px 10px;text-align:center;border-right:1px solid var(--border)">
-      <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${col};line-height:1">
-        ${val}<span style="font-size:10px;font-weight:400;margin-left:3px;color:var(--text3)">${unit}</span>
-      </div>
-      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--text3);margin-top:4px;text-transform:uppercase">${sub}</div>
-    </div>`;
+  // ROW 2: mesečne ploščice
+  h += `<div style="padding:5px 16px 4px;background:#141414;border-bottom:1px solid #252525">
+    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:#a3a3a3;text-transform:uppercase">MESEC: ${mLabel}</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr)">`;
+  h += T('NAPOLNJENO', mKwh.toFixed(0), 'kWh', '#60a5fa');
+  h += T('STROŠEK', mEur.toFixed(2), '€', '#f97316');
+  h += T('BREZPLAČNO', mFree+'×', '', '#22c55e');
+  h += T('PLAČANO', mPaid+'×', '', '#f97316');
+  h += T('SKUPAJ SEJE', mCharges.length+'×', '', '#e8e8e8');
+  h += `<div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:#0d0d0d">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:#a3a3a3;text-transform:uppercase">€ / 100 KM</div>
+    <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${mKm>0&&mEur>0?'#f97316':'#444'};line-height:1;letter-spacing:-.02em">
+      ${mKm>0&&mEur>0?(mEur/mKm*100).toFixed(2):'—'}<span style="font-size:11px;font-weight:400;color:#a3a3a3;margin-left:5px">€</span>
+    </div>
+  </div>`;
+  h += '</div>';
 
-  html_out += `<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border)">
-    <div style="padding:6px 10px;grid-column:1/-1;border-bottom:1px solid var(--border)">
-      <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">MESEC: ${mLabel}</span>
-    </div>`;
-  html_out += tile(mKwh.toFixed(0), 'kWh', 'NAPOLNJENO MES', 'var(--orange)');
-  html_out += tile(mEur.toFixed(2), '€', 'STROŠEK MES', 'var(--orange)');
-  html_out += tile(mFree + '×', '', 'BREZPLAČNO MES', 'var(--green)');
-  html_out += tile(mPaid + '×', '', 'PLAČANO MES', 'var(--orange)');
-  html_out += tile(mKm > 0 ? mKm.toLocaleString('sl') : '—', 'km', 'KM TA MESEC', 'var(--orange)');
-  html_out += tile(mKm > 0 && mEur > 0 ? (mEur/mKm*100).toFixed(2) : '—', '€/100', '€ / 100 KM', 'var(--orange)');
-  html_out += '</div>';
-
-  el.innerHTML = html_out;
+  el.innerHTML = h;
 }
 
 function renderEvCharges() {
   const el = document.getElementById('ev-charges-content');
   if (!el) return;
+
+  // Filter UI
+  const filters = el.__evFilters || { mesec:'', postaja:'', lokacija:'' };
+
   if (!evChargeData.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔌</div>Še ni podatkov o polnjenjih.</div>';
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:#a3a3a3;font-family:var(--mono);font-size:12px">🔌 Še ni podatkov.</div>';
     return;
   }
+
   const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
-  const sorted = [...evChargeData].reverse();
+
+  // Zberi možnosti za filtre
+  const meseci = [...new Set(evChargeData.map(r=>getMonthKey(r.dateStart)))].sort().reverse();
+  const postaje = [...new Set(evChargeData.map(r=>r.postaja||'').filter(Boolean))].sort();
+  const lokacije = [...new Set(evChargeData.map(r=>r.lokacija||'').filter(Boolean))].sort();
+
+  // Filter bar
+  const selStyle = `font-family:var(--mono);font-size:9px;background:#181818;color:#e8e8e8;border:1px solid #333;border-radius:3px;padding:5px 8px;cursor:pointer;letter-spacing:.08em`;
+  let h = `<div style="display:flex;gap:8px;padding:10px 14px;background:#141414;border-bottom:1px solid #252525;flex-wrap:wrap;align-items:center">
+    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:#a3a3a3;text-transform:uppercase;margin-right:4px">FILTRI:</span>
+    <select id="ev-f-mesec" style="${selStyle}" onchange="evApplyFilter()">
+      <option value="">— VSI MESECI —</option>
+      ${meseci.map(k=>{const[y,m]=k.split('-');return`<option value="${k}"${filters.mesec===k?' selected':''}>${MONTH_SL[parseInt(m)-1].toUpperCase()} ${y}</option>`}).join('')}
+    </select>
+    <select id="ev-f-lokacija" style="${selStyle}" onchange="evApplyFilter()">
+      <option value="">— VSE LOKACIJE —</option>
+      ${lokacije.map(l=>`<option value="${l}"${filters.lokacija===l?' selected':''}>${l}</option>`).join('')}
+    </select>
+    <select id="ev-f-postaja" style="${selStyle}" onchange="evApplyFilter()">
+      <option value="">— VSE POSTAJE —</option>
+      ${postaje.map(p=>`<option value="${p}"${filters.postaja===p?' selected':''}>${p}</option>`).join('')}
+    </select>
+    ${filters.mesec||filters.lokacija||filters.postaja
+      ?`<button onclick="evClearFilters()" style="font-family:var(--mono);font-size:9px;background:transparent;color:#f97316;border:1px solid #f97316;border-radius:3px;padding:5px 10px;cursor:pointer;letter-spacing:.08em">× POČISTI</button>`
+      :''}
+  </div>`;
+
+  // Filtriraj
+  let filtered = evChargeData.filter(r => {
+    if (filters.mesec && getMonthKey(r.dateStart) !== filters.mesec) return false;
+    if (filters.lokacija && (r.lokacija||'') !== filters.lokacija) return false;
+    if (filters.postaja && (r.postaja||'') !== filters.postaja) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    h += `<div style="padding:24px;text-align:center;color:#a3a3a3;font-family:var(--mono);font-size:11px">Ni rezultatov za izbrane filtre.</div>`;
+    el.innerHTML = h;
+    el.__evFilters = filters;
+    return;
+  }
 
   // Grupiraj po mesecih
   const byMonth = {};
-  sorted.forEach(r => {
+  [...filtered].reverse().forEach(r => {
     const k = getMonthKey(r.dateStart);
     if (!byMonth[k]) byMonth[k] = [];
     byMonth[k].push(r);
   });
 
-  let html_out = '';
   Object.keys(byMonth).sort().reverse().forEach(mk => {
     const charges = byMonth[mk];
     const [yr, mo] = mk.split('-');
     const label = MONTH_SL[parseInt(mo)-1].toUpperCase() + ' ' + yr;
-    const totalKwh = charges.reduce((s,r) => s+r.kWh, 0);
-    const totalEur = charges.reduce((s,r) => s+r.skupajEur, 0);
-    const freeCount = charges.filter(r => r.skupajEur === 0).length;
+    const totalKwh = charges.reduce((s,r)=>s+r.kWh,0);
+    const totalEur = charges.reduce((s,r)=>s+r.skupajEur,0);
+    const freeN = charges.filter(r=>r.skupajEur===0).length;
 
-    html_out += `<div style="padding:8px 14px 5px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)">
-      <span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--orange)">${label}</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em">
-        ${totalKwh.toFixed(0)} kWh &nbsp;·&nbsp;
-        ${freeCount}× brezpl. &nbsp;·&nbsp;
-        <span style="color:var(--orange)">${totalEur.toFixed(2)} €</span>
-      </span>
+    h += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525">
+      <span style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.18em;color:#f97316">${label}</span>
+      <div style="display:flex;gap:18px;font-family:var(--mono);font-size:10px">
+        <span style="color:#60a5fa">${totalKwh.toFixed(0)} kWh</span>
+        <span style="color:#22c55e">${freeN}× brezpl.</span>
+        <span style="color:${totalEur>0?'#f97316':'#22c55e'};font-weight:700">${totalEur.toFixed(2)} €</span>
+      </div>
     </div>`;
 
     charges.forEach(r => {
       const d = r.dateStart;
-      const dateStr = d ? `${d.getDate()}. ${MONTH_SL[d.getMonth()]}. ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '—';
-      const isFree = r.skupajEur === 0;
-      const isDC   = r.durationS > 0 && (r.kWh / (r.durationS/3600)) > 20;
-      const typeIcon = isDC ? '⚡' : '🟢';
-      const typeCol  = isDC ? 'var(--orange)' : '#4a9';
-      const postaja  = r.postaja || '';
-      const lokacija = r.lokacija || '';
+      const dateStr = d?`${d.getDate()}. ${MONTH_SL[d.getMonth()]}. ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'—';
+      const isFree = r.skupajEur===0;
+      const kw = r.durationS>0?r.kWh/(r.durationS/3600):0;
+      const isDC = kw>15;
 
-      html_out += `<div style="display:grid;grid-template-columns:28px 1fr auto;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);gap:10px">
-        <span style="font-size:16px;text-align:center">${typeIcon}</span>
-        <div>
-          <div style="display:flex;align-items:baseline;gap:8px">
-            <span style="font-family:var(--cond);font-size:13px;color:var(--text2);font-weight:500">${lokacija}</span>
-            ${postaja ? `<span style="font-family:var(--mono);font-size:9px;color:var(--text3)">${postaja}</span>` : ''}
-          </div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px">
-            ${dateStr} &nbsp;·&nbsp;
-            <span style="color:var(--text2)">${r.socPred}% → ${r.socPo}%</span> &nbsp;·&nbsp;
-            +${Math.round(r.socPo-r.socPred)}% &nbsp;·&nbsp;
-            ${r.kWh.toFixed(1)} kWh
-            ${r.durationS > 60 ? ' &nbsp;·&nbsp; ' + fmtDuration(r.durationS) : ''}
-          </div>
+      h += `<div style="display:grid;grid-template-columns:26px 140px 1fr auto;align-items:center;padding:9px 14px;border-bottom:1px solid #1e1e1e;gap:12px;background:#0d0d0d">
+        <span style="font-size:16px;text-align:center">${isDC?'⚡':'🟢'}</span>
+        <div style="min-width:0">
+          <div style="font-family:var(--cond);font-size:14px;font-weight:600;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.lokacija||r.postaja||'—'}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:#a3a3a3;margin-top:1px">${r.postaja||''}</div>
         </div>
-        <div style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${isFree?'var(--green)':'var(--orange)'}">
-          ${isFree ? 'BREZPL.' : r.skupajEur.toFixed(2)+' €'}
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <span style="font-family:var(--mono);font-size:10px;color:#a3a3a3">${dateStr}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:#e8e8e8">${r.socPred}<span style="color:#555">%→</span><span style="color:#22c55e">${r.socPo}%</span></span>
+          <span style="font-family:var(--mono);font-size:11px;color:#a3a3a3">+${Math.round(r.socPo-r.socPred)}%</span>
+          <span style="font-family:var(--mono);font-size:11px;color:#60a5fa">${r.kWh.toFixed(1)} kWh</span>
+          ${r.durationS>60?`<span style="font-family:var(--mono);font-size:10px;color:#a3a3a3">${fmtDuration(r.durationS)}</span>`:''}
+        </div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${isFree?'#22c55e':'#f97316'};text-align:right;white-space:nowrap">
+          ${isFree?'BREZPL.':r.skupajEur.toFixed(2)+' €'}
         </div>
       </div>`;
     });
   });
 
-  el.innerHTML = html_out;
+  el.innerHTML = h;
+  el.__evFilters = filters;
+}
+
+function evApplyFilter() {
+  const el = document.getElementById('ev-charges-content');
+  if (!el) return;
+  el.__evFilters = {
+    mesec:    document.getElementById('ev-f-mesec')?.value||'',
+    lokacija: document.getElementById('ev-f-lokacija')?.value||'',
+    postaja:  document.getElementById('ev-f-postaja')?.value||''
+  };
+  renderEvCharges();
+}
+
+function evClearFilters() {
+  const el = document.getElementById('ev-charges-content');
+  if (el) el.__evFilters = {mesec:'',postaja:'',lokacija:''};
+  renderEvCharges();
 }
 
 function renderEvStats() {
   const el = document.getElementById('ev-stats-content');
   if (!el) return;
   if (!evChargeData.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div>Ni podatkov za analitiko.</div>';
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:#a3a3a3;font-family:var(--mono);font-size:12px">📊 Ni podatkov.</div>';
     return;
   }
   const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
-
-  // --- SKUPNE STATISTIKE ---
-  const totalSessions = evChargeData.length;
-  const freeCount  = evChargeData.filter(r => r.skupajEur === 0).length;
-  const paidCount  = totalSessions - freeCount;
-  const totalKwh   = evChargeData.reduce((s,r) => s+r.kWh, 0);
-  const totalEur   = evChargeData.reduce((s,r) => s+r.skupajEur, 0);
-  const avgKwh     = totalKwh / totalSessions;
-  const totalSec   = evChargeData.filter(r=>r.durationS>0).reduce((s,r) => s+r.durationS, 0);
-  const latestKm   = evKmData.length ? evKmData[evKmData.length-1].kmStanje : 0;
-  const kwhPer100  = latestKm > 0 ? (totalKwh / latestKm * 100) : 0;
-  const eurPer100  = latestKm > 0 ? (totalEur / latestKm * 100) : 0;
-
-  const tile = (val, unit, sub, col) =>
-    `<div style="padding:12px 10px;text-align:center;border-right:1px solid var(--border)">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:${col};line-height:1">
-        ${val}<span style="font-size:9px;font-weight:400;margin-left:3px;color:var(--text3)">${unit}</span>
-      </div>
-      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--text3);margin-top:4px;text-transform:uppercase">${sub}</div>
-    </div>`;
-
-  let html_out = `<div style="padding:6px 14px 4px;border-bottom:1px solid var(--border);background:var(--bg2)">
-    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">SKUPNE STATISTIKE</span>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(9,1fr);border-bottom:1px solid var(--border)">`;
-  html_out += tile(totalSessions, 'sej', 'SEJE SKUPAJ', 'var(--text2)');
-  html_out += tile(freeCount, '', 'BREZPLAČNI', 'var(--green)');
-  html_out += tile(paidCount, '', 'PLAČANE', 'var(--orange)');
-  html_out += tile(totalKwh.toFixed(0), 'kWh', 'SKUPAJ kWh', 'var(--orange)');
-  html_out += tile(totalEur.toFixed(2), '€', 'SKUPAJ STROŠEK', 'var(--orange)');
-  html_out += tile(avgKwh.toFixed(1), 'kWh', 'POVPR. SEJA', 'var(--text2)');
-  html_out += tile(totalSec > 0 ? fmtDuration(totalSec/totalSessions) : '—', '', 'ČAS POLNJENJA', 'var(--text2)');
-  html_out += tile(kwhPer100 > 0 ? kwhPer100.toFixed(1) : '—', 'kWh', '/ 100 KM', 'var(--orange)');
-  html_out += tile(eurPer100 > 0 ? eurPer100.toFixed(2) : '—', '€', '€ / 100 KM', 'var(--orange)');
-  html_out += '</div>';
-
-  // --- BREZPLAČNO VS PLAČANO ---
-  const freePct = Math.round(freeCount / totalSessions * 100);
+  const total  = evChargeData.length;
+  const freeN  = evChargeData.filter(r=>r.skupajEur===0).length;
+  const paidN  = total-freeN;
+  const totalKwh = evChargeData.reduce((s,r)=>s+r.kWh,0);
+  const totalEur = evChargeData.reduce((s,r)=>s+r.skupajEur,0);
+  const avgKwh = totalKwh/total;
+  const latestKm = evKmData.length?evKmData[evKmData.length-1].kmStanje:0;
+  const kwhPer100 = latestKm>0?(totalKwh/latestKm*100):0;
+  const eurPer100 = latestKm>0?(totalEur/latestKm*100):0;
+  const freePct = Math.round(freeN/total*100);
   const freeKwh = evChargeData.filter(r=>r.skupajEur===0).reduce((s,r)=>s+r.kWh,0);
-  const paidKwh = totalKwh - freeKwh;
-  const freeProviders = {};
-  const paidProviders = {};
-  evChargeData.forEach(r => {
-    const key = r.lokacija || r.postaja || 'Neznano';
-    if (r.skupajEur === 0) freeProviders[key] = (freeProviders[key]||0) + 1;
-    else paidProviders[key] = (paidProviders[key]||0) + 1;
-  });
-  const topFree = Object.entries(freeProviders).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join(', ');
-  const topPaid = Object.entries(paidProviders).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join(', ');
 
-  html_out += `<div style="padding:6px 14px 4px;border-bottom:1px solid var(--border);background:var(--bg2)">
-    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">BREZPLAČNO VS PLAČANO</span>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
-    <div style="padding:14px 18px;border-right:1px solid var(--border)">
-      <div style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--green);line-height:1">${freePct}%</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px">${freeCount}× · ${freeKwh.toFixed(0)} kWh</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:6px">🟢 ${topFree}</div>
-    </div>
-    <div style="padding:14px 18px">
-      <div style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--orange);line-height:1">${100-freePct}%</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px">${paidCount}× · ${paidKwh.toFixed(0)} kWh · ${totalEur.toFixed(2)} €</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:6px">⚡ ${topPaid}</div>
-    </div>
-  </div>`;
+  // Helper: sekcijska glava
+  const SH = (label) =>
+    `<div style="padding:7px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525">
+      <span style="font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:#a3a3a3;text-transform:uppercase">${label}</span>
+    </div>`;
 
-  // --- PO POLNILNI POSTAJI ---
-  const byStation = {};
-  evChargeData.forEach(r => {
-    const key = r.lokacija || r.postaja || 'Neznano';
-    if (!byStation[key]) byStation[key] = { count:0, kwh:0, eur:0 };
-    byStation[key].count++;
-    byStation[key].kwh += r.kWh;
-    byStation[key].eur += r.skupajEur;
-  });
-  const maxCount = Math.max(...Object.values(byStation).map(v=>v.count));
-
-  html_out += `<div style="padding:6px 14px 4px;border-bottom:1px solid var(--border);background:var(--bg2)">
-    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">PO POLNILNI POSTAJI</span>
-  </div>`;
-  Object.entries(byStation).sort((a,b)=>b[1].count-a[1].count).forEach(([name, d]) => {
-    const pct = Math.round(d.count/maxCount*100);
-    const isFree = d.eur === 0;
-    html_out += `<div style="padding:8px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:12px">
-      <span style="font-family:var(--cond);font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span>
-      <div style="position:relative;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
-        <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${isFree?'var(--green)':'var(--orange)'};border-radius:3px"></div>
+  // Helper: tile
+  const T = (label, val, unit, col) =>
+    `<div style="padding:12px 14px;border-right:1px solid #252525;background:#0d0d0d;display:flex;flex-direction:column;gap:7px">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:#a3a3a3;text-transform:uppercase">${label}</div>
+      <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${col};line-height:1">
+        ${val}<span style="font-size:9px;font-weight:400;color:#a3a3a3;margin-left:4px">${unit}</span>
       </div>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;text-align:right">
-        ${d.count}× · ${d.kwh.toFixed(0)} kWh · <span style="color:${isFree?'var(--green)':'var(--orange)'}">${isFree?'0,00 €':d.eur.toFixed(2)+' €'}</span>
-      </span>
+    </div>`;
+
+  let h = SH('SKUPNE STATISTIKE');
+  h += `<div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid #252525">`;
+  h += T('SEJE SKUPAJ', total, '', '#e8e8e8');
+  h += T('BREZPLAČNE', freeN+'×', '', '#22c55e');
+  h += T('PLAČANE', paidN+'×', '', '#f97316');
+  h += T('SKUPAJ kWh', totalKwh.toFixed(0), 'kWh', '#60a5fa');
+  h += T('SKUPAJ STROŠEK', totalEur.toFixed(2), '€', '#f97316');
+  h += '</div>';
+  h += `<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #252525">`;
+  h += T('POVPR. SEJA', avgKwh.toFixed(1), 'kWh', '#60a5fa');
+  h += T('PORABA', kwhPer100>0?kwhPer100.toFixed(1):'—', 'kWh/100km', '#60a5fa');
+  h += T('€ / 100 KM', eurPer100>0?eurPer100.toFixed(2):'—', '€', '#f97316');
+  h += T('SKUPAJ KM', latestKm>0?latestKm.toLocaleString('sl'):'—', 'km', '#e8e8e8');
+  h += '</div>';
+
+  // BREZPLAČNO VS PLAČANO
+  h += SH('BREZPLAČNO VS PLAČANO');
+  const topFreeProviders = (() => {
+    const p={};
+    evChargeData.filter(r=>r.skupajEur===0).forEach(r=>{const k=r.lokacija||r.postaja||'Neznano';p[k]=(p[k]||0)+1;});
+    return Object.entries(p).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  })();
+  const topPaidProviders = (() => {
+    const p={};
+    evChargeData.filter(r=>r.skupajEur>0).forEach(r=>{const k=r.lokacija||r.postaja||'Neznano';p[k]=(p[k]||0)+1;});
+    return Object.entries(p).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  })();
+
+  h += `<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #252525;background:#0d0d0d">
+    <div style="padding:16px 18px;border-right:1px solid #252525">
+      <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:#22c55e;line-height:1">${freePct}%</div>
+      <div style="font-family:var(--mono);font-size:11px;color:#e8e8e8;margin-top:6px">${freeN}× · ${freeKwh.toFixed(0)} kWh · <span style="color:#22c55e">0,00 €</span></div>
+      <div style="margin-top:8px">${topFreeProviders.map(([k,n])=>`<div style="font-family:var(--mono);font-size:10px;color:#22c55e;margin-top:3px">🟢 ${k} (${n}×)</div>`).join('')}</div>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:#f97316;line-height:1">${100-freePct}%</div>
+      <div style="font-family:var(--mono);font-size:11px;color:#e8e8e8;margin-top:6px">${paidN}× · ${(totalKwh-freeKwh).toFixed(0)} kWh · <span style="color:#f97316">${totalEur.toFixed(2)} €</span></div>
+      <div style="margin-top:8px">${topPaidProviders.map(([k,n])=>`<div style="font-family:var(--mono);font-size:10px;color:#f97316;margin-top:3px">⚡ ${k} (${n}×)</div>`).join('')}</div>
+    </div>
+  </div>`;
+
+  // PO POSTAJAH
+  h += SH('PO POLNILNI POSTAJI');
+  const byStation={};
+  evChargeData.forEach(r=>{
+    const k=r.lokacija||r.postaja||'Neznano';
+    if(!byStation[k]) byStation[k]={count:0,kwh:0,eur:0};
+    byStation[k].count++; byStation[k].kwh+=r.kWh; byStation[k].eur+=r.skupajEur;
+  });
+  const maxC=Math.max(...Object.values(byStation).map(v=>v.count));
+  h+=`<div style="background:#0d0d0d;border-bottom:1px solid #252525">`;
+  Object.entries(byStation).sort((a,b)=>b[1].count-a[1].count).forEach(([name,d])=>{
+    const pct=Math.round(d.count/maxC*100);
+    const isFree=d.eur===0;
+    h+=`<div style="display:grid;grid-template-columns:160px 1fr 200px;align-items:center;padding:10px 14px;border-bottom:1px solid #181818;gap:14px">
+      <span style="font-family:var(--cond);font-size:14px;font-weight:500;color:#e8e8e8">${name}</span>
+      <div style="height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${isFree?'#22c55e':'#f97316'};border-radius:3px"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;text-align:right;display:flex;justify-content:flex-end;gap:12px">
+        <span style="color:#a3a3a3">${d.count}×</span>
+        <span style="color:#60a5fa">${d.kwh.toFixed(0)} kWh</span>
+        <span style="color:${isFree?'#22c55e':'#f97316'};font-weight:700">${isFree?'0,00 €':d.eur.toFixed(2)+' €'}</span>
+      </div>
     </div>`;
   });
+  h+=`</div>`;
 
-  // --- MESEČNI PREGLED ---
-  const byMonth = {};
-  evChargeData.forEach(r => {
-    const k = getMonthKey(r.dateStart);
-    if (!byMonth[k]) byMonth[k] = { count:0, kwh:0, eur:0, free:0 };
-    byMonth[k].count++;
-    byMonth[k].kwh += r.kWh;
-    byMonth[k].eur += r.skupajEur;
-    if (r.skupajEur===0) byMonth[k].free++;
+  // MESEČNI PREGLED
+  h += SH('MESEČNI PREGLED');
+  const byMonth={};
+  evChargeData.forEach(r=>{
+    const k=getMonthKey(r.dateStart);
+    if(!byMonth[k]) byMonth[k]={count:0,kwh:0,eur:0,free:0};
+    byMonth[k].count++; byMonth[k].kwh+=r.kWh; byMonth[k].eur+=r.skupajEur;
+    if(r.skupajEur===0) byMonth[k].free++;
   });
-  const maxMonthKwh = Math.max(...Object.values(byMonth).map(v=>v.kwh));
-
-  html_out += `<div style="padding:6px 14px 4px;border-bottom:1px solid var(--border);background:var(--bg2)">
-    <span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">MESEČNI PREGLED</span>
-  </div>`;
-  Object.keys(byMonth).sort().reverse().forEach(mk => {
-    const d = byMonth[mk];
-    const [yr, mo] = mk.split('-');
-    const label = MONTH_SL[parseInt(mo)-1].toUpperCase() + ' ' + yr;
-    const pct = Math.round(d.kwh/maxMonthKwh*100);
-    const freePct2 = Math.round(d.free/d.count*100);
-    html_out += `<div style="padding:8px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:90px 1fr auto;align-items:center;gap:12px">
-      <span style="font-family:var(--mono);font-size:10px;color:var(--orange);font-weight:700">${label}</span>
-      <div style="position:relative;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
-        <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:var(--orange);border-radius:3px"></div>
+  const maxMKwh=Math.max(...Object.values(byMonth).map(v=>v.kwh));
+  h+=`<div style="background:#0d0d0d">`;
+  Object.keys(byMonth).sort().reverse().forEach(mk=>{
+    const d=byMonth[mk];
+    const[yr,mo]=mk.split('-');
+    const label=MONTH_SL[parseInt(mo)-1].toUpperCase()+' '+yr;
+    const pct=Math.round(d.kwh/maxMKwh*100);
+    const fp=Math.round(d.free/d.count*100);
+    h+=`<div style="display:grid;grid-template-columns:90px 1fr auto;align-items:center;padding:10px 14px;border-bottom:1px solid #181818;gap:14px">
+      <span style="font-family:var(--mono);font-size:11px;color:#f97316;font-weight:700">${label}</span>
+      <div style="height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:#f97316;border-radius:3px"></div>
       </div>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;text-align:right">
-        ${d.count}× · ${d.kwh.toFixed(0)} kWh · <span style="color:var(--green)">${freePct2}% brezpl.</span> · <span style="color:var(--orange)">${d.eur.toFixed(2)} €</span>
-      </span>
+      <div style="font-family:var(--mono);font-size:11px;display:flex;gap:14px;justify-content:flex-end">
+        <span style="color:#e8e8e8">${d.count}×</span>
+        <span style="color:#60a5fa">${d.kwh.toFixed(0)} kWh</span>
+        <span style="color:#22c55e">${fp}% brezpl.</span>
+        <span style="color:#f97316;font-weight:700;min-width:54px;text-align:right">${d.eur.toFixed(2)} €</span>
+      </div>
     </div>`;
   });
+  h+=`</div>`;
 
-  el.innerHTML = html_out;
+  el.innerHTML = h;
 }
+
+
 
 initEV();
 // EV auto-refresh vsako uro
