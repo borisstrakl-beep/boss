@@ -6485,15 +6485,8 @@ function toggleTab(head, bodyId) {
 // MOŽNOST A — Google Sheets direkten CSV (zahteva javni dostop preglednice)
 const EV_KM_SHEET_ID     = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
 const EV_CHARGE_SHEET_ID = '14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU';
-
-// MOŽNOST B — Google Apps Script proxy (priporočeno, brez CORS problemov)
-// Ko namestiš Apps Script, vstavi URL sem:
 const EV_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJ_xChL2n2lQf4NNdriBFvMbvT1KU4041uVbq5_FegQM7CBq3c-Vvz67DqniXW0axj/exec';
-
-// ===== SKODA ENYAQ SVG =====
-
-
-const ENYAQ_BAT_KWH = 55.1; // 58 kWh neto * 95% SOH
+const ENYAQ_BAT_KWH = 55.1;
 
 let evKmData = [];
 let evChargeData = [];
@@ -6506,39 +6499,52 @@ function switchEvTab(el, tab) {
   });
 }
 
-function switchEvTab(el, tab) {
-  document.querySelectorAll('[data-evtab]').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['ev-overview','ev-charges','ev-stats'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
-  });
-}
-
 async function fetchSheetCSV(sheetId, gid) {
-  const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Load failed');
-  return await res.text();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.text();
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timeout (12s)');
+    throw e;
+  }
 }
 
 async function fetchEVData(type) {
-  // Če je Apps Script URL nastavljen, uporabi proxy (brez CORS)
-  if (EV_APPS_SCRIPT_URL) {
-    const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type);
-    if (!res.ok) throw new Error('Apps Script napaka: HTTP ' + res.status);
-    return await res.text();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    if (EV_APPS_SCRIPT_URL) {
+      const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('Apps Script HTTP ' + res.status);
+      const text = await res.text();
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        throw new Error('Apps Script vrnil HTML namesto CSV — preveri deployment');
+      }
+      return text;
+    }
+    clearTimeout(timer);
+    const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
+    const gid     = type === 'km' ? '0' : '852588494';
+    return await fetchSheetCSV(sheetId, gid);
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timeout (12s) — Apps Script se ni odzval');
+    throw e;
   }
-  // Drugače direkten Google Sheets CSV (zahteva javni dostop)
-  const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
-  const gid     = type === 'km' ? '0' : '852588494';
-  return await fetchSheetCSV(sheetId, gid);
 }
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
+  if (!lines.length) return [];
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
   return lines.slice(1).map(line => {
-    // Handle quoted fields with commas inside
     const vals = [];
     let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
@@ -6567,8 +6573,6 @@ function parseNum(s) {
 function parseISODate(s) {
   if (!s) return null;
   try {
-    // Zamenjaj presledek s T za ISO 8601 kompatibilnost (Safari/iOS)
-    // "2026-05-28 10:12:34" -> "2026-05-28T10:12:34"
     const normalized = String(s).trim().replace(' ', 'T');
     const d = new Date(normalized);
     return isNaN(d.getTime()) ? null : d;
@@ -6579,12 +6583,11 @@ function parseSlDate(s) {
   if (!s) return null;
   s = s.trim();
   if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
-    // Zamenjaj presledek s T za ISO 8601 kompatibilnost (Safari/iOS)
     const normalized = s.replace(' ', 'T');
     const d = new Date(normalized);
     return isNaN(d.getTime()) ? null : d;
   }
-  const m = s.match(/(\d+)\.\s*(\d+)\.\s*(\d+)/);
+  const m = s.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
   if (m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
   return null;
 }
@@ -6595,13 +6598,13 @@ function getMonthKey(date) {
 }
 
 function fmtDuration(seconds) {
+  if (!seconds) return '';
   const h = Math.floor(seconds/3600);
   const m = Math.floor((seconds%3600)/60);
-  return h > 0 ? h+'h '+m+'m' : m+'m';
+  return h>0 ? h+'h '+m+'m' : m+'m';
 }
 
 async function initEV() {
-  // Zaznaj file:// protokol - API klici ne delujejo lokalno
   if (window.location.protocol === 'file:') {
     const fileMsg = '<div style="padding:20px 16px;font-family:var(--mono)">'
       + '<div style="font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;margin-bottom:10px">⚠️ LOKALNA DATOTEKA</div>'
@@ -6609,11 +6612,9 @@ async function initEV() {
       + 'API klici ne delujejo iz <span style="color:var(--orange)">file://</span> protokola.<br>'
       + 'Odpri datoteko na strežniku da se podatki naložijo.'
       + '</div>'
-      + '<div style="font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;text-transform:uppercase">Možnosti:</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;font-size:9px;color:var(--text);line-height:2">'
       + '① GitHub Pages: <span style="color:var(--orange)">borisstrakl-beep.github.io/boss</span><br>'
-      + '② Lokalni strežnik: <span style="color:var(--orange)">python3 -m http.server 8080</span><br>'
-      + '<span style="color:var(--text3)">→ nato odpri http://localhost:8080</span>'
+      + '② Lokalni strežnik: <span style="color:var(--orange)">python3 -m http.server 8080</span>'
       + '</div>'
       + '</div>';
     ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
@@ -6625,8 +6626,15 @@ async function initEV() {
     return;
   }
 
+  // Pokaži loading
+  ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div>Nalagam podatke...</div>';
+  });
+  const badge = document.getElementById('ev-updated-badge');
+  if (badge) badge.textContent = 'NALAGAM...';
+
   try {
-    // Fetch charge data from your sheet (gid=852588494)
     const chargeCsv = await fetchEVData('charge');
     const chargeRaw = parseCSV(chargeCsv);
 
@@ -6645,7 +6653,6 @@ async function initEV() {
       postaja: r['Polnilna postaja'] || '',
     })).filter(r => r.dateStart).sort((a,b) => a.dateStart - b.dateStart);
 
-    // Fetch km data
     try {
       const kmCsv = await fetchEVData('km');
       const kmRaw = parseCSV(kmCsv);
@@ -6661,41 +6668,37 @@ async function initEV() {
     renderEvCharges();
     renderEvStats();
 
-    const badge = document.getElementById('ev-updated-badge');
     const now = new Date();
     if (badge) badge.textContent = 'POSOD. '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
   } catch(e) {
-    const is403 = e.message && (e.message.includes('403') || e.message.includes('Load failed'));
-    const msg = '<div style="padding:16px 12px">'
+    const errMsg = '<div style="padding:16px 12px">'
       + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'
       + '<div style="font-size:28px">⚠️</div>'
       + '<div>'
-      + '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.1em">NAPAKA PRI NALAGANJU PODATKOV</div>'
+      + '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.1em">NAPAKA PRI NALAGANJU</div>'
       + '<div style="font-family:var(--cond);font-size:12px;color:var(--text3);margin-top:2px">' + e.message + '</div>'
       + '</div></div>'
-      + '<div style="background:var(--bg3);border:1px solid var(--orange-dim);border-radius:3px;padding:12px;margin-bottom:10px">'
-      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--orange);text-transform:uppercase;margin-bottom:8px">⚡ OBVEZNO — Nastavi javni dostop do preglednic</div>'
+      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:12px;margin-bottom:10px">'
+      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--orange);margin-bottom:8px">MOŽNI VZROKI</div>'
       + '<div style="font-family:var(--cond);font-size:12px;color:var(--text2);line-height:1.7">'
-      + '1. Odpri <strong>Km preglednico</strong> (Google Sheets)<br>'
-      + '2. Klikni <strong>Deli</strong> (gumb zgoraj desno)<br>'
-      + '3. Nastavi: <strong style="color:var(--orange)">Kdorkoli s povezavo → Ogledovalec</strong><br>'
-      + '4. Ponovi za <strong>Polnilno preglednico</strong><br>'
-      + '5. Osveži to stran'
+      + '① Apps Script ni uveden kot Version 3 (preveri datum format)<br>'
+      + '② Apps Script deployment: Execute as Me + Who has access: Anyone<br>'
+      + '③ Preglednici nista nastavljeni na "Kdorkoli s povezavo → Ogledovalec"'
       + '</div></div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-      + '<a href="https://docs.google.com/spreadsheets/d/1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">📊 KM PREGLEDNICA</a>'
-      + '<a href="https://docs.google.com/spreadsheets/d/14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">⚡ POLNILNA PREGLEDNICA</a>'
-      + '<button onclick="initEV()" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--orange);border:1px solid var(--orange);border-radius:3px;color:#000;font-weight:700;cursor:pointer;letter-spacing:.08em">↺ POSKUSI ZNOVA</button>'
+      + '<a href="https://docs.google.com/spreadsheets/d/1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none">📊 KM PREGLEDNICA</a>'
+      + '<a href="https://docs.google.com/spreadsheets/d/14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none">⚡ POLNILNA PREGLEDNICA</a>'
+      + '<button onclick="initEV()" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--orange);border:1px solid var(--orange);border-radius:3px;color:#000;font-weight:700;cursor:pointer">↺ POSKUSI ZNOVA</button>'
       + '</div></div>';
     ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = msg;
+      if (el) el.innerHTML = errMsg;
     });
-    const badge = document.getElementById('ev-updated-badge');
     if (badge) badge.textContent = 'NAPAKA';
   }
 }
+
 
 function renderEvOverview() {
   const el = document.getElementById('ev-overview-content');
@@ -7088,7 +7091,6 @@ function renderEvStats() {
   el.__evStatsFilters = filters;
 }
 
-
 function evApplyFilter() {
   const el = document.getElementById('ev-charges-content');
   if (!el) return;
@@ -7121,6 +7123,7 @@ function evsClearFilters() {
   if (el) el.__evStatsFilters = {mesec:'',postaja:''};
   renderEvStats();
 }
+
 
 initEV();
 // EV auto-refresh vsako uro
