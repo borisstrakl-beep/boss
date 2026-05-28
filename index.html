@@ -6967,8 +6967,8 @@ function renderEvStats() {
   })();
   const kwhPer100 = kmInPeriod>0?(totalKwh/kmInPeriod*100):0;
   const eurPer100 = kmInPeriod>0?(totalEur/kmInPeriod*100):0;
-  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
   const freeKwh = data.filter(r=>r.skupajEur===0).reduce((s,r)=>s+r.kWh,0);
+  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
 
   const SH = (label) =>
     `<div style="padding:7px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525">
