@@ -493,71 +493,123 @@
   .add-milestone-btn:hover { border-color: var(--orange); color: var(--orange); }
 
 
-  /* ===== ACCORDION ===== */
-  .section-wrap {
-    margin-bottom: 0;
-    padding: 0 16px;
+  /* ===== TAB-STRIP SISTEM ===== */
+  /* Vsaka kartica je samostojen pas čez polno širino */
+
+  .section-wrap { display: none; } /* stari wrapper — skrit */
+
+  #main-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
 
-  .accordion-header {
+  .tab-strip {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  /* Glava zavihka — vedno vidna, klikna */
+  .tab-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 0px;
+    padding: 0 20px;
+    height: 36px;
     background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    border-top: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
-    transition: background .2s;
-    margin-bottom: 4px;
+    transition: background .18s;
   }
 
-  .accordion-header:hover { background: var(--bg3); }
+  .tab-head:hover { background: var(--bg3); }
 
-  .accordion-header.open {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-bottom: 0;
-    border-bottom-color: var(--orange-dim);
+  .tab-head.open {
+    border-bottom: 1px solid var(--orange-dim);
+    background: var(--bg2);
   }
 
-  .accordion-label {
+  .tab-head-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tab-num {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: var(--orange);
+  }
+
+  .tab-title {
+    font-family: var(--mono);
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: .18em;
     color: var(--text2);
     text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
 
-  .accordion-label .acc-num { color: var(--orange); }
-
-  .accordion-arrow {
+  .tab-badge {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 9px;
     color: var(--text3);
-    transition: transform .25s;
+    letter-spacing: .1em;
+  }
+
+  .tab-head-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .tab-arrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    transition: transform .22s;
     flex-shrink: 0;
   }
 
-  .accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+  .tab-head.open .tab-arrow { transform: rotate(180deg); }
 
-  .accordion-body {
-    border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 4px 4px;
+  /* Vsebina zavihka — fiksna višina = vremenski pas */
+  .tab-body {
+    height: 370px; /* enako kot vremenski pas — 2×185px vrstic */
     overflow: hidden;
-    margin-bottom: 8px;
-    transition: max-height .3s ease, opacity .3s ease;
+    display: none;
+    border-top: none;
   }
 
-  .accordion-body.closed {
-    display: none;
+  .tab-body.open {
+    display: block;
   }
+
+  /* Vsebina ki je daljša od 208px se scrolla */
+  .tab-content {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  .tab-content::-webkit-scrollbar { width: 4px; }
+  .tab-content::-webkit-scrollbar-track { background: transparent; }
+  .tab-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Znotraj tab-content ni padding na vrhu (card-header je nadomeščen z tab-head) */
+  .tab-content .card-body { padding: 12px; }
+  .tab-content .card-body-np { padding: 0; }
+
+  /* stare accordion CSS — ohrani za kompatibilnost */
+  .accordion-header { display: none; }
+  .accordion-body { display: contents; }
+  .accordion-body.closed { display: none; }
+  .accordion-label .acc-num { color: var(--orange); }
 
   /* ===== ELEKTRIČNI AVTO ===== */
   .ev-grid {
@@ -868,26 +920,26 @@
 
   .w-temp {
     font-family: var(--mono);
-    font-size: 32px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--orange);
     line-height: 1;
   }
 
   .w-icon {
-    font-size: 28px;
+    font-size: 22px;
     display: block;
     line-height: 1;
   }
 
   .w-desc {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text3);
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 104px;
+    max-width: 100px;
   }
 
   /* NAVADE */
@@ -2328,115 +2380,15 @@
   @media (max-width: 640px) {
     .dashboard {
       grid-template-columns: 1fr;
-      padding: 8px;
+      padding: 10px;
       gap: 8px;
     }
     .span2, .span3 { grid-column: span 1; }
-    .topbar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
-    .topbar-center { order: 3; flex-basis: 100%; text-align: center; font-size: 12px; }
-    .clock { font-size: 18px; }
-    .topbar-right { gap: 8px; }
-
-    /* ── VREMENSKI PAS MOBILNI LAYOUT ─────────────────────────
-       Desktop: [zajček | grid 4×2 | forecast danes/jutri/poj/7dni]
-       Mobil:
-         Vrstica 1: [zajček | zgoraj: grid 4×2 / spodaj: danes+jutri+poj]
-         Vrstica 2: [7-dnevna napoved čez celo širino]
-    ─────────────────────────────────────────────────────────── */
-
-    /* Glavni wrapper — iz grid 3 stolpcev v flex kolono */
-    .card-body > div[style*="grid-template-columns:160px"] {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 0 !important;
-    }
-
-    /* Zgornji del: zajček + mesta + danes/jutri/poj */
-    #weather-mobile-top {
-      display: flex !important;
-    }
-
-    /* Zajček — ostane levo, malo manjši */
-    #weather-bunny-panel {
-      width: 120px !important;
-      min-width: 120px !important;
-      height: auto !important;
-      min-height: 0 !important;
-      padding: 8px 4px !important;
-      flex-shrink: 0 !important;
-    }
-    #bunny-svg-wrap {
-      width: 112px !important;
-      height: 160px !important;
-    }
-    #bunny-outfit { font-size: 9px !important; }
-    #bunny-label  { font-size: 7px !important; }
-
-    /* Desni stolpec: mesta zgoraj + danes/jutri/poj spodaj */
-    #weather-right-col {
-      display: flex !important;
-      flex-direction: column !important;
-      flex: 1 !important;
-      min-width: 0 !important;
-    }
-
-    /* Mreža mest — 4×2, zapolni desni stolpec */
-    #weather-grid {
-      display: grid !important;
-      grid-template-columns: repeat(4, 1fr) !important;
-      grid-template-rows: repeat(2, 72px) !important;
-      width: 100% !important;
-      border-right: none !important;
-    }
-    .w-temp { font-size: 18px !important; }
-    .w-icon { font-size: 16px !important; }
-    .w-desc { font-size: 7px !important; }
-    .w-city { font-size: 6.5px !important; }
-
-    /* Danes/jutri/pojutrišnjem — pod mrežo mest, 3 enakomerni stolpci */
-    #weather-forecast-panel {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr 1fr !important;
-      height: auto !important;
-      min-height: 0 !important;
-      border-top: 1px solid var(--border) !important;
-    }
-    #weather-today-col,
-    #weather-tomorrow-col,
-    #weather-dayafter-col {
-      padding: 8px 6px !important;
-      overflow: hidden !important;
-    }
-    /* Skrijemo 7-dnevno napoved iz forecast panela */
-    #weather-forecast-content { display: none !important; }
-
-    /* Spodaj: 7-dnevna napoved čez celo širino */
-    #weather-7day-mobile {
-      display: block !important;
-      border-top: 1px solid var(--border);
-      padding: 6px 8px;
-    }
-
-    .card-body { padding: 10px; }
-    .card-header { padding: 8px 12px; }
-    /* Desktop weather — skrijemo na mobilnih */
-    #weather-desktop { display: none !important; }
-    #weather-mobile  { display: flex !important; }
+    .topbar { flex-wrap: wrap; gap: 8px; }
+    .topbar-center { order: 3; flex-basis: 100%; }
+    .clock { font-size: 15px; }
+    /* weather-grid now flex */
   }
-
-  /* Mobilni wrapper elementi — na desktopu skriti */
-  #weather-mobile      { display: none; }
-  #weather-mobile-top  { display: none; }
-  #weather-right-col   { display: none; }
-  #weather-7day-mobile { display: none; }
-
-  /* ── Kompaktni fonti v danes/jutri/poj na mobilnih ── */
-  @media (max-width: 640px) {
-    #weather-today-col .font-12px,
-    #weather-tomorrow-col .font-12px,
-    #weather-dayafter-col .font-12px { font-size: 10px !important; }
-  }
-
   /* ===== WEATHER BUNNY ===== */
   #weather-bunny-panel {
     width: 160px;
@@ -2508,25 +2460,23 @@
   </div>
 </header>
 
-<!-- DASHBOARD GRID -->
+<!-- TAB STRIPS -->
 <div id="main-sections">
 
-<!-- ▼ SEKCIJA: PREGLED -->
-<div class="section-wrap">
-  <div class="accordion-header open" onclick="toggleAccordion(this,'sec-pregled')">
-    <div class="accordion-label"><span class="acc-num">A //</span> DNEVNI PREGLED</div>
-    <div class="accordion-arrow">▼</div>
-  </div>
-  <div class="accordion-body" id="sec-pregled">
-    <div class="dashboard">
-
-  <!-- 01 VREME -->
-  <div class="card span3">
-    <div class="card-header">
-      <div class="card-label"><span class="num">01 //</span> VREME</div>
-      <div class="card-badge" id="weather-updated">NALAGAM...</div>
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-vreme')">
+    <div class="tab-head-left">
+      <span class="tab-num">01 //</span>
+      <span class="tab-title">VREME</span>
     </div>
-    <div class="card-body" style="padding:0">
+    <div class="tab-head-right">
+      <span class="tab-badge" id="weather-updated">NALAGAM...</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-vreme">
+    <div class="tab-content" style="padding:0">
+<div class="card-body" style="padding:0">
       <!-- DESKTOP layout -->
       <div id="weather-desktop" style="display:grid;grid-template-columns:160px auto 1fr;gap:0">
         <div id="weather-bunny-panel">
@@ -2561,7 +2511,7 @@
       </div>
 
       <!-- MOBILNI layout — JS ga napolni ob resize -->
-      <div id="weather-mobile" style="display:none;flex-direction:column">
+      <div id="weather-mobile" style="flex-direction:column">
         <!-- Vrstica 1: zajček + [mesta + danes/jutri/poj] -->
         <div style="display:flex;min-height:0">
           <!-- Zajček (mobilni — klon panela, JS sinhronizira) -->
@@ -2587,16 +2537,25 @@
         <!-- Vrstica 2: 7-dnevna napoved čez celo širino -->
         <div id="weather-7day-m" style="border-top:1px solid var(--border);padding:6px 10px;display:flex;flex-direction:column"></div>
       </div>
+    </div
     </div>
   </div>
+</div>
 
-  <!-- 02 FINANCE -->
-  <div class="card span2" id="finance-card">
-    <div class="card-header">
-      <div class="card-label"><span class="num">02 //</span> FINANCE</div>
-      <div class="card-badge" id="finance-badge">NALAGAM...</div>
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-finance')">
+    <div class="tab-head-left">
+      <span class="tab-num">02 //</span>
+      <span class="tab-title">FINANCE</span>
     </div>
-    <div class="card-body">
+    <div class="tab-head-right">
+      <span class="tab-badge" id="finance-badge">NALAGAM...</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-finance">
+    <div class="tab-content">
+<div class="card-body">
       <div style="display:flex;gap:6px;margin-bottom:12px">
         <div class="proj-tab active" onclick="financeTab(this,'banka')" id="fin-tab-banka">BANKA</div>
         <div class="proj-tab" onclick="financeTab(this,'portfelj')" id="fin-tab-portfelj">PORTFELJ</div>
@@ -2685,13 +2644,24 @@
 
     </div>
   </div>
-  <!-- 03 CILJI -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-label"><span class="num">03 //</span> CILJI</div>
-      <div class="card-badge">MAJ 2026</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-cilji')">
+    <div class="tab-head-left">
+      <span class="tab-num">03 //</span>
+      <span class="tab-title">CILJI</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge">MAJ 2026</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-cilji">
+    <div class="tab-content">
+<div class="card-body">
       <div class="goal-item">
         <div class="goal-header">
           <div class="goal-name">⚖️ Hujšanje</div>
@@ -2720,14 +2690,24 @@
       </div>
     </div>
   </div>
-
-  <!-- 04 TODOIST -->
-  <div class="card span2">
-    <div class="card-header">
-      <div class="card-label"><span class="num">04 //</span> TODOIST NALOGE</div>
-      <div class="card-badge">8 PROJEKTOV · 5 DANES</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-todoistnaloge')">
+    <div class="tab-head-left">
+      <span class="tab-num">04 //</span>
+      <span class="tab-title">TODOIST NALOGE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge">8 PROJEKTOV · 5 DANES</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-todoistnaloge">
+    <div class="tab-content">
+<div class="card-body">
       <div class="project-tabs">
         <div class="proj-tab active" onclick="filterTasks(this,'all')">VSE</div>
         <div class="proj-tab" onclick="filterTasks(this,'danes')">DANES</div>
@@ -2788,14 +2768,24 @@
       </div>
     </div>
   </div>
-
-  <!-- 05 GOOGLE KOLEDAR -->
-  <div class="card span2">
-    <div class="card-header">
-      <div class="card-label"><span class="num">05 //</span> GOOGLE KOLEDAR</div>
-      <div class="card-badge" id="cal-badge">NALAGAM...</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-googlekoledar')">
+    <div class="tab-head-left">
+      <span class="tab-num">05 //</span>
+      <span class="tab-title">GOOGLE KOLEDAR</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="cal-badge">NALAGAM...</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-googlekoledar">
+    <div class="tab-content">
+<div class="card-body">
       <!-- Tedenski mini strip -->
       <div class="cal-week" id="cal-week-strip"></div>
       <!-- Tab: Danes / Ta teden -->
@@ -2810,14 +2800,24 @@
       <div id="cal-events-sluzba" style="display:none"></div>
     </div>
   </div>
-
-  <!-- 06 NAVADE -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-label"><span class="num">06 //</span> NAVADE</div>
-      <div class="card-badge" id="habit-counter">0/16 · 0%</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-navade')">
+    <div class="tab-head-left">
+      <span class="tab-num">06 //</span>
+      <span class="tab-title">NAVADE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="habit-counter">0/16 · 0%</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-navade">
+    <div class="tab-content">
+<div class="card-body">
       <div class="habit-score">
         <div class="habit-score-num" id="habit-done">0</div>
         <div class="habit-score-total">/16</div>
@@ -2852,14 +2852,24 @@
       <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Plank (2x 1 min)</div><div class="habit-tag">FITNES</div></div>
     </div>
   </div>
-
-  <!-- 07 PREHRANA -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-label"><span class="num">07 //</span> FIZIČNO STANJE</div>
-      <div class="card-badge" id="nutrition-date-badge">DANES</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-fizinostanje')">
+    <div class="tab-head-left">
+      <span class="tab-num">07 //</span>
+      <span class="tab-title">FIZIČNO STANJE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="nutrition-date-badge">DANES</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-fizinostanje">
+    <div class="tab-content">
+<div class="card-body">
 
       <!-- KCAL + VODA skupaj -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -2952,14 +2962,24 @@
 
     </div>
   </div>
-
-  <!-- 08 ŠPORT / GIBANJE -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-label"><span class="num">08 //</span> ŠPORT · GIBANJE</div>
-      <div class="card-badge" id="sport-today-badge">DANES</div>
     </div>
-    <div class="card-body">
+  </div>
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-portgibanje')">
+    <div class="tab-head-left">
+      <span class="tab-num">08 //</span>
+      <span class="tab-title">ŠPORT · GIBANJE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="sport-today-badge">DANES</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-portgibanje">
+    <div class="tab-content">
+<div class="card-body">
 
       <!-- DANAŠNJI TRENING iz Google Koledarja -->
       <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">NAČRTOVANI TRENING</div>
@@ -3014,19 +3034,23 @@
 
 
 </div>
-
-
-  </div><!-- /accordion-body sec-pregled -->
-</div><!-- /section-wrap -->
-
-<!-- ▼ SEKCIJA: ŠPORT -->
-<div class="section-wrap">
-  <div class="accordion-header open" onclick="toggleAccordion(this,'sec-sport')">
-    <div class="accordion-label"><span class="acc-num">C //</span> ŠPORT & PRIREDITVE</div>
-    <div class="accordion-arrow">▼</div>
+    </div>
   </div>
-  <div class="accordion-body" id="sec-sport">
+</div>
 
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-portneprireditve')">
+    <div class="tab-head-left">
+      <span class="tab-num">10 //</span>
+      <span class="tab-title">ŠPORTNE PRIREDITVE</span>
+    </div>
+    <div class="tab-head-right">
+      
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-portneprireditve">
+    <div class="tab-content">
 <!-- ===== ŠPORTNE PRIREDITVE ===== -->
 <div class="library-section" style="margin-top:0">
   <div class="library-card">
@@ -3148,17 +3172,23 @@
     </div>
   </div>
     </div><!-- /dashboard -->
-  </div><!-- /accordion-body sec-sport -->
-</div><!-- /section-wrap -->
-
-<!-- ▼ SEKCIJA: KNJIŽNICA -->
-<div class="section-wrap">
-  <div class="accordion-header open" onclick="toggleAccordion(this,'sec-knjiznica')">
-    <div class="accordion-label"><span class="acc-num">B //</span> KNJIŽNICA</div>
-    <div class="accordion-arrow">▼</div>
+    </div>
   </div>
-  <div class="accordion-body" id="sec-knjiznica">
+</div>
 
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-knjinica')">
+    <div class="tab-head-left">
+      <span class="tab-num">11 //</span>
+      <span class="tab-title">KNJIŽNICA</span>
+    </div>
+    <div class="tab-head-right">
+      
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-knjinica">
+    <div class="tab-content">
 <!-- ===== KNJIŽNICA ===== -->
 <div class="library-section">
   <div class="library-card">
@@ -3320,19 +3350,24 @@
     </div>
   </div>
 </div>
-
-
-  </div><!-- /accordion-body sec-knjiznica -->
-</div><!-- /section-wrap -->
-
-<!-- ▼ SEKCIJA: ELEKTRIČNI AVTO -->
-<div class="section-wrap">
-  <div class="accordion-header open" onclick="toggleAccordion(this,'sec-ev')">
-    <div class="accordion-label"><span class="acc-num">D //</span> ŠKODA ENYAQ 60 — ELEKTRIČNI AVTO</div>
-    <div class="accordion-arrow">▼</div>
+    </div>
   </div>
-  <div class="accordion-body" id="sec-ev">
-    <div class="library-section" style="margin-top:0">
+</div>
+
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-evsledenje')">
+    <div class="tab-head-left">
+      <span class="tab-num">12 //</span>
+      <span class="tab-title">EV SLEDENJE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge">NALAGAM...</span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-evsledenje">
+    <div class="tab-content">
+<div class="library-section" style="margin-top:0">
       <div class="library-card">
         <div class="library-header">
           <div class="card-label" style="font-size:11px"><span class="num">12 //</span> EV SLEDENJE</div>
@@ -3367,12 +3402,30 @@
 
       </div>
     </div>
-  </div><!-- /accordion-body sec-ev -->
-</div><!-- /section-wrap -->
+    </div>
+  </div>
+</div>
 
 </div><!-- /main-sections -->
 
 <script>
+
+// ===== TAB STRIP TOGGLE =====
+function toggleAccordion(header, bodyId) {
+  const body = document.getElementById(bodyId);
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  if (body) body.classList.toggle('closed', isOpen);
+}
+
+function toggleTab(head, bodyId) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  const isOpen = head.classList.contains('open');
+  head.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
 // ===== URA & DATUM =====
 function updateClock() {
   const now = new Date();
@@ -3643,11 +3696,10 @@ function showWeatherForecast(key) {
   // DAY AFTER
   if (dayAfterEl) dayAfterEl.innerHTML = buildDayCol(daily, 2, 'POJUTRIŠNJEM', false);
 
-  // 7-DAY FORECAST — dan, datum, ikona, max/min temp
-  const fHeight = 370 - 16; // panel height minus padding
-  const rowH = Math.floor(fHeight / 7);
+  // 8-DAY FORECAST — dan, datum, ikona, max/min temp
+  const fcDays = Math.min(8, daily.time.length - 3);
   let fHtml = '<div style="display:flex;flex-direction:column;height:100%">';
-  daily.time.slice(3, 10).forEach((dateStr, i) => {
+  daily.time.slice(3, 3 + fcDays).forEach((dateStr, i) => {
     const di = i + 3;
     const date = new Date(dateStr);
     const dayName = DAY_SL[date.getDay()];
@@ -3655,20 +3707,14 @@ function showWeatherForecast(key) {
     const icon    = wmoIcon(daily.weathercode[di], 1);
     const tMax    = Math.round(daily.temperature_2m_max[di]);
     const tMin    = Math.round(daily.temperature_2m_min[di]);
-    const isLast  = (i === 6);
+    const isLast  = (i === fcDays - 1);
     fHtml += '<div style="display:flex;align-items:center;flex:1;min-height:0;gap:0;padding:0 4px;'
       + (isLast ? '' : 'border-bottom:1px solid var(--border);') + '">'
-      // Dan — bold, fiksna širina
       + '<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text1);width:32px;flex-shrink:0">' + dayName + '</div>'
-      // Datum — manjši, subtilen
       + '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:46px;flex-shrink:0">' + dayNum + '</div>'
-      // Ikona — večja
       + '<div style="font-size:20px;width:32px;text-align:center;flex-shrink:0;line-height:1">' + icon + '</div>'
-      // Spacer
       + '<div style="flex:1"></div>'
-      // Max temp — oranžna, poudarjena
       + '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--orange);text-align:right;width:36px;flex-shrink:0">' + tMax + '°</div>'
-      // Min temp — siva
       + '<div style="font-family:var(--mono);font-size:12px;color:var(--text3);text-align:right;width:32px;flex-shrink:0">/' + tMin + '°</div>'
       + '</div>';
   });
@@ -4177,15 +4223,15 @@ function drawBunny(variant, temp) {
   const body = variants[variant] || variants.sunny;
   const acc  = accMap[variant]   || '';
 
-  return `<svg viewBox="0 -18 120 228" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 -68 120 278" xmlns="http://www.w3.org/2000/svg">
   <!-- Ozadje glow -->
   <radialGradient id="gl" cx="50%" cy="60%" r="55%">
     <stop offset="0%" stop-color="${glow}" stop-opacity=".55"/>
     <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
   </radialGradient>
   <circle cx="60" cy="120" r="90" fill="url(#gl)"/>
-  <!-- Vremenski simbol -->
-  ${acc}
+  <!-- Vremenski simbol (nad ušesi) -->
+  <g transform="translate(0,-50)">${acc}</g>
   <!-- Zajček -->
   ${body}
 </svg>`;
@@ -4230,20 +4276,9 @@ function updateBunny(key) {
 
 
 // ===== MOBILNI VREMENSKI LAYOUT =====
+// Vidnost desktop/mobile ureja CSS media query — JS samo sinhronizira vsebino
 function applyWeatherMobileLayout() {
-  const isMobile = window.innerWidth <= 640;
-  const desktop = document.getElementById('weather-desktop');
-  const mobile  = document.getElementById('weather-mobile');
-  if (!desktop || !mobile) return;
-
-  if (isMobile) {
-    desktop.style.display = 'none';
-    mobile.style.display  = 'flex';
-    syncWeatherMobile();
-  } else {
-    desktop.style.display = '';
-    mobile.style.display  = 'none';
-  }
+  if (window.innerWidth <= 640) syncWeatherMobile();
 }
 
 function syncWeatherMobile() {
@@ -4322,9 +4357,7 @@ window.addEventListener('resize', applyWeatherMobileLayout);
 const _origShowWeather = showWeatherForecast;
 showWeatherForecast = function(key) {
   _origShowWeather(key);
-  if (window.innerWidth <= 640) {
-    setTimeout(syncWeatherMobile, 50);
-  }
+  setTimeout(syncWeatherMobile, 50);
 };
 
 // Init weather on load
@@ -6763,6 +6796,7 @@ initEV();
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.add('hidden'); });
 });
+
 </script>
 </body>
 </html>
