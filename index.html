@@ -2744,7 +2744,8 @@
 
       <!-- STAVNICA -->
       <div id="fin-stavnica" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <!-- Kartice -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
           <div style="background:var(--bg2);border-radius:6px;padding:10px 12px">
             <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:4px">TRENUTNO STANJE</div>
             <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)" id="fin-stav-big">—</div>
@@ -2755,15 +2756,43 @@
             <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="fin-stav-chg-big">—</div>
             <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-stav-chg-sub">od zadnjega vnosa</div>
           </div>
+          <div style="background:var(--bg2);border-radius:6px;padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:4px">SKUPAJ VNOSOV</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)" id="fin-stav-count">—</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-stav-zadnji">—</div>
+          </div>
         </div>
+        <!-- Filtri -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--text3)">FILTRI:</span>
+          <select id="stav-f-leto" onchange="stavApplyFilter()" style="font-family:var(--mono);font-size:9px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer">
+            <option value="">— VSA LETA —</option>
+          </select>
+          <select id="stav-f-mesec" onchange="stavApplyFilter()" style="font-family:var(--mono);font-size:9px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer">
+            <option value="">— VSI MESECI —</option>
+          </select>
+          <button id="stav-f-clear" onclick="stavClearFilter()" style="display:none;font-family:var(--mono);font-size:9px;background:transparent;color:var(--orange);border:1px solid var(--orange);border-radius:3px;padding:4px 8px;cursor:pointer">× POČISTI</button>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:auto" id="fin-stav-vnosi">—</span>
+        </div>
+        <!-- Graf -->
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">GIBANJE STANJA</div>
-        <canvas id="fin-stav-chart" height="80" style="width:100%;display:block"></canvas>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px" id="fin-stav-vnosi">— vnosov</div>
+        <canvas id="fin-stav-chart" height="90" style="width:100%;display:block;margin-bottom:12px"></canvas>
+        <!-- Statistika -->
+        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">STATISTIKA OBDOBJA</div>
+        <div id="fin-stav-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px"></div>
+        <!-- Mesecna analitika -->
+        <div id="fin-stav-mesecno-wrap">
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">MESČNA GIBANJA</div>
+          <div id="fin-stav-mesecno"></div>
+        </div>
+        <!-- Vnos -->
         <div class="o-divider"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <input type="number" id="fin-stav-input" placeholder="Novo stanje (EUR)..." step="0.01"
-            style="flex:1;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
-          <button onclick="finSaveStavnica()" class="add-btn" style="white-space:nowrap">+ VNESI</button>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <input type="number" id="fin-stav-input" placeholder="Stanje (EUR)..." step="0.01"
+            style="flex:2;min-width:100px;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+          <input type="date" id="fin-stav-datum"
+            style="flex:1;min-width:120px;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text);color-scheme:dark">
+          <button onclick="finSaveStavnica()" class="add-btn" style="white-space:nowrap" id="stav-save-btn">+ VNESI</button>
         </div>
       </div>
 
@@ -5257,39 +5286,123 @@ function renderPortfeljChart() {
 }
 
 // ---- STAVNICA ----
+const STAVNICA_FB = 'https://boris-stavnica-default-rtdb.europe-west1.firebasedatabase.app/history';
+const MESECI_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+let stavFilter = { leto: '', mesec: '' };
+
 function loadStavnica() {
-  const saved = localStorage.getItem('fin_stavnica_history');
-  if (saved) {
-    finData.stavnica = JSON.parse(saved);
-  } else {
-    // Migracija iz stare shranitve
-    const old = localStorage.getItem('fin_stavnica');
-    if (old) {
-      const d = JSON.parse(old);
-      finData.stavnica = [{ znesek: d.znesek, datum: d.datum || new Date().toISOString() }];
-      localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
-    }
+  // Takoj pokazi cache
+  const cached = localStorage.getItem('fin_stavnica_cache');
+  if (cached) {
+    finData.stavnica = JSON.parse(cached);
+    stavPopulateFilters();
+    renderStavnica();
+  }
+  // Potem svezi iz Firebase
+  fetchStavnicaFB();
+}
+
+function fetchStavnicaFB() {
+  const tab = document.getElementById('fin-tab-stavnica');
+  if (tab) tab.style.opacity = '0.5';
+  fetch(STAVNICA_FB + '.json')
+    .then(r => r.json())
+    .then(data => {
+      if (!data) { finData.stavnica = []; }
+      else {
+        // Firebase vrne objekt s kljuci, pretvorimo v array in sortiramo po datumu
+        finData.stavnica = Object.values(data)
+          .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+      }
+      localStorage.setItem('fin_stavnica_cache', JSON.stringify(finData.stavnica));
+      stavPopulateFilters();
+      renderStavnica();
+      if (tab) tab.style.opacity = '';
+    })
+    .catch(err => {
+      console.warn('Stavnica Firebase napaka:', err);
+      if (tab) tab.style.opacity = '';
+    });
+}
+
+function stavPopulateFilters() {
+  const hist = finData.stavnica || [];
+  const leta = [...new Set(hist.map(h => new Date(h.datum).getFullYear()))].sort().reverse();
+  const selLeto = document.getElementById('stav-f-leto');
+  if (selLeto) {
+    const cur = selLeto.value;
+    selLeto.innerHTML = '<option value="">— VSA LETA —</option>' +
+      leta.map(y => '<option value="' + y + '"' + (cur==y?' selected':'') + '>' + y + '</option>').join('');
+  }
+  stavUpdateMesecFilter();
+}
+
+function stavUpdateMesecFilter() {
+  const hist = finData.stavnica || [];
+  const leto = document.getElementById('stav-f-leto')?.value || '';
+  const fil = leto ? hist.filter(h => new Date(h.datum).getFullYear() == leto) : hist;
+  const meseci = [...new Set(fil.map(h => new Date(h.datum).getMonth()))].sort((a,b) => b-a);
+  const selMesec = document.getElementById('stav-f-mesec');
+  if (selMesec) {
+    const cur = selMesec.value;
+    selMesec.innerHTML = '<option value="">— VSI MESECI —</option>' +
+      meseci.map(m => '<option value="' + m + '"' + (cur==m?' selected':'') + '>' + MESECI_SL[m].toUpperCase() + '</option>').join('');
   }
 }
 
+function stavApplyFilter() {
+  stavFilter.leto = document.getElementById('stav-f-leto')?.value || '';
+  stavFilter.mesec = document.getElementById('stav-f-mesec')?.value || '';
+  stavUpdateMesecFilter();
+  const cb = document.getElementById('stav-f-clear');
+  if (cb) cb.style.display = (stavFilter.leto || stavFilter.mesec) ? '' : 'none';
+  renderStavnica();
+}
+
+function stavClearFilter() {
+  stavFilter = { leto: '', mesec: '' };
+  const sl = document.getElementById('stav-f-leto');
+  const sm = document.getElementById('stav-f-mesec');
+  if (sl) sl.value = ''; if (sm) sm.value = '';
+  const cb = document.getElementById('stav-f-clear');
+  if (cb) cb.style.display = 'none';
+  renderStavnica();
+}
+
+function stavGetFiltered() {
+  let hist = finData.stavnica || [];
+  if (stavFilter.leto) hist = hist.filter(h => new Date(h.datum).getFullYear() == stavFilter.leto);
+  if (stavFilter.mesec !== '') hist = hist.filter(h => new Date(h.datum).getMonth() == stavFilter.mesec);
+  return hist;
+}
+
 function renderStavnica() {
-  const hist = finData.stavnica || [];
+  const allHist = finData.stavnica || [];
+  const hist = stavGetFiltered();
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  const zadnji = hist.length > 0 ? hist[hist.length - 1].znesek : null;
-  const prejsnji = hist.length > 1 ? hist[hist.length - 2].znesek : null;
+
+  const zadnji = allHist.length > 0 ? allHist[allHist.length-1].znesek : null;
+  const prejsnji = allHist.length > 1 ? allHist[allHist.length-2].znesek : null;
 
   const bigEl = document.getElementById('fin-stav-big');
   if (bigEl) bigEl.textContent = zadnji != null ? fmt(zadnji) : '—';
 
-  const chgBigEl = document.getElementById('fin-stav-chg-big');
-  if (chgBigEl && zadnji != null && prejsnji != null) {
+  const chgEl = document.getElementById('fin-stav-chg-big');
+  const chgSub = document.getElementById('fin-stav-chg-sub');
+  if (chgEl && zadnji != null && prejsnji != null) {
     const diff = zadnji - prejsnji;
-    chgBigEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
-    chgBigEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
-  } else if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
+    chgEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
+    chgEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+    if (chgSub) chgSub.textContent = (diff >= 0 ? '+' : '') + ((diff/prejsnji)*100).toFixed(1) + '% od prejšnjega';
+  } else if (chgEl) { chgEl.textContent = '—'; chgEl.style.color = 'var(--text3)'; }
+
+  const countEl = document.getElementById('fin-stav-count');
+  if (countEl) countEl.textContent = allHist.length;
+  const zadnjiEl = document.getElementById('fin-stav-zadnji');
+  if (zadnjiEl && allHist.length > 0) zadnjiEl.textContent = new Date(allHist[allHist.length-1].datum).toLocaleDateString('sl-SI');
 
   const vnosiEl = document.getElementById('fin-stav-vnosi');
-  if (vnosiEl) vnosiEl.textContent = hist.length + ' vnosov · zadnji: ' + (hist.length > 0 ? new Date(hist[hist.length-1].datum).toLocaleDateString('sl-SI') : '—');
+  if (vnosiEl) vnosiEl.textContent = hist.length + ' vnosov v izboru';
 
   const input = document.getElementById('fin-stav-input');
   if (input && zadnji != null) input.placeholder = 'Trenutno: ' + fmt(zadnji) + ' €';
@@ -5302,7 +5415,60 @@ function renderStavnica() {
     const maxV = Math.max(...data) * 1.03;
     makeChart('fin-stav-chart', labels,
       [lineDataset(data, 'rgb(234,179,8)', 'Stanje stavnice')],
-      { xTicks:6, yMin: minV, yMax: maxV });
+      { xTicks: hist.length > 30 ? 8 : 6, yMin: minV, yMax: maxV });
+  } else {
+    if (finCharts && finCharts['fin-stav-chart']) { finCharts['fin-stav-chart'].destroy(); delete finCharts['fin-stav-chart']; }
+  }
+
+  // Statistika
+  const statsEl = document.getElementById('fin-stav-stats');
+  if (statsEl && hist.length > 0) {
+    const vals = hist.map(h => h.znesek);
+    const minZ = Math.min(...vals), maxZ = Math.max(...vals);
+    const avgZ = vals.reduce((s,v)=>s+v,0)/vals.length;
+    const skupDiff = vals[vals.length-1] - vals[0];
+    const sc = (label, val, col) =>
+      '<div style="background:var(--bg2);border-radius:6px;padding:8px 10px">' +
+      '<div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.1em;margin-bottom:3px">' + label + '</div>' +
+      '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:' + (col||'var(--text)') + '">' + val + '</div></div>';
+    statsEl.innerHTML =
+      sc('MINIMUM', fmt(minZ)+' €', 'var(--red)') +
+      sc('MAKSIMUM', fmt(maxZ)+' €', 'var(--green)') +
+      sc('POVPREČJE', fmt(avgZ)+' €', 'var(--yellow)') +
+      sc('SKUPNA RAST', (skupDiff>=0?'+':'')+fmt(skupDiff)+' €', skupDiff>=0?'var(--green)':'var(--red)');
+  } else if (statsEl) {
+    statsEl.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Ni podatkov za prikaz.</div>';
+  }
+
+  // Mesecna analitika
+  const mWrap = document.getElementById('fin-stav-mesecno-wrap');
+  const mEl = document.getElementById('fin-stav-mesecno');
+  const showM = !stavFilter.leto && !stavFilter.mesec;
+  if (mWrap) mWrap.style.display = showM ? '' : 'none';
+  if (mEl && showM && allHist.length > 0) {
+    const byMonth = {};
+    allHist.forEach(h => {
+      const d = new Date(h.datum);
+      const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!byMonth[k]) byMonth[k] = [];
+      byMonth[k].push(h.znesek);
+    });
+    mEl.innerHTML = Object.keys(byMonth).sort().reverse().map(k => {
+      const [yr, mo] = k.split('-');
+      const vals = byMonth[k];
+      const diff = vals[vals.length-1] - vals[0];
+      const pct = vals[0] > 0 ? ((diff/vals[0])*100).toFixed(1) : '0.0';
+      const label = MESECI_SL[parseInt(mo)-1].toUpperCase() + ' ' + yr;
+      const col = diff >= 0 ? 'var(--green)' : 'var(--red)';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:4px">' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--orange);font-weight:700">' + label + '</span>' +
+        '<div style="display:flex;gap:12px;align-items:center">' +
+        '<span style="font-family:var(--mono);font-size:9px;color:var(--text3)">' + vals.length + '×</span>' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--text)">' + fmt(vals[vals.length-1]) + ' €</span>' +
+        '<span style="font-family:var(--mono);font-size:10px;color:' + col + ';font-weight:700">' +
+        (diff>=0?'+':'') + fmt(diff) + ' € <span style="font-size:9px;font-weight:400">(' + (diff>=0?'+':'') + pct + '%)</span></span>' +
+        '</div></div>';
+    }).join('');
   }
 }
 
@@ -5311,11 +5477,28 @@ function finSaveStavnica() {
   if (!input || !input.value) return;
   const z = parseFloat(input.value);
   if (isNaN(z)) return;
-  if (!finData.stavnica) finData.stavnica = [];
-  finData.stavnica.push({ znesek: z, datum: new Date().toISOString() });
-  localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
-  input.value = '';
-  renderStavnica();
+  const datumInput = document.getElementById('fin-stav-datum');
+  const datumVal = datumInput && datumInput.value ? datumInput.value : null;
+  const datum = datumVal ? datumVal + 'T12:00:00' : new Date().toISOString();
+  const btn = document.getElementById('stav-save-btn');
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+  fetch(STAVNICA_FB + '.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ znesek: z, datum: datum })
+  })
+    .then(r => r.json())
+    .then(() => {
+      input.value = '';
+      if (datumInput) datumInput.value = '';
+      if (btn) { btn.textContent = '+ VNESI'; btn.disabled = false; }
+      fetchStavnicaFB();
+    })
+    .catch(err => {
+      console.error('Stavnica zapis napaka:', err);
+      alert('Napaka pri shranjevanju v Firebase.');
+      if (btn) { btn.textContent = '+ VNESI'; btn.disabled = false; }
+    });
 }
 
 // ---- INICIALIZACIJA ----
