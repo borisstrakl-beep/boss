@@ -2529,6 +2529,33 @@
     text-align: center;
     line-height: 1.3;
   }
+
+  /* ===== FLUID DESKTOP LAYOUT ===== */
+  /* Tab vsebina zavzame celotno širino */
+  .tab-content { width: 100%; box-sizing: border-box; }
+
+  /* Weather forecast panel — napoved stolpci se prilagodijo */
+  #weather-forecast-panel { min-width: 0; }
+  #weather-today-col,
+  #weather-tomorrow-col,
+  #weather-dayafter-col { min-width: 0; overflow: hidden; }
+
+  /* EV grid — fluid */
+  .ev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 8px; }
+
+  /* Finance kartice — fluid */
+  .fin-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 8px; }
+
+  /* Stat tiles — splošno fluid */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; }
+
+  @media (min-width: 1400px) {
+    /* Na zelo velikih zaslonih — vreme ima več prostora za napoved */
+    #weather-forecast-panel {
+      grid-template-columns: repeat(3, minmax(110px, 150px)) 1fr;
+    }
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2582,7 +2609,7 @@
           <div id="bunny-outfit">Nalagam...</div>
           <div id="bunny-label">VREMENSKI<br>ZAJČEK</div>
         </div>
-        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,110px);grid-template-rows:repeat(2,185px);border-right:1px solid var(--border)">
+        <div id="weather-grid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,185px);border-right:1px solid var(--border)">
           <div class="weather-item weather-init" data-wkey="trbovlje" onclick="showWeatherForecast('trbovlje')"><div class="w-city">TRBOVLJE</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ziri" onclick="showWeatherForecast('ziri')"><div class="w-city">ŽIRI</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="ljubljana" onclick="showWeatherForecast('ljubljana')"><div class="w-city">LJUBLJANA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
@@ -2592,7 +2619,7 @@
           <div class="weather-item weather-init" data-wkey="rogla" onclick="showWeatherForecast('rogla')"><div class="w-city">ROGLA</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
           <div class="weather-item weather-init" data-wkey="current" onclick="showWeatherForecast('current')"><div class="w-city">TRENUTNO</div><div class="w-icon">⏳</div><div class="w-temp">--°</div><div class="w-desc">Nalagam</div></div>
         </div>
-        <div id="weather-forecast-panel" style="height:370px;overflow:hidden;display:grid;grid-template-columns:128px 128px 128px 1fr;gap:0">
+        <div id="weather-forecast-panel" style="height:370px;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(100px,128px)) 1fr;gap:0">
           <div id="weather-today-col" style="border-right:1px solid var(--border);padding:14px 14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden">
             <div class="ai-loading" style="font-size:10px"><div class="ai-spinner"></div></div>
           </div>
@@ -3457,26 +3484,7 @@
     <div class="tab-head-left">
       <span class="tab-num">12 //</span>
       <span class="tab-title">EV — ENYAQ</span>
-      <!-- Mini SVG silhueta Enyaqa v tab glavi -->
-      <svg viewBox="0 0 500 160" width="80" height="26" style="margin-left:10px;opacity:.75;flex-shrink:0" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="250" cy="152" rx="210" ry="8" fill="#000" opacity="0.2"/>
-        <path d="M48 110 Q50 72 75 55 Q108 38 170 32 Q230 28 285 30 Q340 32 385 42 Q420 52 440 68 Q455 82 458 110 Z" fill="#bbbbbe"/>
-        <path d="M42 110 L458 110 L468 120 L460 128 L40 128 L32 120 Z" fill="#a8a8b0"/>
-        <path d="M330 42 Q355 36 400 44 Q418 52 422 68 L415 70 L328 70 Z" fill="#1a2838"/>
-        <path d="M245 34 L325 34 L328 70 L245 70 Z" fill="#1e2e40"/>
-        <path d="M170 36 L242 34 L244 70 L168 70 Z" fill="#1e2e40"/>
-        <path d="M122 44 L167 38 L166 70 L120 68 Z" fill="#1a2838"/>
-        <path d="M430 68 Q450 78 460 95 L458 110 L428 108 L420 90 Z" fill="#111"/>
-        <path d="M428 68 Q438 64 452 70" stroke="#f97316" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <rect x="38" y="76" width="20" height="28" rx="3" fill="#f97316" opacity="0.8"/>
-        <circle cx="118" cy="128" r="28" fill="#111" stroke="#333" stroke-width="1.5"/>
-        <circle cx="118" cy="128" r="16" fill="#222" stroke="#444" stroke-width="1"/>
-        <circle cx="382" cy="128" r="28" fill="#111" stroke="#333" stroke-width="1.5"/>
-        <circle cx="382" cy="128" r="16" fill="#222" stroke="#444" stroke-width="1"/>
-        <path d="M88 112 Q90 100 118 98 Q146 100 148 112" fill="#b8b8bc"/>
-        <path d="M352 112 Q354 100 382 98 Q410 100 412 112" fill="#b8b8bc"/>
-        <text x="69" y="92" font-size="20" fill="#f97316" text-anchor="middle">⚡</text>
-      </svg>
+
     </div>
     <div class="tab-head-right">
       <span class="tab-badge" id="ev-updated-badge">NALAGAM...</span>
@@ -6483,104 +6491,17 @@ function toggleAccordion(header, bodyId) {
 }
 
 // ===== ELEKTRIČNI AVTO =====
-const EV_KM_SHEET_ID = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
+// ===== EV KONFIGURACIJA =====
+// MOŽNOST A — Google Sheets direkten CSV (zahteva javni dostop preglednice)
+const EV_KM_SHEET_ID     = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
 const EV_CHARGE_SHEET_ID = '14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU';
 
+// MOŽNOST B — Google Apps Script proxy (priporočeno, brez CORS problemov)
+// Ko namestiš Apps Script, vstavi URL sem:
+const EV_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJ_xChL2n2lQf4NNdriBFvMbvT1KU4041uVbq5_FegQM7CBq3c-Vvz67DqniXW0axj/exec';
+
 // ===== SKODA ENYAQ SVG =====
-const ENYAQ_SVG = '<svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg">'
-  // Senca pod avtom
-  + '<ellipse cx="250" cy="148" rx="210" ry="10" fill="#000" opacity="0.25"/>'
-  // --- KAROSERIJA (SUV oblika po sliki) ---
-  // Spodnji del - ravni pas (pod linijo oken)
-  + '<path d="M42 110 L458 110 L468 120 L460 128 L40 128 L32 120 Z" fill="#c8c8cc" stroke="none"/>'
-  // Glavna karoserija - zaobljeni SUV
-  + '<path d="M48 110 Q50 72 75 55 Q108 38 170 32 Q230 28 285 30 Q340 32 385 42 Q420 52 440 68 Q455 82 458 110 Z" fill="#d8d8dc" stroke="none"/>'
-  // Highlight na strehi
-  + '<path d="M120 50 Q200 34 290 34 Q360 36 405 52" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"/>'
-  // Spodnji odsev/highlight
-  + '<path d="M52 105 Q200 98 450 105" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>'
-  // Temnejši spodnji rob karoserije
-  + '<path d="M40 120 Q250 116 460 120 L460 128 L40 128 Z" fill="#a8a8b0" stroke="none"/>'
-  // --- OKNA ---
-  // Sprednje okno (večje, nagnjeno)
-  + '<path d="M330 42 Q355 36 400 44 Q418 52 422 68 L415 70 L328 70 Z" fill="#1a2a3a" stroke="#888" stroke-width="0.8"/>'
-  // Srednje okno
-  + '<path d="M245 34 L325 34 L328 70 L245 70 Z" fill="#1e2e40" stroke="#888" stroke-width="0.8"/>'
-  // Zadnje okno  
-  + '<path d="M170 36 L242 34 L244 70 L168 70 Z" fill="#1e2e40" stroke="#888" stroke-width="0.8"/>'
-  // Majhno zadnje okence
-  + '<path d="M122 44 L167 38 L166 70 L120 68 Z" fill="#1a2838" stroke="#888" stroke-width="0.8"/>'
-  // Svetloba v oknih
-  + '<path d="M335 46 Q355 40 390 48" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round"/>'
-  + '<path d="M250 38 L320 37" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-linecap="round"/>'
-  // --- STEBRI ---
-  + '<line x1="120" y1="44" x2="122" y2="68" stroke="#222" stroke-width="4"/>'
-  + '<line x1="168" y1="36" x2="168" y2="70" stroke="#222" stroke-width="4"/>'
-  + '<line x1="244" y1="34" x2="245" y2="70" stroke="#222" stroke-width="4"/>'
-  + '<line x1="328" y1="34" x2="328" y2="70" stroke="#222" stroke-width="4"/>'
-  + '<line x1="422" y1="68" x2="420" y2="95" stroke="#222" stroke-width="4"/>'
-  // --- STRANSKA LINIJA ---
-  + '<path d="M58 88 Q200 80 440 85" fill="none" stroke="#b0b0b8" stroke-width="1.2"/>'
-  // --- SPREDNJI DEL ---
-  // Maska/grille
-  + '<path d="M430 68 Q450 78 460 95 L458 110 L428 108 L420 90 Z" fill="#1a1a1a" stroke="#333" stroke-width="0.8"/>'
-  // Škoda logotip (krog)
-  + '<circle cx="448" cy="88" r="8" fill="#1a1a1a" stroke="#f97316" stroke-width="1.2"/>'
-  + '<text x="448" y="92" font-size="8" fill="#f97316" text-anchor="middle" font-family="sans-serif" font-weight="bold">S</text>'
-  // Sprednje DRL luči (LED trak)
-  + '<path d="M428 68 Q438 64 452 70" stroke="#f97316" stroke-width="3" stroke-linecap="round" fill="none"/>'
-  + '<path d="M426 74 Q436 70 448 76" stroke="#f0e080" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.7"/>'
-  // Odbijač spredaj
-  + '<path d="M450 108 Q462 112 465 122 L458 128 L430 128 L428 112 Z" fill="#b8b8bc" stroke="#999" stroke-width="0.5"/>'
-  // --- ZADNJI DEL ---
-  // Zadnje luči (LED)
-  + '<rect x="38" y="76" width="20" height="28" rx="3" fill="#c2550f" stroke="none"/>'
-  + '<rect x="40" y="78" width="16" height="24" rx="2" fill="#f97316" opacity="0.7"/>'
-  // LED linije v zadnji luči
-  + '<line x1="40" y1="84" x2="56" y2="84" stroke="#ff6020" stroke-width="1"/>'
-  + '<line x1="40" y1="90" x2="56" y2="90" stroke="#ff6020" stroke-width="1"/>'
-  + '<line x1="40" y1="96" x2="56" y2="96" stroke="#ff6020" stroke-width="1"/>'
-  // Zadnji odbijač
-  + '<path d="M38 108 Q30 112 28 122 L40 128 L72 128 L70 112 Z" fill="#b8b8bc" stroke="#999" stroke-width="0.5"/>'
-  // --- VRATA (linije) ---
-  + '<line x1="168" y1="70" x2="164" y2="128" stroke="#aaa" stroke-width="0.8" opacity="0.6"/>'
-  + '<line x1="328" y1="70" x2="326" y2="128" stroke="#aaa" stroke-width="0.8" opacity="0.6"/>'
-  // Kljuke vrat
-  + '<rect x="200" y="88" width="18" height="5" rx="2.5" fill="#888" stroke="#666" stroke-width="0.5"/>'
-  + '<rect x="356" y="88" width="18" height="5" rx="2.5" fill="#888" stroke="#666" stroke-width="0.5"/>'
-  // --- KOLESA ---
-  // Zadnje
-  + '<circle cx="118" cy="128" r="28" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/>'
-  + '<circle cx="118" cy="128" r="22" fill="#111" stroke="#2a2a2a" stroke-width="1"/>'
-  + '<circle cx="118" cy="128" r="10" fill="#222" stroke="#444" stroke-width="1"/>'
-  // Špake zadnjega kolesa (multi-spoke)
-  + '<g transform="translate(118,128)" fill="none" stroke="#555" stroke-width="2">'
-  + '<line x1="0" y1="-18" x2="0" y2="-10"/><line x1="0" y1="10" x2="0" y2="18"/>'
-  + '<line x1="-18" y1="0" x2="-10" y2="0"/><line x1="10" y1="0" x2="18" y2="0"/>'
-  + '<line x1="-12.7" y1="-12.7" x2="-7.1" y2="-7.1"/><line x1="7.1" y1="7.1" x2="12.7" y2="12.7"/>'
-  + '<line x1="12.7" y1="-12.7" x2="7.1" y2="-7.1"/><line x1="-7.1" y1="7.1" x2="-12.7" y2="12.7"/>'
-  + '</g>'
-  + '<circle cx="118" cy="128" r="3" fill="#f97316"/>'
-  // Sprednje
-  + '<circle cx="382" cy="128" r="28" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/>'
-  + '<circle cx="382" cy="128" r="22" fill="#111" stroke="#2a2a2a" stroke-width="1"/>'
-  + '<circle cx="382" cy="128" r="10" fill="#222" stroke="#444" stroke-width="1"/>'
-  + '<g transform="translate(382,128)" fill="none" stroke="#555" stroke-width="2">'
-  + '<line x1="0" y1="-18" x2="0" y2="-10"/><line x1="0" y1="10" x2="0" y2="18"/>'
-  + '<line x1="-18" y1="0" x2="-10" y2="0"/><line x1="10" y1="0" x2="18" y2="0"/>'
-  + '<line x1="-12.7" y1="-12.7" x2="-7.1" y2="-7.1"/><line x1="7.1" y1="7.1" x2="12.7" y2="12.7"/>'
-  + '<line x1="12.7" y1="-12.7" x2="7.1" y2="-7.1"/><line x1="-7.1" y1="7.1" x2="-12.7" y2="12.7"/>'
-  + '</g>'
-  + '<circle cx="382" cy="128" r="3" fill="#f97316"/>'
-  // Kotni lok nad kolesi
-  + '<path d="M88 112 Q90 100 118 98 Q146 100 148 112" fill="#c0c0c4" stroke="#aaa" stroke-width="0.8"/>'
-  + '<path d="M352 112 Q354 100 382 98 Q410 100 412 112" fill="#c0c0c4" stroke="#aaa" stroke-width="0.8"/>'
-  // Polnilni priključek (spredaj levo na karoseriji)
-  + '<rect x="62" y="82" width="14" height="10" rx="2" fill="#1a1a1a" stroke="#f97316" stroke-width="1"/>'
-  + '<text x="69" y="90" font-size="7" fill="#f97316" text-anchor="middle">⚡</text>'
-  // iV60 oznaka
-  + '<text x="250" y="120" font-size="11" fill="#888" text-anchor="middle" font-family="monospace" letter-spacing="3" opacity="0.6">iV 60</text>'
-  + '</svg>';
+
 
 const ENYAQ_BAT_KWH = 55.1; // 58 kWh neto * 95% SOH
 
@@ -6593,6 +6514,20 @@ function switchEvTab(el, tab) {
   ['ev-overview','ev-charges','ev-stats'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
   });
+}
+
+// ===== EV DATA FETCH — Apps Script proxy ali direkten Sheets CSV =====
+async function fetchEVData(type) {
+  // Če je Apps Script URL nastavljen, uporabi proxy (brez CORS)
+  if (EV_APPS_SCRIPT_URL) {
+    const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type);
+    if (!res.ok) throw new Error('Apps Script napaka: HTTP ' + res.status);
+    return await res.text();
+  }
+  // Drugače direkten Google Sheets CSV (zahteva javni dostop)
+  const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
+  const gid     = type === 'km' ? '0' : '852588494';
+  return await fetchSheetCSV(sheetId, gid);
 }
 
 async function fetchSheetCSV(sheetId, gid) {
@@ -6669,7 +6604,7 @@ function fmtDuration(seconds) {
 async function initEV() {
   try {
     // Fetch charge data from your sheet (gid=852588494)
-    const chargeCsv = await fetchSheetCSV(EV_CHARGE_SHEET_ID, '852588494');
+    const chargeCsv = await fetchEVData('charge');
     const chargeRaw = parseCSV(chargeCsv);
 
     evChargeData = chargeRaw.filter(r => r['Začetek']).map(r => ({
@@ -6689,7 +6624,7 @@ async function initEV() {
 
     // Fetch km data
     try {
-      const kmCsv = await fetchSheetCSV(EV_KM_SHEET_ID, '0'); // bere prvi list (2026)
+      const kmCsv = await fetchEVData('km');
       const kmRaw = parseCSV(kmCsv);
       evKmData = kmRaw.filter(r => r['Datum']).map(r => ({
         date: parseSlDate(r['Datum']),
@@ -6816,8 +6751,7 @@ function renderEvOverview() {
     '<div style="background:linear-gradient(135deg,#08080f,#0f0f1a);border:1px solid var(--border);border-radius:3px;padding:16px 20px 10px;margin-bottom:12px;position:relative;overflow:hidden">'
     +'<div style="position:absolute;top:0;right:0;width:60%;height:100%;opacity:.04;background:radial-gradient(circle at 70% 50%,var(--orange),transparent 70%)"></div>'
     +'<div style="font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">ŠKODA ENYAQ iV 60</div>'
-    +'<div style="width:100%;max-width:420px;margin:0 auto">'+ENYAQ_SVG+'</div>'
-    +'<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'
+        +'<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'
     +'<div style="text-align:center"><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--orange)">'+(currentKm > 0 ? currentKm.toLocaleString('sl-SI') : '—')+'</div><div style="font-family:var(--cond);font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">SKUPAJ KM</div></div>'
     +'<div style="text-align:center"><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">'+avgKwhPer100+' kWh</div><div style="font-family:var(--cond);font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">/ 100 KM</div></div>'
     +'<div style="text-align:center"><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+rangeColor+'">'+(estRange ? estRange+' km' : '—')+'</div><div style="font-family:var(--cond);font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">OC. DOSEG</div></div>'
