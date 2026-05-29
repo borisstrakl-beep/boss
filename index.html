@@ -3023,99 +3023,197 @@
   </div>
   <div class="tab-body open" id="tab-fizinostanje">
     <div class="tab-content">
-<div class="card-body">
+      <div class="card-body">
 
-      <!-- KCAL + VODA skupaj -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div>
-          <div class="kcal-display" style="margin-bottom:4px">
-            <div class="kcal-num" id="kcal-total" style="font-size:28px">0</div>
-            <div class="kcal-label">kcal</div>
-            <div class="kcal-target">/ <span id="kcal-goal-disp">1800</span></div>
-          </div>
-          <div class="kcal-bar"><div class="kcal-fill" id="kcal-bar-fill" style="width:0%"></div></div>
+        <!-- ── ZAVIHKI ── -->
+        <div style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap">
+          <button id="fztab-prehrana-btn" onclick="fizTab('prehrana')" style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 10px;border:1px solid var(--orange);background:var(--orange);color:#000;border-radius:2px;cursor:pointer">PREHRANA</button>
+          <button id="fztab-teza-btn"     onclick="fizTab('teza')"     style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:2px;cursor:pointer">TEŽA</button>
+          <button id="fztab-spanec-btn"   onclick="fizTab('spanec')"   style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:2px;cursor:pointer">SPANEC</button>
+          <button id="fztab-koraki-btn"   onclick="fizTab('koraki')"   style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:2px;cursor:pointer">KORAKI</button>
+          <button id="fztab-utrip-btn"    onclick="fizTab('utrip')"    style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:2px;cursor:pointer">SRČNI UTRIP</button>
         </div>
-        <div>
-          <!-- VODA -->
-          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
-            <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:#3b82f6;line-height:1" id="water-total">0</div>
-            <div style="font-family:var(--cond);font-size:12px;color:var(--text3)">dl</div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto">/ <span id="water-goal-disp">25</span></div>
+
+        <!-- ════════════════ PREHRANA ════════════════ -->
+        <div id="fztab-prehrana">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div class="kcal-display" style="margin-bottom:4px">
+                <div class="kcal-num" id="kcal-total" style="font-size:28px">0</div>
+                <div class="kcal-label">kcal</div>
+                <div class="kcal-target">/ <span id="kcal-goal-disp">1800</span></div>
+              </div>
+              <div class="kcal-bar"><div class="kcal-fill" id="kcal-bar-fill" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
+                <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:#3b82f6;line-height:1" id="water-total">0</div>
+                <div style="font-family:var(--cond);font-size:12px;color:var(--text3)">dl</div>
+                <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto">/ <span id="water-goal-disp">25</span></div>
+              </div>
+              <div class="kcal-bar">
+                <div id="water-bar-fill" style="height:100%;background:linear-gradient(90deg,#1d4ed8,#3b82f6);border-radius:2px;width:0%;transition:width .4s"></div>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
+                <button class="water-quick-btn" onclick="addWater(2)">+2 dl</button>
+                <button class="water-quick-btn" onclick="addWater(3)">+3 dl</button>
+                <button class="water-quick-btn" onclick="addWater(5)">+5 dl</button>
+                <button class="water-quick-btn water-undo" onclick="addWater(-1)" title="Odstrani 1 dl">−1</button>
+              </div>
+            </div>
           </div>
-          <div class="kcal-bar">
-            <div id="water-bar-fill" style="height:100%;background:linear-gradient(90deg,#1d4ed8,#3b82f6);border-radius:2px;width:0%;transition:width .4s"></div>
+
+          <div class="o-divider"></div>
+          <div id="meal-list"></div>
+
+          <div style="margin-top:8px">
+            <div style="display:flex;gap:5px;margin-bottom:5px">
+              <select class="form-select" id="meal-type" style="font-size:12px;padding:7px 10px;flex-shrink:0;width:auto">
+                <option value="🌅">🌅 Zajtrk</option>
+                <option value="☀️">☀️ Kosilo</option>
+                <option value="🌙">🌙 Večerja</option>
+                <option value="🍎">🍎 Prigrizek</option>
+                <option value="☕">☕ Pijača</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:5px;margin-bottom:5px">
+              <textarea class="form-input" id="meal-desc-input" rows="2"
+                placeholder="Opiši kar si jedel, npr: 2 jajci na oko, 2 kosa kruha z maslom, kozarec mleka..."
+                style="font-size:12px;padding:7px 10px;flex:1;resize:none;font-family:var(--sans)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calcMealKcal()}"></textarea>
+            </div>
+            <div style="display:flex;gap:5px;align-items:center">
+              <button class="btn btn-secondary" onclick="calcMealKcal()" id="btn-calc-kcal" style="padding:7px 12px;font-size:9px;flex:1">
+                🤖 IZRAČUNAJ KALORIJE Z AI
+              </button>
+              <button class="btn btn-primary" onclick="addMeal()" id="btn-add-meal" style="padding:7px 14px;font-size:9px;flex-shrink:0" disabled>
+                + DODAJ
+              </button>
+            </div>
+            <div id="meal-ai-result" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3)">AI OCENA</div>
+                <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--orange)" id="meal-ai-kcal">— kcal</div>
+              </div>
+              <div style="font-family:var(--cond);font-size:11px;color:var(--text2);line-height:1.5" id="meal-ai-breakdown"></div>
+            </div>
+            <div id="meal-ai-loading" style="display:none;padding:8px 0">
+              <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text3)">
+                <div class="ai-spinner"></div>Izračunavam kalorije...
+              </div>
+            </div>
           </div>
-          <!-- Hitri gumbi voda -->
-          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
-            <button class="water-quick-btn" onclick="addWater(2)">+2 dl</button>
-            <button class="water-quick-btn" onclick="addWater(3)">+3 dl</button>
-            <button class="water-quick-btn" onclick="addWater(5)">+5 dl</button>
-            <button class="water-quick-btn water-undo" onclick="addWater(-1)" title="Odstrani 1 dl">−1</button>
+
+          <div class="o-divider"></div>
+          <div style="display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:9px;color:var(--text3)">
+            <span>KCAL CILJ:</span>
+            <input id="kcal-goal-input" type="number" value="1800" min="500" max="5000"
+              style="width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:3px 6px;font-family:var(--mono);font-size:10px;color:var(--orange);outline:none;text-align:center"
+              onchange="updateNutritionGoals()">
+            <span style="margin-left:6px">VODA CILJ:</span>
+            <input id="water-goal-input" type="number" value="25" min="5" max="60"
+              style="width:50px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:3px 6px;font-family:var(--mono);font-size:10px;color:#3b82f6;outline:none;text-align:center"
+              onchange="updateNutritionGoals()">
+            <span>dl</span>
           </div>
         </div>
+
+        <!-- ════════════════ TEŽA ════════════════ -->
+        <div id="fztab-teza" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--orange)" id="z-teza-zadnja">—</div>
+              <div style="font-family:var(--cond);font-size:10px;color:var(--text3);margin-top:2px">ZADNJA MERITEV</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#22c55e" id="z-teza-min">—</div>
+              <div style="font-family:var(--cond);font-size:10px;color:var(--text3);margin-top:2px">MINIMUM</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#60a5fa" id="z-teza-sprememba">—</div>
+              <div style="font-family:var(--cond);font-size:10px;color:var(--text3);margin-top:2px">SPREMEMBA</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">TREND TEŽE — vse meritve</div>
+          <div style="position:relative;height:200px"><canvas id="chart-teza"></canvas></div>
+        </div>
+
+        <!-- ════════════════ SPANEC ════════════════ -->
+        <div id="fztab-spanec" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--orange)" id="z-sp-vcera">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">NOČ</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#818cf8" id="z-sp-globoko">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">GLOBOKO</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#22d3ee" id="z-sp-rem">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">REM</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#60a5fa" id="z-sp-skupaj">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">SKUPAJ</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">SPANEC — zadnjih 30 noči</div>
+          <div style="position:relative;height:200px"><canvas id="chart-spanec"></canvas></div>
+        </div>
+
+        <!-- ════════════════ KORAKI ════════════════ -->
+        <div id="fztab-koraki" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--orange)" id="z-ko-danes">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">DANES</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#22c55e" id="z-ko-povp">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">POVP. 30 DNI</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#60a5fa" id="z-ko-km">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">KM DANES</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">KORAKI — zadnjih 30 dni</div>
+          <div style="position:relative;height:200px"><canvas id="chart-koraki"></canvas></div>
+        </div>
+
+        <!-- ════════════════ SRČNI UTRIP ════════════════ -->
+        <div id="fztab-utrip" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#ef4444" id="z-hr-max">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">MAX VČERAJ</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--orange)" id="z-hr-avg">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">POVP. VČERAJ</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#22c55e" id="z-hr-min">—</div>
+              <div style="font-family:var(--cond);font-size:9px;color:var(--text3);margin-top:2px">MIN VČERAJ</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">SRČNI UTRIP — povp. zadnjih 30 dni</div>
+          <div style="position:relative;height:200px"><canvas id="chart-utrip"></canvas></div>
+        </div>
+
+        <div class="o-divider" style="margin-top:12px"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div style="font-family:var(--cond);font-size:10px;color:var(--text3)">Vir: Amazfit/Redmi Watch export · <span id="zdravje-zadnji-uvoz">—</span></div>
+          <div id="fiz-mesec-filter" style="display:none;margin-left:auto;gap:4px;align-items:center">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">MESEC:</span>
+            <select id="fiz-mesec-sel" onchange="fizMesecFilter()" style="font-family:var(--mono);font-size:9px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:3px 6px;border-radius:2px;outline:none;cursor:pointer">
+              <option value="">VSE</option>
+            </select>
+          </div>
+        </div>
+
       </div>
-
-      <div class="o-divider"></div>
-
-      <!-- SEZNAM OBROKOV -->
-      <div id="meal-list"></div>
-
-      <!-- VNOS OBROKA -->
-      <div style="margin-top:8px">
-        <div style="display:flex;gap:5px;margin-bottom:5px">
-          <select class="form-select" id="meal-type" style="font-size:12px;padding:7px 10px;flex-shrink:0;width:auto">
-            <option value="🌅">🌅 Zajtrk</option>
-            <option value="☀️">☀️ Kosilo</option>
-            <option value="🌙">🌙 Večerja</option>
-            <option value="🍎">🍎 Prigrizek</option>
-            <option value="☕">☕ Pijača</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:5px;margin-bottom:5px">
-          <textarea class="form-input" id="meal-desc-input" rows="2"
-            placeholder="Opiši kar si jedel, npr: 2 jajci na oko, 2 kosa kruha z maslom, kozarec mleka..."
-            style="font-size:12px;padding:7px 10px;flex:1;resize:none;font-family:var(--sans)"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calcMealKcal()}"></textarea>
-        </div>
-        <div style="display:flex;gap:5px;align-items:center">
-          <button class="btn btn-secondary" onclick="calcMealKcal()" id="btn-calc-kcal" style="padding:7px 12px;font-size:9px;flex:1">
-            🤖 IZRAČUNAJ KALORIJE Z AI
-          </button>
-          <button class="btn btn-primary" onclick="addMeal()" id="btn-add-meal" style="padding:7px 14px;font-size:9px;flex-shrink:0" disabled>
-            + DODAJ
-          </button>
-        </div>
-        <!-- AI rezultat -->
-        <div id="meal-ai-result" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3)">AI OCENA</div>
-            <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--orange)" id="meal-ai-kcal">— kcal</div>
-          </div>
-          <div style="font-family:var(--cond);font-size:11px;color:var(--text2);line-height:1.5" id="meal-ai-breakdown"></div>
-        </div>
-        <div id="meal-ai-loading" style="display:none;padding:8px 0">
-          <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text3)">
-            <div class="ai-spinner"></div>Izračunavam kalorije...
-          </div>
-        </div>
-      </div>
-
-      <div class="o-divider"></div>
-      <!-- CILJI -->
-      <div style="display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:9px;color:var(--text3)">
-        <span>KCAL CILJ:</span>
-        <input id="kcal-goal-input" type="number" value="1800" min="500" max="5000"
-          style="width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:3px 6px;font-family:var(--mono);font-size:10px;color:var(--orange);outline:none;text-align:center"
-          onchange="updateNutritionGoals()">
-        <span style="margin-left:6px">VODA CILJ:</span>
-        <input id="water-goal-input" type="number" value="25" min="5" max="60"
-          style="width:50px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:3px 6px;font-family:var(--mono);font-size:10px;color:#3b82f6;outline:none;text-align:center"
-          onchange="updateNutritionGoals()">
-        <span>dl</span>
-      </div>
-
-    </div>
-  </div>
     </div>
   </div>
 </div>
@@ -4863,16 +4961,22 @@ window.addEventListener('load', () => {
 
 // ===== FINANCE =====
 const FIREBASE_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebasedatabase.app';
-const PORTFELJ = [
-  { sym:'GOOGL',   ime:'Alphabet',    kol:0.0787542,   nakup:26.17 },
-  { sym:'TSLA',    ime:'Tesla',       kol:0.05083422,  nakup:18.74 },
-  { sym:'NFLX',    ime:'Netflix',     kol:0.2124176,   nakup:16.18 },
-  { sym:'AAPL',    ime:'Apple',       kol:0.04036689,  nakup:10.78 },
-  { sym:'AMZN',    ime:'Amazon',      kol:0.0364298,   nakup:8.40  },
-  { sym:'MSFT',    ime:'Microsoft',   kol:0.01933049,  nakup:6.98  },
-  { sym:'IQQW.DE', ime:'MSCI World',  kol:0.09010188,  nakup:8.03  }
-];
-const NAKUP_SKUPAJ = PORTFELJ.reduce((s,p) => s + p.nakup, 0);
+// Bitpanda Apps Script proxy
+const BITPANDA_PROXY = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLjzDBAWfM20FLTe-UAqedUDPkyJvM5NcjMKJoKtmGg_ClYaFKh4cg6w/exec';
+
+// Simboli za Yahoo Finance (Bitpanda cryptocoin_id → Yahoo symbol)
+const BP_STOCK_SYMBOLS = {
+  'GOOGL': { ime:'Alphabet',   yahoo:'GOOGL'   },
+  'AMZN':  { ime:'Amazon',     yahoo:'AMZN'    },
+  'AAPL':  { ime:'Apple',      yahoo:'AAPL'    },
+  'MSFT':  { ime:'Microsoft',  yahoo:'MSFT'    },
+  'NFLX':  { ime:'Netflix',    yahoo:'NFLX'    },
+  'TSLA':  { ime:'Tesla',      yahoo:'TSLA'    },
+  'MSCI-WORLD': { ime:'MSCI World', yahoo:'IQQW.DE' }
+};
+
+let PORTFELJ = []; // se napolni iz Bitpanda API
+let NAKUP_SKUPAJ = 0; // ni na voljo prek API - ostane 0
 let finActiveTab = 'banka';
 let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.16, stavnica:[], portfeljHistory:{} };
 let finCharts = {};
@@ -5118,51 +5222,146 @@ function renderBanka() {
 }
 
 // ---- PORTFELJ ----
+async function fetchBitpandaWallets() {
+  // Pridobi asset-wallets iz Bitpanda prek Apps Script proxy
+  const res = await fetch(BITPANDA_PROXY + '?endpoint=asset-wallets');
+  const data = await res.json();
+  if (data.errors) throw new Error(data.errors[0]?.title || 'Bitpanda API napaka');
+
+  const attrs = data.data?.attributes || {};
+  const result = [];
+
+  // DELNICE (security → stock)
+  const stocks = attrs.security?.stock?.attributes?.wallets || [];
+  stocks.forEach(w => {
+    const sym = w.attributes?.cryptocoin_symbol;
+    const bal = parseFloat(w.attributes?.balance || '0');
+    if (sym && bal > 0 && BP_STOCK_SYMBOLS[sym]) {
+      result.push({
+        sym: sym,
+        yahoo: BP_STOCK_SYMBOLS[sym].yahoo,
+        ime: BP_STOCK_SYMBOLS[sym].ime,
+        kol: bal,
+        tip: 'delnica',
+        nakup: 0
+      });
+    }
+  });
+
+  // ETF
+  const etfs = attrs.etf?.attributes?.wallets || [];
+  etfs.forEach(w => {
+    const sym = w.attributes?.cryptocoin_symbol;
+    const bal = parseFloat(w.attributes?.balance || '0');
+    if (sym && bal > 0 && BP_STOCK_SYMBOLS[sym]) {
+      result.push({
+        sym: sym,
+        yahoo: BP_STOCK_SYMBOLS[sym].yahoo,
+        ime: BP_STOCK_SYMBOLS[sym].ime,
+        kol: bal,
+        tip: 'etf',
+        nakup: 0
+      });
+    }
+  });
+
+  // KRIPTO
+  const kriptos = attrs.cryptocoin?.attributes?.wallets || [];
+  kriptos.forEach(w => {
+    const sym = w.attributes?.cryptocoin_symbol;
+    const bal = parseFloat(w.attributes?.balance || '0');
+    if (sym && bal > 0) {
+      result.push({
+        sym: sym,
+        yahoo: sym + '-EUR',
+        ime: w.attributes?.name || sym,
+        kol: bal,
+        tip: 'kripto',
+        nakup: 0
+      });
+    }
+  });
+
+  // KOVINE (commodity → metal)
+  const kovine = attrs.commodity?.metal?.attributes?.wallets || [];
+  kovine.forEach(w => {
+    const sym = w.attributes?.cryptocoin_symbol;
+    const bal = parseFloat(w.attributes?.balance || '0');
+    const ime = w.attributes?.name || sym;
+    if (sym && bal > 0) {
+      result.push({
+        sym: sym,
+        yahoo: null,
+        ime: ime,
+        kol: bal,
+        tip: 'kovina',
+        nakup: 0,
+        cenaEur: null,
+        vrednost: null
+      });
+    }
+  });
+
+  return result;
+}
+
 async function fetchPortfelj() {
   const itemsEl = document.getElementById('fin-port-items');
-  if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam cene...</div>';
+  if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam portfelj iz Bitpanda...</div>';
 
   try {
-    // EUR/USD tečaj
+    // 1. Pridobi stanja iz Bitpanda
+    PORTFELJ = await fetchBitpandaWallets();
+    if (PORTFELJ.length === 0) {
+      if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni pozicij v portfelju.</div>';
+      return;
+    }
+
+    // 2. EUR/USD tečaj
     try {
       const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR');
       const ecbData = await ecbRes.json();
       if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
-    } catch(e) { finData.eurusd = 1.16; }
+    } catch(e) { finData.eurusd = 1.09; }
 
-    // Trenutne cene - poskusi več proxyjev
-    const syms = PORTFELJ.map(p => p.sym).join(',');
-    const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent`;
-    const proxies = [
-      `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
-      `https://proxy.cors.sh/${yahooUrl}`
-    ];
-    let quotes = [];
-    for (const proxy of proxies) {
-      try {
-        const res = await fetch(proxy, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
-        const data = await res.json();
-        quotes = data.quoteResponse?.result || [];
-        if (quotes.length > 0) { console.log('Yahoo proxy OK:', proxy); break; }
-      } catch(e) { console.warn('Proxy fail:', proxy, e.message); }
+    // 3. Yahoo Finance cene za delnice + ETF + kripto
+    const yahooSyms = PORTFELJ.filter(p => p.yahoo).map(p => p.yahoo);
+    if (yahooSyms.length > 0) {
+      const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSyms.join(',')}&fields=regularMarketPrice,regularMarketChangePercent`;
+      const proxies = [
+        `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`
+      ];
+      let quotes = [];
+      for (const proxy of proxies) {
+        try {
+          const res = await fetch(proxy, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
+          const data = await res.json();
+          quotes = data.quoteResponse?.result || [];
+          if (quotes.length > 0) break;
+        } catch(e) {}
+      }
+
+      PORTFELJ = PORTFELJ.map(p => {
+        if (!p.yahoo) return p;
+        const q = quotes.find(q => q.symbol === p.yahoo);
+        if (!q) return { ...p, cenaEur: null, vrednost: null, chgPct: null };
+        const cenaUsd = q.regularMarketPrice;
+        // ETF kotira v EUR, kripto v EUR, delnice v USD
+        const cenaEur = (p.tip === 'etf' || p.tip === 'kripto') ? cenaUsd : cenaUsd / finData.eurusd;
+        return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.regularMarketChangePercent };
+      });
     }
-    if (quotes.length === 0) throw new Error('Vsi proxiji so odpovedali');
 
-    finData.portfelj = PORTFELJ.map(p => {
-      const q = quotes.find(q => q.symbol === p.sym);
-      if (!q) return { ...p, cenaEur:null, vrednost:null, chgPct:null };
-      const cenaUsd = q.regularMarketPrice;
-      const cenaEur = p.sym === 'IQQW.DE' ? cenaUsd : cenaUsd / finData.eurusd;
-      return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.regularMarketChangePercent };
-    });
+    finData.portfelj = PORTFELJ;
+    NAKUP_SKUPAJ = 0; // Bitpanda API ne vrne nakupne cene
 
-    // Zgodovinske cene — 3 mesece za vsako pozicijo
     await fetchPortfeljHistory();
     renderPortfelj();
+
   } catch(e) {
-    console.warn('Portfelj fetch error:', e);
-    if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju.</div>';
+    console.error('Portfelj fetch error:', e);
+    if (itemsEl) itemsEl.innerHTML = `<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka: ${e.message}</div>`;
   }
 }
 
@@ -5171,21 +5370,18 @@ async function fetchPortfeljHistory() {
   const startDate = endDate - (90 * 24 * 3600);
   finData.portfeljHistory = {};
 
-  // Preveri cache (velja 6 ur)
-  const cached = localStorage.getItem('portfelj_history');
+  const cached = localStorage.getItem('portfelj_history_bp');
   if (cached) {
     const c = JSON.parse(cached);
     if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
       finData.portfeljHistory = c.data;
-      console.log('Portfelj history iz cache');
       return;
     }
   }
 
-  // Fetch zaporedno (ne vzporedno) da ne preobremeni brskalnika
-  for (const p of PORTFELJ) {
+  for (const p of PORTFELJ.filter(x => x.yahoo)) {
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.sym}?interval=1d&period1=${startDate}&period2=${endDate}`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.yahoo}?interval=1d&period1=${startDate}&period2=${endDate}`;
       const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       const res = await fetch(proxy, { headers:{'x-requested-with':'XMLHttpRequest'} });
       if (!res.ok) continue;
@@ -5198,88 +5394,79 @@ async function fetchPortfeljHistory() {
         datum: new Date(t * 1000).toISOString().split('T')[0],
         cena: closes[i]
       })).filter(x => x.cena != null);
-      // Kratka pavza med klici
-      await new Promise(r => setTimeout(r, 300));
-    } catch(e) { console.warn('History err', p.sym, e); }
+      await new Promise(r => setTimeout(r, 200));
+    } catch(e) {}
   }
 
-  // Shrani v cache
-  localStorage.setItem('portfelj_history', JSON.stringify({
-    ts: Date.now(),
-    data: finData.portfeljHistory
-  }));
+  localStorage.setItem('portfelj_history_bp', JSON.stringify({ ts: Date.now(), data: finData.portfeljHistory }));
 }
-
 function renderPortfelj() {
   const skupaj = finData.portfelj.reduce((s, p) => s + (p.vrednost || 0), 0);
-  const chgEur = skupaj - NAKUP_SKUPAJ;
-  const chgPct = NAKUP_SKUPAJ > 0 ? (chgEur / NAKUP_SKUPAJ * 100) : 0;
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
   const skupajEl = document.getElementById('fin-port-skupaj');
-  if (skupajEl) skupajEl.textContent = fmt(skupaj);
+  if (skupajEl) skupajEl.textContent = fmt(skupaj) + ' €';
 
+  // Brez nakupne cene ne moremo prikazati spremembe od nakupa
   const chgBigEl = document.getElementById('fin-port-chg-big');
-  if (chgBigEl) {
-    chgBigEl.textContent = (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%';
-    chgBigEl.style.color = chgPct >= 0 ? 'var(--green)' : 'var(--red)';
-  }
+  if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
   const chgEurEl = document.getElementById('fin-port-chg-eur');
-  if (chgEurEl) { chgEurEl.textContent = (chgEur >= 0 ? '+' : '') + fmt(chgEur) + ' €'; chgEurEl.style.color = chgEur >= 0 ? 'var(--green)' : 'var(--red)'; }
+  if (chgEurEl) { chgEurEl.textContent = 'Bitpanda live'; chgEurEl.style.color = 'var(--text3)'; }
 
-  // Tabela pozicij
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) {
-    itemsEl.innerHTML = finData.portfelj.map(p => {
+    // Razvrsti: najprej po vrednosti padajoče
+    const sorted = [...finData.portfelj].sort((a,b) => (b.vrednost||0) - (a.vrednost||0));
+    const tipCol = t => t==='kripto'?'#22d3ee':t==='etf'?'#818cf8':t==='kovina'?'#fbbf24':'var(--orange)';
+    itemsEl.innerHTML = sorted.map(p => {
       const v = p.vrednost, c = p.chgPct;
-      const vStr = v ? fmt(v) + ' €' : '—';
+      const vStr = v != null ? fmt(v) + ' €' : '—';
       const cStr = c != null ? (c >= 0 ? '+' : '') + c.toFixed(2) + '%' : '—';
       const col = c == null ? 'var(--text3)' : c >= 0 ? 'var(--green)' : 'var(--red)';
-      const nakupChgPct = p.nakup > 0 && v ? ((v - p.nakup) / p.nakup * 100) : null;
-      const ncStr = nakupChgPct != null ? (nakupChgPct >= 0 ? '+' : '') + nakupChgPct.toFixed(1) + '% od nakupa' : '';
-      return `<div class="finance-row" style="padding:4px 0">
+      const tc = tipCol(p.tip);
+      const tipLbl = p.tip ? p.tip.toUpperCase() : '';
+      return `<div class="finance-row" style="padding:5px 0">
         <div style="display:flex;gap:6px;align-items:center;flex:1">
-          <div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--orange);min-width:42px">${p.sym.replace('.DE','')}</div>
           <div>
+            <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
+              <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--orange)">${p.sym.replace('.DE','')}</span>
+              <span style="font-family:var(--mono);font-size:7px;color:${tc};border:1px solid ${tc};padding:1px 4px;border-radius:2px">${tipLbl}</span>
+            </div>
             <div style="font-family:var(--cond);font-size:12px;color:var(--text)">${p.ime}</div>
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${ncStr}</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${p.kol.toFixed(p.tip==='kripto'?6:4)} kos</div>
           </div>
         </div>
         <div style="text-align:right">
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)">${vStr}</div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)">${vStr}</div>
           <div style="font-family:var(--mono);font-size:9px;color:${col}">${cStr} danes</div>
         </div>
       </div>`;
-    }).join('<div style="height:0.5px;background:var(--bg3);margin:2px 0"></div>');
+    }).join('<div style="height:0.5px;background:var(--bg3);margin:1px 0"></div>');
   }
 
-  // Graf skupne vrednosti skozi čas
   renderPortfeljChart();
 
+  const casEl = document.getElementById('fin-port-cas');
+  if (casEl) casEl.textContent = 'Bitpanda · ' + new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
   const eurusdEl = document.getElementById('fin-eurusd');
   if (eurusdEl) eurusdEl.textContent = '1 EUR = ' + finData.eurusd.toFixed(4) + ' USD';
-  const casEl = document.getElementById('fin-port-cas');
-  if (casEl) casEl.textContent = 'Posodobljeno ' + new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
 }
 
 function renderPortfeljChart() {
-  // Zberi vse datume
   const dateSet = new Set();
   PORTFELJ.forEach(p => {
-    const h = finData.portfeljHistory[p.sym] || [];
-    h.forEach(x => dateSet.add(x.datum));
+    (finData.portfeljHistory[p.sym] || []).forEach(x => dateSet.add(x.datum));
   });
   const dates = Array.from(dateSet).sort();
   if (dates.length < 2) return;
 
-  // Za vsak datum seštej vrednosti vseh pozicij
   const skupajData = dates.map(datum => {
     let vsota = 0;
     PORTFELJ.forEach(p => {
       const h = finData.portfeljHistory[p.sym] || [];
       const pt = h.find(x => x.datum === datum);
       if (pt) {
-        const cenaEur = p.sym === 'IQQW.DE' ? pt.cena : pt.cena / finData.eurusd;
+        const cenaEur = (p.tip === 'etf' || p.tip === 'kripto') ? pt.cena : pt.cena / finData.eurusd;
         vsota += cenaEur * p.kol;
       }
     });
@@ -5289,18 +5476,18 @@ function renderPortfeljChart() {
   const labels = dates.map((d, i) => {
     if (i === 0 || i === dates.length - 1 || i % 15 === 0) {
       const dt = new Date(d);
-      return (dt.getDate()) + '.' + (dt.getMonth()+1) + '.';
+      return dt.getDate() + '.' + (dt.getMonth()+1) + '.';
     }
     return '';
   });
 
-  const minV = Math.min(...skupajData.filter(v => v != null)) * 0.97;
-  const maxV = Math.max(...skupajData.filter(v => v != null)) * 1.03;
-
+  const validVals = skupajData.filter(v => v != null);
+  if (validVals.length < 2) return;
   makeChart('fin-port-chart', labels,
     [lineDataset(skupajData, 'rgb(249,115,22)', 'Skupna vrednost')],
-    { xTicks:4, yMin: minV, yMax: maxV, height: 80 });
+    { xTicks:4, yMin: Math.min(...validVals)*0.97, yMax: Math.max(...validVals)*1.03, height: 80 });
 }
+
 
 // ---- STAVNICA ----
 const STAVNICA_FB = 'https://boris-stavnica-default-rtdb.europe-west1.firebasedatabase.app/history';
@@ -7471,6 +7658,257 @@ function evsClearFilters() {
 initEV();
 // EV auto-refresh vsako uro
 setInterval(initEV, 60 * 60 * 1000);
+
+
+// === ZDRAVJE · URA — Amazfit podatki ===
+const WEARABLE_DATA = {"weight":[{"d":"2025-06-02","w":117.9},{"d":"2025-06-03","w":118.8},{"d":"2025-06-13","w":121.5},{"d":"2025-06-16","w":118.7},{"d":"2025-06-23","w":120.2},{"d":"2025-06-26","w":120.4},{"d":"2025-07-01","w":119.5},{"d":"2025-07-02","w":119.2},{"d":"2025-07-03","w":119.3},{"d":"2025-07-11","w":118.0},{"d":"2025-07-14","w":118.9},{"d":"2025-07-16","w":119.8},{"d":"2025-07-19","w":119.2},{"d":"2025-08-02","w":118.2},{"d":"2025-08-04","w":118.3},{"d":"2025-08-11","w":119.2},{"d":"2025-08-12","w":118.8},{"d":"2025-08-13","w":118.6},{"d":"2025-08-21","w":119.2},{"d":"2025-08-25","w":118.7},{"d":"2025-09-01","w":118.1},{"d":"2025-09-12","w":119.3},{"d":"2025-09-16","w":118.9},{"d":"2025-09-17","w":118.9},{"d":"2025-09-22","w":118.4},{"d":"2025-09-23","w":119.4},{"d":"2025-09-27","w":119.2},{"d":"2025-09-29","w":119.9},{"d":"2025-09-30","w":119.1},{"d":"2025-10-01","w":117.7},{"d":"2025-10-02","w":117.8},{"d":"2025-10-06","w":118.8},{"d":"2025-10-07","w":117.4},{"d":"2025-10-08","w":117.1},{"d":"2025-10-09","w":116.2},{"d":"2025-10-10","w":117.0},{"d":"2025-10-11","w":117.4},{"d":"2025-10-12","w":117.5},{"d":"2025-10-13","w":118.4},{"d":"2025-10-15","w":116.2},{"d":"2025-10-20","w":116.8},{"d":"2025-10-25","w":117.6},{"d":"2025-10-27","w":118.4},{"d":"2025-10-30","w":117.9},{"d":"2025-11-01","w":118.1},{"d":"2025-11-03","w":118.6},{"d":"2025-11-04","w":117.7},{"d":"2025-11-05","w":117.3},{"d":"2025-11-06","w":118.9},{"d":"2025-11-07","w":117.4},{"d":"2025-11-11","w":116.7},{"d":"2025-11-12","w":116.0},{"d":"2025-11-14","w":117.0},{"d":"2025-11-25","w":116.8},{"d":"2025-11-26","w":117.0},{"d":"2025-11-27","w":116.7},{"d":"2025-12-03","w":116.6},{"d":"2025-12-15","w":116.7},{"d":"2025-12-22","w":117.5},{"d":"2025-12-23","w":117.1},{"d":"2025-12-29","w":116.9},{"d":"2026-01-01","w":118.9},{"d":"2026-01-02","w":117.6},{"d":"2026-01-03","w":118.5},{"d":"2026-01-04","w":118.7},{"d":"2026-01-06","w":119.4},{"d":"2026-01-07","w":118.0},{"d":"2026-01-08","w":118.0},{"d":"2026-01-09","w":117.1},{"d":"2026-01-10","w":116.2},{"d":"2026-01-12","w":117.5},{"d":"2026-01-16","w":117.1},{"d":"2026-01-21","w":117.2},{"d":"2026-01-22","w":118.9},{"d":"2026-01-23","w":117.6},{"d":"2026-01-24","w":117.0},{"d":"2026-01-25","w":115.9},{"d":"2026-01-26","w":118.2},{"d":"2026-01-27","w":116.3},{"d":"2026-02-01","w":117.5},{"d":"2026-02-06","w":117.4},{"d":"2026-02-10","w":116.1},{"d":"2026-02-12","w":116.7},{"d":"2026-02-14","w":116.7},{"d":"2026-02-16","w":115.0},{"d":"2026-02-19","w":117.0},{"d":"2026-02-20","w":117.0},{"d":"2026-02-23","w":116.7},{"d":"2026-02-24","w":118.2},{"d":"2026-02-25","w":115.7},{"d":"2026-02-26","w":116.5},{"d":"2026-03-02","w":116.6},{"d":"2026-03-11","w":116.6},{"d":"2026-03-16","w":116.8},{"d":"2026-03-22","w":116.8},{"d":"2026-04-01","w":116.3},{"d":"2026-04-07","w":117.6},{"d":"2026-04-12","w":116.2},{"d":"2026-04-13","w":117.2},{"d":"2026-04-14","w":117.1},{"d":"2026-04-15","w":115.8},{"d":"2026-04-16","w":115.8},{"d":"2026-04-17","w":116.4},{"d":"2026-05-04","w":116.5},{"d":"2026-05-06","w":114.9},{"d":"2026-05-07","w":113.8},{"d":"2026-05-08","w":113.4},{"d":"2026-05-17","w":114.9},{"d":"2026-05-18","w":117.1},{"d":"2026-05-19","w":116.5},{"d":"2026-05-20","w":115.8},{"d":"2026-05-25","w":116.7},{"d":"2026-05-27","w":114.5}],"sleep":[{"d":"2026-03-30","dp":63,"lt":164,"rm":72,"wk":13,"tot":299,"on":"21:24","off":"02:36"},{"d":"2026-03-31","dp":50,"lt":190,"rm":102,"wk":59,"tot":342,"on":"20:38","off":"03:19"},{"d":"2026-04-01","dp":69,"lt":190,"rm":90,"wk":7,"tot":349,"on":"21:56","off":"03:52"},{"d":"2026-04-02","dp":78,"lt":124,"rm":68,"wk":49,"tot":270,"on":"21:42","off":"03:01"},{"d":"2026-04-03","dp":63,"lt":182,"rm":85,"wk":1,"tot":330,"on":"21:30","off":"03:01"},{"d":"2026-04-04","dp":33,"lt":263,"rm":124,"wk":6,"tot":420,"on":"21:31","off":"04:37"},{"d":"2026-04-05","dp":83,"lt":193,"rm":123,"wk":13,"tot":399,"on":"22:17","off":"05:09"},{"d":"2026-04-06","dp":78,"lt":253,"rm":162,"wk":1,"tot":493,"on":"22:23","off":"06:37"},{"d":"2026-04-07","dp":38,"lt":163,"rm":101,"wk":8,"tot":302,"on":"21:51","off":"03:01"},{"d":"2026-04-08","dp":15,"lt":174,"rm":69,"wk":17,"tot":258,"on":"22:22","off":"02:57"},{"d":"2026-04-09","dp":69,"lt":136,"rm":103,"wk":53,"tot":308,"on":"21:00","off":"03:01"},{"d":"2026-04-10","dp":89,"lt":196,"rm":110,"wk":6,"tot":395,"on":"20:20","off":"03:01"},{"d":"2026-04-11","dp":82,"lt":273,"rm":132,"wk":5,"tot":487,"on":"21:50","off":"06:02"},{"d":"2026-04-12","dp":52,"lt":221,"rm":95,"wk":2,"tot":368,"on":"01:20","off":"07:30"},{"d":"2026-04-13","dp":40,"lt":102,"rm":56,"wk":0,"tot":198,"on":"23:43","off":"03:01"},{"d":"2026-04-14","dp":55,"lt":148,"rm":76,"wk":1,"tot":279,"on":"22:21","off":"03:01"},{"d":"2026-04-15","dp":52,"lt":150,"rm":75,"wk":8,"tot":277,"on":"22:16","off":"03:01"},{"d":"2026-04-16","dp":59,"lt":136,"rm":58,"wk":0,"tot":253,"on":"22:48","off":"03:01"},{"d":"2026-04-17","dp":74,"lt":214,"rm":90,"wk":6,"tot":378,"on":"21:35","off":"03:59"},{"d":"2026-04-19","dp":77,"lt":210,"rm":126,"wk":5,"tot":413,"on":"21:34","off":"04:32"},{"d":"2026-04-20","dp":64,"lt":183,"rm":88,"wk":0,"tot":335,"on":"22:23","off":"03:58"},{"d":"2026-04-21","dp":49,"lt":141,"rm":40,"wk":9,"tot":230,"on":"21:24","off":"01:23"},{"d":"2026-04-22","dp":30,"lt":173,"rm":79,"wk":0,"tot":282,"on":"22:19","off":"03:01"},{"d":"2026-04-23","dp":95,"lt":153,"rm":41,"wk":3,"tot":289,"on":"22:09","off":"03:01"},{"d":"2026-04-24","dp":87,"lt":118,"rm":60,"wk":1,"tot":265,"on":"22:34","off":"03:00"},{"d":"2026-04-25","dp":68,"lt":207,"rm":89,"wk":3,"tot":364,"on":"22:12","off":"04:19"},{"d":"2026-04-26","dp":76,"lt":306,"rm":130,"wk":5,"tot":512,"on":"20:41","off":"05:18"},{"d":"2026-04-27","dp":74,"lt":280,"rm":182,"wk":5,"tot":536,"on":"20:43","off":"05:44"},{"d":"2026-04-28","dp":64,"lt":295,"rm":122,"wk":9,"tot":481,"on":"21:27","off":"05:37"},{"d":"2026-04-29","dp":84,"lt":333,"rm":133,"wk":6,"tot":550,"on":"20:45","off":"06:01"},{"d":"2026-04-30","dp":85,"lt":253,"rm":124,"wk":9,"tot":462,"on":"20:39","off":"04:30"},{"d":"2026-05-01","dp":52,"lt":305,"rm":130,"wk":1,"tot":487,"on":"20:42","off":"04:50"},{"d":"2026-05-02","dp":52,"lt":233,"rm":96,"wk":0,"tot":381,"on":"21:59","off":"04:20"},{"d":"2026-05-03","dp":79,"lt":243,"rm":153,"wk":12,"tot":475,"on":"21:58","off":"06:05"},{"d":"2026-05-04","dp":46,"lt":199,"rm":52,"wk":10,"tot":297,"on":"21:54","off":"03:01"},{"d":"2026-05-05","dp":74,"lt":188,"rm":78,"wk":9,"tot":340,"on":"21:11","off":"03:00"},{"d":"2026-05-06","dp":44,"lt":157,"rm":82,"wk":19,"tot":283,"on":"21:59","off":"03:01"},{"d":"2026-05-07","dp":56,"lt":177,"rm":80,"wk":2,"tot":313,"on":"21:46","off":"03:01"},{"d":"2026-05-08","dp":70,"lt":195,"rm":79,"wk":14,"tot":344,"on":"21:24","off":"03:22"},{"d":"2026-05-09","dp":52,"lt":314,"rm":127,"wk":13,"tot":493,"on":"20:29","off":"04:55"},{"d":"2026-05-10","dp":60,"lt":194,"rm":119,"wk":1,"tot":373,"on":"00:12","off":"06:26"},{"d":"2026-05-11","dp":48,"lt":74,"rm":59,"wk":13,"tot":181,"on":"23:28","off":"02:42"},{"d":"2026-05-12","dp":43,"lt":141,"rm":60,"wk":4,"tot":244,"on":"23:12","off":"03:20"},{"d":"2026-05-13","dp":81,"lt":206,"rm":101,"wk":6,"tot":388,"on":"20:06","off":"02:40"},{"d":"2026-05-14","dp":78,"lt":151,"rm":70,"wk":35,"tot":299,"on":"21:26","off":"03:00"},{"d":"2026-05-15","dp":56,"lt":219,"rm":111,"wk":4,"tot":386,"on":"20:31","off":"03:01"},{"d":"2026-05-16","dp":55,"lt":261,"rm":123,"wk":5,"tot":439,"on":"21:06","off":"04:30"},{"d":"2026-05-17","dp":70,"lt":273,"rm":120,"wk":10,"tot":463,"on":"21:02","off":"04:55"},{"d":"2026-05-18","dp":75,"lt":165,"rm":78,"wk":5,"tot":318,"on":"21:38","off":"03:01"},{"d":"2026-05-19","dp":67,"lt":220,"rm":76,"wk":6,"tot":363,"on":"20:32","off":"02:41"},{"d":"2026-05-20","dp":43,"lt":87,"rm":60,"wk":1,"tot":190,"on":"23:50","off":"03:01"},{"d":"2026-05-21","dp":32,"lt":223,"rm":110,"wk":26,"tot":365,"on":"20:30","off":"03:01"},{"d":"2026-05-22","dp":54,"lt":229,"rm":113,"wk":4,"tot":396,"on":"21:15","off":"03:55"},{"d":"2026-05-23","dp":44,"lt":303,"rm":79,"wk":2,"tot":426,"on":"22:03","off":"05:11"},{"d":"2026-05-24","dp":63,"lt":303,"rm":96,"wk":12,"tot":462,"on":"21:15","off":"05:09"},{"d":"2026-05-25","dp":39,"lt":136,"rm":73,"wk":2,"tot":248,"on":"22:50","off":"03:00"},{"d":"2026-05-26","dp":38,"lt":165,"rm":67,"wk":1,"tot":270,"on":"21:34","off":"02:05"},{"d":"2026-05-27","dp":30,"lt":156,"rm":98,"wk":2,"tot":284,"on":"21:45","off":"02:31"},{"d":"2026-05-28","dp":62,"lt":175,"rm":72,"wk":4,"tot":309,"on":"21:48","off":"03:01"},{"d":"2026-05-29","dp":49,"lt":189,"rm":71,"wk":1,"tot":309,"on":"22:48","off":"03:58"}],"activity":[{"d":"2026-03-31","s":4821,"km":3.66,"kc":413},{"d":"2026-04-01","s":8167,"km":5.92,"kc":2601},{"d":"2026-04-02","s":7001,"km":5.14,"kc":620},{"d":"2026-04-03","s":5379,"km":4.04,"kc":480},{"d":"2026-04-04","s":17575,"km":14.79,"kc":5495},{"d":"2026-04-05","s":11988,"km":9.22,"kc":944},{"d":"2026-04-06","s":2904,"km":2.07,"kc":292},{"d":"2026-04-07","s":7324,"km":5.55,"kc":518},{"d":"2026-04-08","s":6221,"km":4.6,"kc":406},{"d":"2026-04-09","s":5833,"km":4.3,"kc":553},{"d":"2026-04-10","s":9533,"km":7.55,"kc":1029},{"d":"2026-04-11","s":7288,"km":5.21,"kc":1807},{"d":"2026-04-12","s":11208,"km":8.53,"kc":1295},{"d":"2026-04-13","s":9235,"km":6.78,"kc":658},{"d":"2026-04-14","s":4692,"km":3.46,"kc":286},{"d":"2026-04-15","s":2298,"km":1.59,"kc":156},{"d":"2026-04-16","s":8155,"km":5.93,"kc":652},{"d":"2026-04-17","s":10778,"km":8.41,"kc":1671},{"d":"2026-04-18","s":6832,"km":4.92,"kc":792},{"d":"2026-04-19","s":7597,"km":5.88,"kc":1031},{"d":"2026-04-20","s":4844,"km":3.57,"kc":1164},{"d":"2026-04-21","s":8479,"km":6.39,"kc":999},{"d":"2026-04-22","s":8676,"km":6.22,"kc":3075},{"d":"2026-04-23","s":4732,"km":3.34,"kc":655},{"d":"2026-04-24","s":4862,"km":3.42,"kc":1087},{"d":"2026-04-25","s":16317,"km":11.82,"kc":2650},{"d":"2026-04-26","s":11945,"km":8.98,"kc":546},{"d":"2026-04-27","s":13029,"km":9.73,"kc":712},{"d":"2026-04-28","s":9599,"km":7.02,"kc":835},{"d":"2026-04-29","s":5462,"km":4.0,"kc":308},{"d":"2026-04-30","s":25400,"km":22.34,"kc":3842},{"d":"2026-05-01","s":11131,"km":8.32,"kc":1127},{"d":"2026-05-02","s":7940,"km":6.04,"kc":941},{"d":"2026-05-03","s":3629,"km":2.71,"kc":868},{"d":"2026-05-04","s":7508,"km":5.61,"kc":916},{"d":"2026-05-05","s":6219,"km":4.55,"kc":302},{"d":"2026-05-06","s":4344,"km":3.19,"kc":332},{"d":"2026-05-07","s":4719,"km":3.49,"kc":2492},{"d":"2026-05-08","s":5512,"km":4.25,"kc":768},{"d":"2026-05-09","s":7982,"km":5.69,"kc":1151},{"d":"2026-05-10","s":7993,"km":5.98,"kc":542},{"d":"2026-05-11","s":6636,"km":4.95,"kc":418},{"d":"2026-05-12","s":7645,"km":5.84,"kc":510},{"d":"2026-05-13","s":7232,"km":5.54,"kc":571},{"d":"2026-05-14","s":4881,"km":3.64,"kc":359},{"d":"2026-05-15","s":11091,"km":8.37,"kc":2142},{"d":"2026-05-16","s":33645,"km":31.83,"kc":5267},{"d":"2026-05-17","s":8736,"km":6.38,"kc":615},{"d":"2026-05-18","s":6404,"km":4.88,"kc":438},{"d":"2026-05-19","s":5123,"km":3.75,"kc":344},{"d":"2026-05-20","s":5312,"km":3.83,"kc":1003},{"d":"2026-05-21","s":5181,"km":3.83,"kc":254},{"d":"2026-05-22","s":6627,"km":4.82,"kc":1323},{"d":"2026-05-23","s":10707,"km":7.66,"kc":573},{"d":"2026-05-24","s":13252,"km":10.02,"kc":862},{"d":"2026-05-25","s":4419,"km":3.23,"kc":293},{"d":"2026-05-26","s":12480,"km":10.65,"kc":1037},{"d":"2026-05-27","s":5299,"km":3.94,"kc":465},{"d":"2026-05-28","s":8293,"km":6.26,"kc":866},{"d":"2026-05-29","s":2134,"km":1.48,"kc":187}],"hr":[{"d":"2026-04-30","mn":50,"av":86,"mx":164},{"d":"2026-05-01","mn":57,"av":79,"mx":125},{"d":"2026-05-02","mn":50,"av":74,"mx":114},{"d":"2026-05-03","mn":50,"av":75,"mx":115},{"d":"2026-05-04","mn":53,"av":76,"mx":124},{"d":"2026-05-05","mn":58,"av":73,"mx":110},{"d":"2026-05-06","mn":54,"av":68,"mx":110},{"d":"2026-05-07","mn":52,"av":78,"mx":131},{"d":"2026-05-08","mn":56,"av":80,"mx":110},{"d":"2026-05-09","mn":55,"av":80,"mx":125},{"d":"2026-05-10","mn":56,"av":77,"mx":113},{"d":"2026-05-11","mn":53,"av":73,"mx":107},{"d":"2026-05-12","mn":54,"av":78,"mx":114},{"d":"2026-05-13","mn":55,"av":73,"mx":120},{"d":"2026-05-14","mn":57,"av":75,"mx":126},{"d":"2026-05-15","mn":56,"av":83,"mx":140},{"d":"2026-05-16","mn":54,"av":93,"mx":166},{"d":"2026-05-17","mn":60,"av":79,"mx":110},{"d":"2026-05-18","mn":57,"av":74,"mx":113},{"d":"2026-05-19","mn":58,"av":73,"mx":111},{"d":"2026-05-20","mn":55,"av":74,"mx":124},{"d":"2026-05-21","mn":59,"av":72,"mx":113},{"d":"2026-05-22","mn":55,"av":79,"mx":125},{"d":"2026-05-23","mn":54,"av":74,"mx":110},{"d":"2026-05-24","mn":50,"av":74,"mx":115},{"d":"2026-05-25","mn":56,"av":74,"mx":107},{"d":"2026-05-26","mn":52,"av":72,"mx":159},{"d":"2026-05-27","mn":55,"av":77,"mx":120},{"d":"2026-05-28","mn":53,"av":78,"mx":126},{"d":"2026-05-29","mn":52,"av":68,"mx":122}]};
+
+let fizCharts = {};
+
+function fizTab(tab) {
+  ['prehrana','teza','spanec','koraki','utrip'].forEach(t => {
+    const el = document.getElementById('fztab-' + t);
+    const btn = document.getElementById('fztab-' + t + '-btn');
+    if (!el) return;
+    if (t === tab) {
+      el.style.display = '';
+      if (btn) { btn.style.background='var(--orange)'; btn.style.color='#000'; btn.style.borderColor='var(--orange)'; }
+    } else {
+      el.style.display = 'none';
+      if (btn) { btn.style.background='transparent'; btn.style.color='var(--text2)'; btn.style.borderColor='var(--border)'; }
+    }
+  });
+  // Filter pokaži samo za grafe, ne za prehrano
+  fizShowFilter(tab !== 'prehrana');
+  setTimeout(() => {
+    try {
+      if (tab === 'teza')   renderTeza();
+      if (tab === 'spanec') renderSpanec();
+      if (tab === 'koraki') renderKoraki();
+      if (tab === 'utrip')  renderUtrip();
+    } catch(e) { console.error('fizTab render:', e); }
+  }, 50);
+}
+
+function fmtMin(m) {
+  if (!m) return '—';
+  const h = Math.floor(m/60), mm = m%60;
+  return h > 0 ? h+'h'+mm.toString().padStart(2,'0')+'m' : mm+'min';
+}
+
+function fizGetMesec() {
+  return document.getElementById('fiz-mesec-sel')?.value || '';
+}
+
+function fizFilterData(arr, dateKey) {
+  const m = fizGetMesec();
+  return m ? arr.filter(x => x[dateKey].startsWith(m)) : arr;
+}
+
+function fizPopulateMeseci() {
+  const sel = document.getElementById('fiz-mesec-sel');
+  if (!sel) return;
+  // Zberi vse unikatne mesece iz vseh datasetov
+  const months = new Set();
+  ['weight','sleep','activity','hr'].forEach(k => {
+    const dk = k === 'weight' ? 'w' : 'd';
+    WEARABLE_DATA[k].forEach(r => months.add((r.d || r.d).slice(0,7)));
+  });
+  // weight nima 'd'? preveri
+  WEARABLE_DATA.weight.forEach(r => months.add(r.d.slice(0,7)));
+  WEARABLE_DATA.sleep.forEach(r => months.add(r.d.slice(0,7)));
+  WEARABLE_DATA.activity.forEach(r => months.add(r.d.slice(0,7)));
+  WEARABLE_DATA.hr.forEach(r => months.add(r.d.slice(0,7)));
+  const sorted = Array.from(months).sort().reverse();
+  // Ohrani 'VSE' opcijo
+  while (sel.options.length > 1) sel.remove(1);
+  const slMesi = ['','jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+  sorted.forEach(m => {
+    const [yr, mo] = m.split('-');
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = slMesi[parseInt(mo)] + ' ' + yr;
+    sel.appendChild(opt);
+  });
+}
+
+function fizShowFilter(show) {
+  const el = document.getElementById('fiz-mesec-filter');
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function fizMesecFilter() {
+  // Uniči obstoječe grafe da se rerendirajo s filtrom
+  ['teza','spanec','koraki','utrip'].forEach(k => {
+    if (fizCharts[k]) { fizCharts[k].destroy(); fizCharts[k] = null; }
+  });
+  // Renderiraj aktiven tab
+  const active = ['teza','spanec','koraki','utrip'].find(t => {
+    const el = document.getElementById('fztab-' + t);
+    return el && el.style.display !== 'none';
+  });
+  if (active === 'teza')   renderTeza();
+  if (active === 'spanec') renderSpanec();
+  if (active === 'koraki') renderKoraki();
+  if (active === 'utrip')  renderUtrip();
+}
+
+function renderTeza() {
+  const mesec = fizGetMesec();
+  let wd = mesec ? WEARABLE_DATA.weight.filter(x=>x.d.startsWith(mesec)) : WEARABLE_DATA.weight;
+  if (!wd.length) wd = WEARABLE_DATA.weight; // fallback
+  const last = wd[wd.length-1];
+  const first = wd[0];
+  const minW = Math.min(...wd.map(x=>x.w));
+  const diff = (last.w - first.w).toFixed(1);
+  const sign = diff > 0 ? '+' : '';
+  document.getElementById('z-teza-zadnja').textContent = last.w.toFixed(1)+' kg';
+  document.getElementById('z-teza-min').textContent = minW.toFixed(1)+' kg';
+  const diffEl = document.getElementById('z-teza-sprememba');
+  diffEl.textContent = sign+diff+' kg';
+  diffEl.style.color = diff < 0 ? '#22c55e' : '#ef4444';
+  const ctx = document.getElementById('chart-teza');
+  if (!ctx) return;
+  if (fizCharts.teza) { fizCharts.teza.destroy(); fizCharts.teza = null; }
+  fizCharts.teza = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: wd.map(x=>x.d.slice(mesec?8:5)),
+      datasets: [{
+        label: 'Teža (kg)', data: wd.map(x=>x.w),
+        borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.08)',
+        borderWidth:2, pointRadius: wd.length>20?2:4, pointBackgroundColor:'#f97316',
+        fill:true, tension:0.3
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+' kg'}} },
+      scales:{
+        x:{ticks:{color:'#737373',font:{size:9},maxTicksLimit:12},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#737373',font:{size:9},callback:v=>v+' kg'},grid:{color:'rgba(255,255,255,0.06)'},
+           min:Math.floor(minW-1), max:Math.ceil(Math.max(...wd.map(x=>x.w))+1)}
+      }
+    }
+  });
+}
+
+function renderSpanec() {
+  const mesec = fizGetMesec();
+  let sd = mesec ? WEARABLE_DATA.sleep.filter(x=>x.d.startsWith(mesec)) : WEARABLE_DATA.sleep.slice(-30);
+  if (!sd.length) sd = WEARABLE_DATA.sleep.slice(-30);
+  const last = sd[sd.length-1];
+  document.getElementById('z-sp-vcera').textContent = last.d.slice(5);
+  document.getElementById('z-sp-globoko').textContent = fmtMin(last.dp);
+  document.getElementById('z-sp-rem').textContent = fmtMin(last.rm);
+  document.getElementById('z-sp-skupaj').textContent = fmtMin(last.tot);
+  const ctx = document.getElementById('chart-spanec');
+  if (!ctx) return;
+  if (fizCharts.spanec) { fizCharts.spanec.destroy(); fizCharts.spanec = null; }
+  fizCharts.spanec = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sd.map(x=>x.d.slice(mesec?8:5)),
+      datasets: [
+        {label:'Globoko', data:sd.map(x=>x.dp), backgroundColor:'#818cf8', stack:'sleep'},
+        {label:'REM',     data:sd.map(x=>x.rm), backgroundColor:'#22d3ee', stack:'sleep'},
+        {label:'Lahko',   data:sd.map(x=>x.lt), backgroundColor:'#334155', stack:'sleep'}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#a3a3a3',font:{size:9}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtMin(c.raw)}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#737373',font:{size:9},maxTicksLimit:15},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{stacked:true,ticks:{color:'#737373',font:{size:9},callback:v=>fmtMin(v)},grid:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
+  });
+}
+
+function renderKoraki() {
+  const mesec = fizGetMesec();
+  let ad = mesec ? WEARABLE_DATA.activity.filter(x=>x.d.startsWith(mesec)) : WEARABLE_DATA.activity.slice(-30);
+  if (!ad.length) ad = WEARABLE_DATA.activity.slice(-30);
+  const today = ad[ad.length-1];
+  const avg = Math.round(ad.reduce((s,x)=>s+x.s,0)/ad.length);
+  document.getElementById('z-ko-danes').textContent = today.s.toLocaleString('sl');
+  document.getElementById('z-ko-povp').textContent = avg.toLocaleString('sl');
+  document.getElementById('z-ko-km').textContent = today.km.toFixed(1)+' km';
+  const ctx = document.getElementById('chart-koraki');
+  if (!ctx) return;
+  if (fizCharts.koraki) { fizCharts.koraki.destroy(); fizCharts.koraki = null; }
+  fizCharts.koraki = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ad.map(x=>x.d.slice(mesec?8:5)),
+      datasets: [
+        {label:'Koraki', data:ad.map(x=>x.s),
+         backgroundColor:ad.map(x=>x.s>=8000?'#22c55e':x.s>=5000?'#f97316':'#475569')},
+        {label:'Cilj 8000', data:ad.map(()=>8000),
+         type:'line', borderColor:'rgba(249,115,22,0.4)', borderDash:[4,3],
+         borderWidth:1, pointRadius:0, fill:false}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label==='Koraki'?c.raw.toLocaleString('sl')+' korakov':''}}},
+      scales:{
+        x:{ticks:{color:'#737373',font:{size:9},maxTicksLimit:15},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#737373',font:{size:9},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
+  });
+}
+
+function renderUtrip() {
+  const mesec = fizGetMesec();
+  let hd = mesec ? WEARABLE_DATA.hr.filter(x=>x.d.startsWith(mesec)) : WEARABLE_DATA.hr;
+  if (!hd.length) hd = WEARABLE_DATA.hr;
+  const last = hd[hd.length-1];
+  document.getElementById('z-hr-max').textContent = last.mx;
+  document.getElementById('z-hr-avg').textContent = last.av;
+  document.getElementById('z-hr-min').textContent = last.mn;
+  const ctx = document.getElementById('chart-utrip');
+  if (!ctx) return;
+  if (fizCharts.utrip) { fizCharts.utrip.destroy(); fizCharts.utrip = null; }
+  fizCharts.utrip = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: hd.map(x=>x.d.slice(mesec?8:5)),
+      datasets: [
+        {label:'Max',   data:hd.map(x=>x.mx), borderColor:'#ef4444', backgroundColor:'transparent', borderWidth:1.5, pointRadius:2, tension:0.3},
+        {label:'Povp.', data:hd.map(x=>x.av), borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.07)', borderWidth:2, pointRadius:3, fill:true, tension:0.3},
+        {label:'Min',   data:hd.map(x=>x.mn), borderColor:'#22c55e', backgroundColor:'transparent', borderWidth:1.5, pointRadius:2, tension:0.3}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#a3a3a3',font:{size:9}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+' bpm'}}},
+      scales:{
+        x:{ticks:{color:'#737373',font:{size:9},maxTicksLimit:15},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#737373',font:{size:9},callback:v=>v+' bpm'},grid:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
+  });
+}
+
+
+function initFiz() {
+  try {
+    const lastDate = WEARABLE_DATA.weight[WEARABLE_DATA.weight.length-1]?.d || '—';
+    const el = document.getElementById('zdravje-zadnji-uvoz');
+    if (el) el.textContent = 'Zadnji uvoz: '+lastDate;
+    fizPopulateMeseci();
+  } catch(e) { console.error('initFiz:', e); }
+}
+
+initFiz();
+// === /ZDRAVJE · URA ===
+
 
 
 document.querySelectorAll('.modal-overlay').forEach(o=>{
