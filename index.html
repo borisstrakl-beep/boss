@@ -4966,6 +4966,66 @@ const BITPANDA_PROXY = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLj
 
 let PORTFELJ = [];
 let NAKUP_SKUPAJ = 0;
+let finActiveTab = 'banka';
+let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.09, stavnica:[], portfeljHistory:{} };
+let finCharts = {};
+
+// ---- TABS ----
+function financeTab(el, tab) {
+  document.querySelectorAll('#fin-tab-banka,#fin-tab-portfelj,#fin-tab-stavnica').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['banka','portfelj','stavnica'].forEach(t => {
+    const d = document.getElementById('fin-' + t);
+    if (d) d.style.display = t === tab ? '' : 'none';
+  });
+  finActiveTab = tab;
+  if (tab === 'portfelj' && finData.portfelj.length === 0) fetchPortfelj();
+  if (tab === 'stavnica') renderStavnica();
+}
+
+function makeChart(canvasId, labels, datasets, opts) {
+  const el = document.getElementById(canvasId);
+  if (!el) return;
+  if (finCharts[canvasId]) { finCharts[canvasId].destroy(); }
+  if (opts && opts.height) {
+    el.style.height = opts.height + 'px';
+    el.style.maxHeight = opts.height + 'px';
+    if (el.parentElement) {
+      el.parentElement.style.height = opts.height + 'px';
+      el.parentElement.style.maxHeight = opts.height + 'px';
+    }
+  }
+  finCharts[canvasId] = new Chart(el.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: { legend: { display: datasets.length > 1 ? true : false,
+        labels: { color:'#999', font:{ family:'var(--mono)', size:9 }, boxWidth:8, padding:8 }
+      }, tooltip: {
+        backgroundColor:'#181818', titleColor:'#999', bodyColor:'#e8e8e8',
+        titleFont:{ family:'var(--mono)', size:9 }, bodyFont:{ family:'var(--mono)', size:10 },
+        callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(2) + ' €' }
+      }},
+      scales: {
+        x: { ticks:{ color:'#555', font:{ family:'var(--mono)', size:8 }, maxTicksLimit: opts?.xTicks || 6 },
+             grid:{ color:'rgba(255,255,255,0.03)' }, border:{ display:false } },
+        y: { ticks:{ color:'#555', font:{ family:'var(--mono)', size:8 }, maxTicksLimit:4,
+               callback: v => v.toFixed(0) + '€' },
+             grid:{ color:'rgba(255,255,255,0.05)' }, border:{ display:false },
+             ...( opts?.yMin != null ? { min: opts.yMin } : {} ),
+             ...( opts?.yMax != null ? { max: opts.yMax } : {} ) }
+      }
+    }
+  });
+}
+
+function lineDataset(data, color, label) {
+  return { label, data, borderColor: color, backgroundColor: color.replace(')',',0.08)').replace('rgb','rgba'),
+    borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3, tension: 0.3, fill: true };
+}
+
 
 // ---- PORTFELJ ----
 async function fetchPortfelj() {
