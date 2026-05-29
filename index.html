@@ -5086,10 +5086,13 @@ function renderBanka() {
 
 // ---- PORTFELJ ----
 // Proxiji za Yahoo Finance — skupna lista za vse klice
+// Proxiji za Yahoo Finance
+// corsproxy.io: nov format od 2025 je /?url=... (stari /?https:// vraca 401)
 const YAHOO_PROXIES = [
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://proxy.cors.sh/${url}`
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
 ];
 
 // Splošna funkcija za fetch prek proxyjev z fallback
@@ -5098,10 +5101,10 @@ async function fetchYahoo(url) {
     const proxy = mkProxy(url);
     try {
       const res = await fetch(proxy, { signal: AbortSignal.timeout(8000), headers: { 'x-requested-with': 'XMLHttpRequest' } });
-      if (!res.ok) continue;
+      if (!res.ok) { console.warn('Yahoo proxy HTTP ' + res.status + ':', proxy.substring(0,40)); continue; }
       const data = await res.json();
-      return data;
-    } catch(e) { console.warn('Yahoo proxy fail:', proxy.split('?')[0], e.message); }
+      if (data) { console.log('Yahoo proxy OK:', proxy.substring(0,40)); return data; }
+    } catch(e) { console.warn('Yahoo proxy fail:', proxy.substring(0,40), e.message); }
   }
   return null;
 }
@@ -5112,9 +5115,20 @@ async function fetchPortfelj() {
 
   // 1. EUR/USD tečaj
   try {
-    const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR', { signal: AbortSignal.timeout(5000) });
-    const ecbData = await ecbRes.json();
-    if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
+    // Proba več virov za EUR/USD tečaj
+    const eurusdSources = [
+      { url: 'https://open.er-api.com/v6/latest/USD', parse: d => d.rates?.EUR ? 1/d.rates.EUR : null },
+      { url: 'https://api.frankfurter.app/latest?base=USD&symbols=EUR', parse: d => d.rates?.EUR ? 1/d.rates.EUR : null },
+      { url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', parse: d => d.usd?.eur ? 1/d.usd.eur : null }
+    ];
+    for (const src of eurusdSources) {
+      try {
+        const r = await fetch(src.url, { signal: AbortSignal.timeout(5000) });
+        const d = await r.json();
+        const rate = src.parse(d);
+        if (rate && rate > 0.5 && rate < 2.0) { finData.eurusd = rate; console.log('EUR/USD iz:', src.url.split('/')[2], rate.toFixed(4)); break; }
+      } catch(e) { console.warn('EUR/USD fail:', src.url.split('/')[2]); }
+    }
   } catch(e) { console.warn('ECB tečaj napaka, fallback 1.16'); finData.eurusd = finData.eurusd || 1.16; }
 
   // 2. Trenutne cene — prikaži takoj, ne čakaj history
