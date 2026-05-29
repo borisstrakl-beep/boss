@@ -5028,197 +5028,169 @@ function lineDataset(data, color, label) {
 
 
 // ---- PORTFELJ ----
+const FINNHUB_KEY = 'd8d01cpr01qt0j1ippc0d8d01cpr01qt0j1ippcg';
+
+// Simbol mapa: Bitpanda simbol → Finnhub simbol + tip valute
+const BP_SYMBOLS = {
+  'GOOGL':      { finnhub: 'GOOGL',   eur: false },
+  'AMZN':       { finnhub: 'AMZN',    eur: false },
+  'AAPL':       { finnhub: 'AAPL',    eur: false },
+  'MSFT':       { finnhub: 'MSFT',    eur: false },
+  'NFLX':       { finnhub: 'NFLX',    eur: false },
+  'TSLA':       { finnhub: 'TSLA',    eur: false },
+  'MSCI-WORLD': { finnhub: 'IQQW.DE', eur: true  },
+};
+
 async function fetchPortfelj() {
   const itemsEl = document.getElementById('fin-port-items');
-  if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam portfelj iz Bitpanda...</div>';
+  if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px;padding:8px 0">⟳ Nalagam portfelj...</div>';
 
   try {
-    // Vzporedno: stanja + ticker cene
-    const [walletsRes, tickerRes] = await Promise.all([
+    // 1. Stanja iz Bitpanda + EUR/USD tečaj vzporedno
+    const [walletsRes, fxRes] = await Promise.all([
       fetch(BITPANDA_PROXY + '?endpoint=asset-wallets'),
-      fetch(BITPANDA_PROXY + '?endpoint=ticker')
+      fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR')
     ]);
     const walletsJson = await walletsRes.json();
-    const tickerJson  = await tickerRes.json();
+    const fxJson      = await fxRes.json().catch(() => null);
 
-    if (walletsJson.errors) throw new Error(walletsJson.errors[0]?.title || 'Wallets napaka');
+    if (walletsJson.errors) throw new Error(walletsJson.errors[0]?.title || 'Bitpanda napaka');
 
-    // Ticker je { "1": { "EUR": "62753.27", ... }, "2": {...}, ... }  keyed by cryptocoin_id
-    const ticker = tickerJson || {};
+    // EUR/USD tečaj
+    const usdToEur = fxJson?.rates?.EUR || 0.92;
+    finData.eurusd = 1 / usdToEur;
 
+    // 2. Pridobi pozicije iz Bitpanda
     const attrs = walletsJson.data?.attributes || {};
     const pozicije = [];
 
-    // Helper: iz ticker pridobi EUR ceno za dani cryptocoin_id
-    function getCena(id) {
-      const t = ticker[String(id)];
-      if (!t) return null;
-      const eur = t['EUR'] || t['eur'];
-      return eur ? parseFloat(eur) : null;
-    }
-
-    // Helper: izračunaj dnevno spremembo %
-    function getChgPct(id) {
-      // ticker ne vsebuje % spremembe - pustimo null, pokažemo samo vrednost
-      return null;
-    }
-
-    // DELNICE
-    const stocks = attrs.security?.stock?.attributes?.wallets || [];
-    stocks.forEach(w => {
-      const a   = w.attributes;
-      const bal = parseFloat(a.balance || '0');
-      if (bal <= 0) return;
-      const cena = getCena(a.cryptocoin_id);
-      pozicije.push({
-        sym:      a.cryptocoin_symbol,
-        ime:      a.name.replace(' Wallet','').replace(' Stock',''),
-        kol:      bal,
-        id:       a.cryptocoin_id,
-        tip:      'delnica',
-        cenaEur:  cena,
-        vrednost: cena ? cena * bal : null,
-        chgPct:   null
+    const parseWallets = (wallets, tip) => {
+      (wallets || []).forEach(w => {
+        const a   = w.attributes;
+        const bal = parseFloat(a?.balance || '0');
+        if (bal <= 0) return;
+        pozicije.push({
+          sym:     a.cryptocoin_symbol,
+          ime:     (a.name || a.cryptocoin_symbol).replace(' Wallet','').replace(' Stock','').replace(' ETF',''),
+          kol:     bal,
+          id:      a.cryptocoin_id,
+          tip:     tip,
+          cenaEur: null,
+          vrednost:null,
+          chgPct:  null
+        });
       });
+    };
+
+    parseWallets(attrs.security?.stock?.attributes?.wallets,  'delnica');
+    parseWallets(attrs.etf?.attributes?.wallets,              'etf');
+    parseWallets(attrs.cryptocoin?.attributes?.wallets,       'kripto');
+    parseWallets(attrs.commodity?.metal?.attributes?.wallets, 'kovina');
+
+    // 3. Cene: Finnhub za delnice/ETF, Bitpanda ticker za kripto
+    const [tickerRes] = await Promise.all([
+      fetch(BITPANDA_PROXY + '?endpoint=ticker')
+    ]);
+    const ticker = await tickerRes.json().catch(() => ({}));
+
+    // Finnhub klici za delnice in ETF (vzporedno)
+    const stockPos = pozicije.filter(p => BP_SYMBOLS[p.sym]);
+    const finnhubPromises = stockPos.map(p =>
+      fetch(`https://finnhub.io/api/v1/quote?symbol=${BP_SYMBOLS[p.sym].finnhub}&token=${FINNHUB_KEY}`)
+        .then(r => r.json())
+        .then(q => ({ sym: p.sym, q }))
+        .catch(() => ({ sym: p.sym, q: null }))
+    );
+    const finnhubResults = await Promise.all(finnhubPromises);
+    const finnhubMap = {};
+    finnhubResults.forEach(({ sym, q }) => { if (q) finnhubMap[sym] = q; });
+
+    // 4. Združi cene s pozicijami
+    PORTFELJ = pozicije.map(p => {
+      // Delnice + ETF → Finnhub
+      if (BP_SYMBOLS[p.sym]) {
+        const q = finnhubMap[p.sym];
+        if (!q || !q.c) return p;
+        const isEur = BP_SYMBOLS[p.sym].eur;
+        const cenaEur = isEur ? q.c : q.c * usdToEur;
+        return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.dp };
+      }
+      // Kripto → Bitpanda ticker
+      const t = ticker[String(p.id)];
+      if (t) {
+        const cenaEur = parseFloat(t['EUR'] || t['eur'] || '0');
+        return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: null };
+      }
+      return p;
     });
 
-    // ETF
-    const etfs = attrs.etf?.attributes?.wallets || [];
-    etfs.forEach(w => {
-      const a   = w.attributes;
-      const bal = parseFloat(a.balance || '0');
-      if (bal <= 0) return;
-      const cena = getCena(a.cryptocoin_id);
-      pozicije.push({
-        sym:      a.cryptocoin_symbol,
-        ime:      a.name.replace(' Wallet','').replace(' ETF',''),
-        kol:      bal,
-        id:       a.cryptocoin_id,
-        tip:      'etf',
-        cenaEur:  cena,
-        vrednost: cena ? cena * bal : null,
-        chgPct:   null
-      });
-    });
-
-    // KRIPTO
-    const kriptos = attrs.cryptocoin?.attributes?.wallets || [];
-    kriptos.forEach(w => {
-      const a   = w.attributes;
-      const bal = parseFloat(a.balance || '0');
-      if (bal <= 0) return;
-      const cena = getCena(a.cryptocoin_id);
-      pozicije.push({
-        sym:      a.cryptocoin_symbol,
-        ime:      a.name.replace(' Wallet',''),
-        kol:      bal,
-        id:       a.cryptocoin_id,
-        tip:      'kripto',
-        cenaEur:  cena,
-        vrednost: cena ? cena * bal : null,
-        chgPct:   null
-      });
-    });
-
-    // KOVINE
-    const kovine = attrs.commodity?.metal?.attributes?.wallets || [];
-    kovine.forEach(w => {
-      const a   = w.attributes;
-      const bal = parseFloat(a.balance || '0');
-      if (bal <= 0) return;
-      const cena = getCena(a.cryptocoin_id);
-      pozicije.push({
-        sym:      a.cryptocoin_symbol,
-        ime:      a.name.replace(' Wallet',''),
-        kol:      bal,
-        id:       a.cryptocoin_id,
-        tip:      'kovina',
-        cenaEur:  cena,
-        vrednost: cena ? cena * bal : null,
-        chgPct:   null
-      });
-    });
-
-    PORTFELJ = pozicije;
-    finData.portfelj = pozicije;
-    NAKUP_SKUPAJ = 0;
-
+    finData.portfelj = PORTFELJ;
     renderPortfelj();
 
   } catch(e) {
-    console.error('Portfelj fetch error:', e);
+    console.error('Portfelj napaka:', e);
     if (itemsEl) itemsEl.innerHTML = `<div style="color:#ef4444;font-family:var(--mono);font-size:10px">Napaka: ${e.message}</div>`;
   }
 }
 
-// Brez Yahoo — zgodovina ni na voljo, graf preskočimo
 async function fetchPortfeljHistory() {
   finData.portfeljHistory = {};
 }
 
 function renderPortfelj() {
-  const skupaj = finData.portfelj.reduce((s, p) => s + (p.vrednost || 0), 0);
+  const skupaj = PORTFELJ.reduce((s, p) => s + (p.vrednost || 0), 0);
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
   const skupajEl = document.getElementById('fin-port-skupaj');
   if (skupajEl) skupajEl.textContent = fmt(skupaj) + ' €';
 
   const chgBigEl = document.getElementById('fin-port-chg-big');
-  if (chgBigEl) { chgBigEl.textContent = ''; }
+  if (chgBigEl) chgBigEl.textContent = '';
   const chgEurEl = document.getElementById('fin-port-chg-eur');
-  if (chgEurEl) { chgEurEl.textContent = 'Bitpanda live'; chgEurEl.style.color = 'var(--text3)'; }
+  if (chgEurEl) { chgEurEl.textContent = 'Finnhub · Bitpanda live'; chgEurEl.style.color = 'var(--text3)'; }
 
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) {
-    const sorted = [...finData.portfelj].sort((a,b) => (b.vrednost||0) - (a.vrednost||0));
+    const sorted = [...PORTFELJ].sort((a,b) => (b.vrednost||0) - (a.vrednost||0));
     const tipCol = t => t==='kripto'?'#22d3ee':t==='etf'?'#818cf8':t==='kovina'?'#fbbf24':'var(--orange)';
 
     itemsEl.innerHTML = sorted.map(p => {
-      const v   = p.vrednost;
-      const vStr = v != null ? fmt(v) + ' €' : '—';
-      const cStr = p.cenaEur != null ? fmt(p.cenaEur) + ' €/kos' : '—';
-      const tc  = tipCol(p.tip);
-      const tipLbl = p.tip.toUpperCase();
-      const kolStr = p.kol < 0.01
-        ? p.kol.toFixed(6)
-        : p.kol < 1
-        ? p.kol.toFixed(4)
-        : p.kol.toFixed(2);
+      const vStr = p.vrednost != null ? fmt(p.vrednost) + ' €' : '—';
+      const cStr = p.cenaEur  != null ? fmt(p.cenaEur)  + ' €' : '—';
+      const col  = p.chgPct == null ? 'var(--text3)' : p.chgPct >= 0 ? '#22c55e' : '#ef4444';
+      const chgStr = p.chgPct != null ? (p.chgPct >= 0 ? '+' : '') + p.chgPct.toFixed(2) + '%' : '';
+      const tc   = tipCol(p.tip);
+      const kolStr = p.kol < 0.01 ? p.kol.toFixed(6) : p.kol < 1 ? p.kol.toFixed(4) : p.kol.toFixed(2);
 
       return `<div class="finance-row" style="padding:6px 0">
         <div style="flex:1">
           <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
             <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--orange)">${p.sym}</span>
-            <span style="font-family:var(--mono);font-size:7px;color:${tc};border:1px solid ${tc};padding:1px 4px;border-radius:2px">${tipLbl}</span>
+            <span style="font-family:var(--mono);font-size:7px;color:${tc};border:1px solid ${tc};padding:1px 4px;border-radius:2px">${p.tip.toUpperCase()}</span>
+            ${chgStr ? `<span style="font-family:var(--mono);font-size:9px;color:${col}">${chgStr}</span>` : ''}
           </div>
           <div style="font-family:var(--cond);font-size:12px;color:var(--text)">${p.ime}</div>
-          <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${kolStr} kos · ${cStr}</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${kolStr} kos · ${cStr}/kos</div>
         </div>
-        <div style="text-align:right;min-width:70px">
+        <div style="text-align:right;min-width:80px">
           <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">${vStr}</div>
         </div>
       </div>`;
     }).join('<div style="height:0.5px;background:var(--bg3);margin:1px 0"></div>');
   }
 
-  // Preprost bar chart – deleži pozicij
   renderPortfeljChart();
 
   const casEl = document.getElementById('fin-port-cas');
-  if (casEl) casEl.textContent = 'Bitpanda · ' + new Date().toLocaleTimeString('sl-SI', {hour:'2-digit',minute:'2-digit'});
+  if (casEl) casEl.textContent = 'Posodobljeno: ' + new Date().toLocaleTimeString('sl-SI', {hour:'2-digit',minute:'2-digit'});
 }
 
 function renderPortfeljChart() {
-  // Prikaži tortni/stolpčni prikaz deležev namesto časovnega grafa
-  const valid = finData.portfelj.filter(p => p.vrednost > 0);
+  const valid = PORTFELJ.filter(p => p.vrednost > 0);
   if (valid.length === 0) return;
   const skupaj = valid.reduce((s,p) => s + p.vrednost, 0);
   const tipCol = t => t==='kripto'?'#22d3ee':t==='etf'?'#818cf8':t==='kovina'?'#fbbf24':'#f97316';
-
-  const labels  = valid.map(p => p.sym);
-  const values  = valid.map(p => p.vrednost);
-  const colors  = valid.map(p => tipCol(p.tip));
-  const fmt2    = v => v.toLocaleString('sl-SI',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmt2 = v => v.toLocaleString('sl-SI',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   const ctx = document.getElementById('fin-port-chart');
   if (!ctx) return;
@@ -5226,8 +5198,8 @@ function renderPortfeljChart() {
   finCharts['fin-port-chart'] = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: labels,
-      datasets: [{ data: values, backgroundColor: colors, borderColor: '#0d0d0d', borderWidth: 2 }]
+      labels: valid.map(p => p.sym),
+      datasets: [{ data: valid.map(p => p.vrednost), backgroundColor: valid.map(p => tipCol(p.tip)), borderColor: '#0d0d0d', borderWidth: 2 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -5240,6 +5212,7 @@ function renderPortfeljChart() {
     }
   });
 }
+
 
 // ---- STAVNICA ----
 const STAVNICA_FB = 'https://boris-stavnica-default-rtdb.europe-west1.firebasedatabase.app/history';
