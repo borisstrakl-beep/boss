@@ -5093,10 +5093,10 @@ async function fetchPortfelj() {
     ]);
     const ticker = await tickerRes.json().catch(() => ({}));
 
-    // Finnhub klici za delnice in ETF (vzporedno)
+    // Finnhub klici za delnice in ETF prek Apps Script proxy (ni CORS)
     const stockPos = pozicije.filter(p => BP_SYMBOLS[p.sym]);
     const finnhubPromises = stockPos.map(p =>
-      fetch(`https://finnhub.io/api/v1/quote?symbol=${BP_SYMBOLS[p.sym].finnhub}&token=${FINNHUB_KEY}`)
+      fetch(`${BITPANDA_PROXY}?endpoint=finnhub-quote&symbol=${BP_SYMBOLS[p.sym].finnhub}`)
         .then(r => r.json())
         .then(q => ({ sym: p.sym, q }))
         .catch(() => ({ sym: p.sym, q: null }))
