@@ -2709,7 +2709,7 @@
           <div class="goal-bar"><div class="goal-fill" id="fin-kk-bar" style="width:0%;background:var(--blue)"></div></div>
         </div>
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">GIBANJE STANJA — 30 DNI</div>
-        <canvas id="fin-banka-chart" height="80" style="width:100%;display:block"></canvas>
+        <div style="position:relative;height:80px"><canvas id="fin-banka-chart"></canvas></div>
         <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px">
           <span id="fin-banka-chart-from">—</span>
           <span id="fin-posodobljeno">—</span>
@@ -2731,26 +2731,21 @@
           </div>
         </div>
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">SKUPNA VREDNOST — 3 MESECI</div>
-        <canvas id="fin-port-chart" height="80" style="width:100%;display:block"></canvas>
+        <div style="position:relative;height:80px"><canvas id="fin-port-chart"></canvas></div>
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin:10px 0 6px">POSAMEZNE POZICIJE</div>
         <div id="fin-port-items">
           <div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam cene...</div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:8px">
-          <div>
-            <div id="fin-eurusd">—</div>
-            <div id="fin-port-history-status" style="font-size:8px;color:var(--text3);margin-top:2px"></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="fin-port-cas">—</div>
-            <button onclick="portfeljRefresh()" style="background:none;border:1px solid var(--border);border-radius:3px;padding:2px 6px;font-family:var(--mono);font-size:8px;color:var(--text3);cursor:pointer;letter-spacing:.08em;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'" title="Osveži podatke">↺ OSVEŽI</button>
-          </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:8px">
+          <div id="fin-eurusd">—</div>
+          <div id="fin-port-cas">—</div>
         </div>
       </div>
 
       <!-- STAVNICA -->
       <div id="fin-stavnica" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <!-- Kartice -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
           <div style="background:var(--bg2);border-radius:6px;padding:10px 12px">
             <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:4px">TRENUTNO STANJE</div>
             <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)" id="fin-stav-big">—</div>
@@ -2761,15 +2756,43 @@
             <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="fin-stav-chg-big">—</div>
             <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-stav-chg-sub">od zadnjega vnosa</div>
           </div>
+          <div style="background:var(--bg2);border-radius:6px;padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:4px">SKUPAJ VNOSOV</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)" id="fin-stav-count">—</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-stav-zadnji">—</div>
+          </div>
         </div>
+        <!-- Filtri -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--text3)">FILTRI:</span>
+          <select id="stav-f-leto" onchange="stavApplyFilter()" style="font-family:var(--mono);font-size:9px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer">
+            <option value="">— VSA LETA —</option>
+          </select>
+          <select id="stav-f-mesec" onchange="stavApplyFilter()" style="font-family:var(--mono);font-size:9px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer">
+            <option value="">— VSI MESECI —</option>
+          </select>
+          <button id="stav-f-clear" onclick="stavClearFilter()" style="display:none;font-family:var(--mono);font-size:9px;background:transparent;color:var(--orange);border:1px solid var(--orange);border-radius:3px;padding:4px 8px;cursor:pointer">× POČISTI</button>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:auto" id="fin-stav-vnosi">—</span>
+        </div>
+        <!-- Graf -->
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">GIBANJE STANJA</div>
-        <canvas id="fin-stav-chart" height="80" style="width:100%;display:block"></canvas>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px" id="fin-stav-vnosi">— vnosov</div>
+        <div style="position:relative;width:100%;height:90px;max-height:90px;overflow:hidden;margin-bottom:12px"><canvas id="fin-stav-chart" style="max-height:90px"></canvas></div>
+        <!-- Statistika -->
+        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">STATISTIKA OBDOBJA</div>
+        <div id="fin-stav-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px"></div>
+        <!-- Mesecna analitika -->
+        <div id="fin-stav-mesecno-wrap">
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">MESČNA GIBANJA</div>
+          <div id="fin-stav-mesecno"></div>
+        </div>
+        <!-- Vnos -->
         <div class="o-divider"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <input type="number" id="fin-stav-input" placeholder="Novo stanje (EUR)..." step="0.01"
-            style="flex:1;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
-          <button onclick="finSaveStavnica()" class="add-btn" style="white-space:nowrap">+ VNESI</button>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <input type="number" id="fin-stav-input" placeholder="Stanje (EUR)..." step="0.01"
+            style="flex:2;min-width:100px;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+          <input type="date" id="fin-stav-datum"
+            style="flex:1;min-width:120px;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text);color-scheme:dark">
+          <button onclick="finSaveStavnica()" class="add-btn" style="white-space:nowrap" id="stav-save-btn">+ VNESI</button>
         </div>
       </div>
 
@@ -3509,6 +3532,7 @@
           <div class="lib-tab active" onclick="switchEvTab(this,'ev-overview')" data-evtab="ev-overview">PREGLED</div>
           <div class="lib-tab" onclick="switchEvTab(this,'ev-charges')" data-evtab="ev-charges">POLNJENJA</div>
           <div class="lib-tab" onclick="switchEvTab(this,'ev-stats')" data-evtab="ev-stats">STATISTIKA</div>
+          <div class="lib-tab" onclick="switchEvTab(this,'ev-km')" data-evtab="ev-km">KM &amp; STROŠKI</div>
         </div>
 
         <!-- TAB: PREGLED -->
@@ -3528,6 +3552,13 @@
         <!-- TAB: STATISTIKA -->
         <div id="tab-ev-stats" class="library-body" style="display:none">
           <div id="ev-stats-content">
+            <div class="ai-loading"><div class="ai-spinner"></div>Nalagam...</div>
+          </div>
+        </div>
+
+        <!-- TAB: KM & STROŠKI -->
+        <div id="tab-ev-km" class="library-body" style="display:none">
+          <div id="ev-km-content">
             <div class="ai-loading"><div class="ai-spinner"></div>Nalagam...</div>
           </div>
         </div>
@@ -4855,14 +4886,7 @@ function financeTab(el, tab) {
     if (d) d.style.display = t === tab ? '' : 'none';
   });
   finActiveTab = tab;
-  // Portfelj: naloži ob prvem obisku; če so podatki stari > 5 min, osveži tiho v ozadju
-  if (tab === 'portfelj') {
-    if (finData.portfelj.length === 0) {
-      fetchPortfelj();
-    } else if (!finData._portfeljTs || (Date.now() - finData._portfeljTs) > 5 * 60 * 1000) {
-      fetchPortfelj();
-    }
-  }
+  if (tab === 'portfelj' && finData.portfelj.length === 0) fetchPortfelj();
   if (tab === 'stavnica') renderStavnica();
 }
 
@@ -4871,6 +4895,15 @@ function makeChart(canvasId, labels, datasets, opts) {
   const el = document.getElementById(canvasId);
   if (!el) return;
   if (finCharts[canvasId]) { finCharts[canvasId].destroy(); }
+  // Nastavi višino eksplicitno na canvas in wrapper
+  if (opts && opts.height) {
+    el.style.height = opts.height + 'px';
+    el.style.maxHeight = opts.height + 'px';
+    if (el.parentElement) {
+      el.parentElement.style.height = opts.height + 'px';
+      el.parentElement.style.maxHeight = opts.height + 'px';
+    }
+  }
   finCharts[canvasId] = new Chart(el.getContext('2d'), {
     type: 'line',
     data: { labels, datasets },
@@ -5080,50 +5113,41 @@ function renderBanka() {
     const maxV = Math.max(...data) * 1.02;
     makeChart('fin-banka-chart', labels,
       [lineDataset(data, 'rgb(59,130,246)', 'Stanje računa')],
-      { xTicks:6, yMin: minV, yMax: maxV });
+      { xTicks:6, yMin: minV, yMax: maxV, height: 80 });
   }
 }
 
 // ---- PORTFELJ ----
-// Proxiji za Yahoo Finance — skupna lista za vse klice
-const YAHOO_PROXIES = [
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://proxy.cors.sh/${url}`
-];
-
-// Splošna funkcija za fetch prek proxyjev z fallback
-async function fetchYahoo(url) {
-  for (const mkProxy of YAHOO_PROXIES) {
-    const proxy = mkProxy(url);
-    try {
-      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000), headers: { 'x-requested-with': 'XMLHttpRequest' } });
-      if (!res.ok) continue;
-      const data = await res.json();
-      return data;
-    } catch(e) { console.warn('Yahoo proxy fail:', proxy.split('?')[0], e.message); }
-  }
-  return null;
-}
-
 async function fetchPortfelj() {
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam cene...</div>';
 
-  // 1. EUR/USD tečaj
   try {
-    const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR', { signal: AbortSignal.timeout(5000) });
-    const ecbData = await ecbRes.json();
-    if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
-  } catch(e) { console.warn('ECB tečaj napaka, fallback 1.16'); finData.eurusd = finData.eurusd || 1.16; }
+    // EUR/USD tečaj
+    try {
+      const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR');
+      const ecbData = await ecbRes.json();
+      if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
+    } catch(e) { finData.eurusd = 1.16; }
 
-  // 2. Trenutne cene — prikaži takoj, ne čakaj history
-  try {
+    // Trenutne cene - poskusi več proxyjev
     const syms = PORTFELJ.map(p => p.sym).join(',');
     const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent`;
-    const result = await fetchYahoo(yahooUrl);
-    const quotes = result?.quoteResponse?.result || [];
-    if (quotes.length === 0) throw new Error('Vsi proxiji so odpovedali za cene');
+    const proxies = [
+      `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
+      `https://proxy.cors.sh/${yahooUrl}`
+    ];
+    let quotes = [];
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
+        const data = await res.json();
+        quotes = data.quoteResponse?.result || [];
+        if (quotes.length > 0) { console.log('Yahoo proxy OK:', proxy); break; }
+      } catch(e) { console.warn('Proxy fail:', proxy, e.message); }
+    }
+    if (quotes.length === 0) throw new Error('Vsi proxiji so odpovedali');
 
     finData.portfelj = PORTFELJ.map(p => {
       const q = quotes.find(q => q.symbol === p.sym);
@@ -5133,81 +5157,57 @@ async function fetchPortfelj() {
       return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.regularMarketChangePercent };
     });
 
-    // Prikaži tabelo TAKOJ — ne čakaj na history
+    // Zgodovinske cene — 3 mesece za vsako pozicijo
+    await fetchPortfeljHistory();
     renderPortfelj();
   } catch(e) {
-    console.warn('Portfelj cene napaka:', e);
-    if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju cen.</div>';
-    return;
+    console.warn('Portfelj fetch error:', e);
+    if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju.</div>';
   }
-
-  // 3. Zgodovinske cene — v ozadju, graf se posodobi ko pride
-  const histEl = document.getElementById('fin-port-history-status');
-  if (histEl) histEl.textContent = '⟳ nalagam graf...';
-  await fetchPortfeljHistory();
-  renderPortfeljChart();
-  if (histEl) histEl.textContent = '';
-}
-
-// Refresh gumb — počisti cache in osveži
-function portfeljRefresh() {
-  localStorage.removeItem('portfelj_history');
-  finData.portfelj = [];
-  finData.portfeljHistory = {};
-  fetchPortfelj();
 }
 
 async function fetchPortfeljHistory() {
   const endDate = Math.floor(Date.now() / 1000);
   const startDate = endDate - (90 * 24 * 3600);
-
-  // Preveri cache (velja 6 ur)
-  try {
-    const cached = localStorage.getItem('portfelj_history');
-    if (cached) {
-      const c = JSON.parse(cached);
-      if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000 && c.data && Object.keys(c.data).length > 0) {
-        finData.portfeljHistory = c.data;
-        console.log('Portfelj history iz cache (' + Object.keys(c.data).length + ' simbolov)');
-        return;
-      }
-    }
-  } catch(e) { console.warn('Cache branje napaka:', e); }
-
   finData.portfeljHistory = {};
 
-  // Fetch zaporedno z fallback proxiji za vsak simbol
+  // Preveri cache (velja 6 ur)
+  const cached = localStorage.getItem('portfelj_history');
+  if (cached) {
+    const c = JSON.parse(cached);
+    if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
+      finData.portfeljHistory = c.data;
+      console.log('Portfelj history iz cache');
+      return;
+    }
+  }
+
+  // Fetch zaporedno (ne vzporedno) da ne preobremeni brskalnika
   for (const p of PORTFELJ) {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.sym}?interval=1d&period1=${startDate}&period2=${endDate}`;
-      const result = await fetchYahoo(url);
-      const chart = result?.chart?.result?.[0];
-      if (!chart) { console.warn('History: ni podatkov za', p.sym); continue; }
+      const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      const res = await fetch(proxy, { headers:{'x-requested-with':'XMLHttpRequest'} });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const chart = data.chart?.result?.[0];
+      if (!chart) continue;
       const timestamps = chart.timestamp || [];
       const closes = chart.indicators?.quote?.[0]?.close || [];
-      // Shrani tudi EUR/USD tečaj za vsak dan (za bolj točen zgodovinski graf)
-      const adjcloses = chart.indicators?.adjclose?.[0]?.adjclose || closes;
       finData.portfeljHistory[p.sym] = timestamps.map((t, i) => ({
         datum: new Date(t * 1000).toISOString().split('T')[0],
-        cena: adjcloses[i] ?? closes[i]
+        cena: closes[i]
       })).filter(x => x.cena != null);
-      console.log('History OK:', p.sym, finData.portfeljHistory[p.sym].length, 'dni');
-      // Pavza med klici — prepreči rate limit
-      await new Promise(r => setTimeout(r, 250));
+      // Kratka pavza med klici
+      await new Promise(r => setTimeout(r, 300));
     } catch(e) { console.warn('History err', p.sym, e); }
   }
 
-  // Shrani delne rezultate v cache (tudi če niso vsi simboli uspeli)
-  const uspeli = Object.keys(finData.portfeljHistory).length;
-  if (uspeli > 0) {
-    try {
-      localStorage.setItem('portfelj_history', JSON.stringify({
-        ts: Date.now(),
-        data: finData.portfeljHistory
-      }));
-      console.log('Portfelj history v cache:', uspeli + '/' + PORTFELJ.length + ' simbolov');
-    } catch(e) { console.warn('Cache zapis napaka:', e); }
-  }
+  // Shrani v cache
+  localStorage.setItem('portfelj_history', JSON.stringify({
+    ts: Date.now(),
+    data: finData.portfeljHistory
+  }));
 }
 
 function renderPortfelj() {
@@ -5260,33 +5260,19 @@ function renderPortfelj() {
   if (eurusdEl) eurusdEl.textContent = '1 EUR = ' + finData.eurusd.toFixed(4) + ' USD';
   const casEl = document.getElementById('fin-port-cas');
   if (casEl) casEl.textContent = 'Posodobljeno ' + new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
-  finData._portfeljTs = Date.now();
 }
 
 function renderPortfeljChart() {
-  const chartEl = document.getElementById('fin-port-chart');
-
-  // Zberi vse datume iz history
+  // Zberi vse datume
   const dateSet = new Set();
   PORTFELJ.forEach(p => {
     const h = finData.portfeljHistory[p.sym] || [];
     h.forEach(x => dateSet.add(x.datum));
   });
   const dates = Array.from(dateSet).sort();
+  if (dates.length < 2) return;
 
-  // Graceful degradacija — če ni history, skrij canvas
-  if (dates.length < 2) {
-    if (chartEl) chartEl.style.display = 'none';
-    const histEl = document.getElementById('fin-port-history-status');
-    if (histEl && Object.keys(finData.portfeljHistory).length === 0) {
-      histEl.textContent = 'Graf ni na voljo (ni zgodovinskih podatkov)';
-    }
-    return;
-  }
-  if (chartEl) chartEl.style.display = 'block';
-
-  // Za vsak datum seštej vrednosti — USD pozicije z današnjim tečajem
-  // (Opomba: za točen zgodovinski graf bi rabili dnevni EUR/USD — tega Yahoo ne vrača v chart API brez premium)
+  // Za vsak datum seštej vrednosti vseh pozicij
   const skupajData = dates.map(datum => {
     let vsota = 0;
     PORTFELJ.forEach(p => {
@@ -5300,13 +5286,6 @@ function renderPortfeljChart() {
     return vsota > 0 ? vsota : null;
   });
 
-  // Preskoci null vrednosti na robovih (vikendi, prazniki)
-  const validData = skupajData.filter(v => v != null);
-  if (validData.length < 2) {
-    if (chartEl) chartEl.style.display = 'none';
-    return;
-  }
-
   const labels = dates.map((d, i) => {
     if (i === 0 || i === dates.length - 1 || i % 15 === 0) {
       const dt = new Date(d);
@@ -5315,48 +5294,132 @@ function renderPortfeljChart() {
     return '';
   });
 
-  const minV = Math.min(...validData) * 0.97;
-  const maxV = Math.max(...validData) * 1.03;
+  const minV = Math.min(...skupajData.filter(v => v != null)) * 0.97;
+  const maxV = Math.max(...skupajData.filter(v => v != null)) * 1.03;
 
   makeChart('fin-port-chart', labels,
     [lineDataset(skupajData, 'rgb(249,115,22)', 'Skupna vrednost')],
-    { xTicks:4, yMin: minV, yMax: maxV });
+    { xTicks:4, yMin: minV, yMax: maxV, height: 80 });
 }
 
 // ---- STAVNICA ----
+const STAVNICA_FB = 'https://boris-stavnica-default-rtdb.europe-west1.firebasedatabase.app/history';
+const MESECI_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+let stavFilter = { leto: '', mesec: '' };
+
 function loadStavnica() {
-  const saved = localStorage.getItem('fin_stavnica_history');
-  if (saved) {
-    finData.stavnica = JSON.parse(saved);
-  } else {
-    // Migracija iz stare shranitve
-    const old = localStorage.getItem('fin_stavnica');
-    if (old) {
-      const d = JSON.parse(old);
-      finData.stavnica = [{ znesek: d.znesek, datum: d.datum || new Date().toISOString() }];
-      localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
-    }
+  // Takoj pokazi cache
+  const cached = localStorage.getItem('fin_stavnica_cache');
+  if (cached) {
+    finData.stavnica = JSON.parse(cached);
+    stavPopulateFilters();
+    renderStavnica();
+  }
+  // Potem svezi iz Firebase
+  fetchStavnicaFB();
+}
+
+function fetchStavnicaFB() {
+  const tab = document.getElementById('fin-tab-stavnica');
+  if (tab) tab.style.opacity = '0.5';
+  fetch(STAVNICA_FB + '.json')
+    .then(r => r.json())
+    .then(data => {
+      if (!data) { finData.stavnica = []; }
+      else {
+        // Firebase vrne objekt s kljuci, pretvorimo v array in sortiramo po datumu
+        finData.stavnica = Object.values(data)
+          .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+      }
+      localStorage.setItem('fin_stavnica_cache', JSON.stringify(finData.stavnica));
+      stavPopulateFilters();
+      renderStavnica();
+      if (tab) tab.style.opacity = '';
+    })
+    .catch(err => {
+      console.warn('Stavnica Firebase napaka:', err);
+      if (tab) tab.style.opacity = '';
+    });
+}
+
+function stavPopulateFilters() {
+  const hist = finData.stavnica || [];
+  const leta = [...new Set(hist.map(h => new Date(h.datum).getFullYear()))].sort().reverse();
+  const selLeto = document.getElementById('stav-f-leto');
+  if (selLeto) {
+    const cur = selLeto.value;
+    selLeto.innerHTML = '<option value="">— VSA LETA —</option>' +
+      leta.map(y => '<option value="' + y + '"' + (cur==y?' selected':'') + '>' + y + '</option>').join('');
+  }
+  stavUpdateMesecFilter();
+}
+
+function stavUpdateMesecFilter() {
+  const hist = finData.stavnica || [];
+  const leto = document.getElementById('stav-f-leto')?.value || '';
+  const fil = leto ? hist.filter(h => new Date(h.datum).getFullYear() == leto) : hist;
+  const meseci = [...new Set(fil.map(h => new Date(h.datum).getMonth()))].sort((a,b) => b-a);
+  const selMesec = document.getElementById('stav-f-mesec');
+  if (selMesec) {
+    const cur = selMesec.value;
+    selMesec.innerHTML = '<option value="">— VSI MESECI —</option>' +
+      meseci.map(m => '<option value="' + m + '"' + (cur==m?' selected':'') + '>' + MESECI_SL[m].toUpperCase() + '</option>').join('');
   }
 }
 
+function stavApplyFilter() {
+  stavFilter.leto = document.getElementById('stav-f-leto')?.value || '';
+  stavFilter.mesec = document.getElementById('stav-f-mesec')?.value || '';
+  stavUpdateMesecFilter();
+  const cb = document.getElementById('stav-f-clear');
+  if (cb) cb.style.display = (stavFilter.leto || stavFilter.mesec) ? '' : 'none';
+  renderStavnica();
+}
+
+function stavClearFilter() {
+  stavFilter = { leto: '', mesec: '' };
+  const sl = document.getElementById('stav-f-leto');
+  const sm = document.getElementById('stav-f-mesec');
+  if (sl) sl.value = ''; if (sm) sm.value = '';
+  const cb = document.getElementById('stav-f-clear');
+  if (cb) cb.style.display = 'none';
+  renderStavnica();
+}
+
+function stavGetFiltered() {
+  let hist = finData.stavnica || [];
+  if (stavFilter.leto) hist = hist.filter(h => new Date(h.datum).getFullYear() == stavFilter.leto);
+  if (stavFilter.mesec !== '') hist = hist.filter(h => new Date(h.datum).getMonth() == stavFilter.mesec);
+  return hist;
+}
+
 function renderStavnica() {
-  const hist = finData.stavnica || [];
+  const allHist = finData.stavnica || [];
+  const hist = stavGetFiltered();
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  const zadnji = hist.length > 0 ? hist[hist.length - 1].znesek : null;
-  const prejsnji = hist.length > 1 ? hist[hist.length - 2].znesek : null;
+
+  const zadnji = allHist.length > 0 ? allHist[allHist.length-1].znesek : null;
+  const prejsnji = allHist.length > 1 ? allHist[allHist.length-2].znesek : null;
 
   const bigEl = document.getElementById('fin-stav-big');
   if (bigEl) bigEl.textContent = zadnji != null ? fmt(zadnji) : '—';
 
-  const chgBigEl = document.getElementById('fin-stav-chg-big');
-  if (chgBigEl && zadnji != null && prejsnji != null) {
+  const chgEl = document.getElementById('fin-stav-chg-big');
+  const chgSub = document.getElementById('fin-stav-chg-sub');
+  if (chgEl && zadnji != null && prejsnji != null) {
     const diff = zadnji - prejsnji;
-    chgBigEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
-    chgBigEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
-  } else if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
+    chgEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
+    chgEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+    if (chgSub) chgSub.textContent = (diff >= 0 ? '+' : '') + ((diff/prejsnji)*100).toFixed(1) + '% od prejšnjega';
+  } else if (chgEl) { chgEl.textContent = '—'; chgEl.style.color = 'var(--text3)'; }
+
+  const countEl = document.getElementById('fin-stav-count');
+  if (countEl) countEl.textContent = allHist.length;
+  const zadnjiEl = document.getElementById('fin-stav-zadnji');
+  if (zadnjiEl && allHist.length > 0) zadnjiEl.textContent = new Date(allHist[allHist.length-1].datum).toLocaleDateString('sl-SI');
 
   const vnosiEl = document.getElementById('fin-stav-vnosi');
-  if (vnosiEl) vnosiEl.textContent = hist.length + ' vnosov · zadnji: ' + (hist.length > 0 ? new Date(hist[hist.length-1].datum).toLocaleDateString('sl-SI') : '—');
+  if (vnosiEl) vnosiEl.textContent = hist.length + ' vnosov v izboru';
 
   const input = document.getElementById('fin-stav-input');
   if (input && zadnji != null) input.placeholder = 'Trenutno: ' + fmt(zadnji) + ' €';
@@ -5367,9 +5430,64 @@ function renderStavnica() {
     const data = hist.map(h => h.znesek);
     const minV = Math.min(...data) * 0.97;
     const maxV = Math.max(...data) * 1.03;
+    const stavCanvas = document.getElementById('fin-stav-chart');
+    if (stavCanvas) { stavCanvas.style.height = '90px'; stavCanvas.style.maxHeight = '90px'; }
     makeChart('fin-stav-chart', labels,
       [lineDataset(data, 'rgb(234,179,8)', 'Stanje stavnice')],
-      { xTicks:6, yMin: minV, yMax: maxV });
+      { xTicks: hist.length > 30 ? 8 : 6, yMin: minV, yMax: maxV, height: 90 });
+  } else {
+    if (finCharts && finCharts['fin-stav-chart']) { finCharts['fin-stav-chart'].destroy(); delete finCharts['fin-stav-chart']; }
+  }
+
+  // Statistika
+  const statsEl = document.getElementById('fin-stav-stats');
+  if (statsEl && hist.length > 0) {
+    const vals = hist.map(h => h.znesek);
+    const minZ = Math.min(...vals), maxZ = Math.max(...vals);
+    const avgZ = vals.reduce((s,v)=>s+v,0)/vals.length;
+    const skupDiff = vals[vals.length-1] - vals[0];
+    const sc = (label, val, col) =>
+      '<div style="background:var(--bg2);border-radius:6px;padding:8px 10px">' +
+      '<div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.1em;margin-bottom:3px">' + label + '</div>' +
+      '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:' + (col||'var(--text)') + '">' + val + '</div></div>';
+    statsEl.innerHTML =
+      sc('MINIMUM', fmt(minZ)+' €', 'var(--red)') +
+      sc('MAKSIMUM', fmt(maxZ)+' €', 'var(--green)') +
+      sc('POVPREČJE', fmt(avgZ)+' €', 'var(--yellow)') +
+      sc('SKUPNA RAST', (skupDiff>=0?'+':'')+fmt(skupDiff)+' €', skupDiff>=0?'var(--green)':'var(--red)');
+  } else if (statsEl) {
+    statsEl.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Ni podatkov za prikaz.</div>';
+  }
+
+  // Mesecna analitika
+  const mWrap = document.getElementById('fin-stav-mesecno-wrap');
+  const mEl = document.getElementById('fin-stav-mesecno');
+  const showM = !stavFilter.leto && !stavFilter.mesec;
+  if (mWrap) mWrap.style.display = showM ? '' : 'none';
+  if (mEl && showM && allHist.length > 0) {
+    const byMonth = {};
+    allHist.forEach(h => {
+      const d = new Date(h.datum);
+      const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!byMonth[k]) byMonth[k] = [];
+      byMonth[k].push(h.znesek);
+    });
+    mEl.innerHTML = Object.keys(byMonth).sort().reverse().map(k => {
+      const [yr, mo] = k.split('-');
+      const vals = byMonth[k];
+      const diff = vals[vals.length-1] - vals[0];
+      const pct = vals[0] > 0 ? ((diff/vals[0])*100).toFixed(1) : '0.0';
+      const label = MESECI_SL[parseInt(mo)-1].toUpperCase() + ' ' + yr;
+      const col = diff >= 0 ? 'var(--green)' : 'var(--red)';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:4px">' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--orange);font-weight:700">' + label + '</span>' +
+        '<div style="display:flex;gap:12px;align-items:center">' +
+        '<span style="font-family:var(--mono);font-size:9px;color:var(--text3)">' + vals.length + '×</span>' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--text)">' + fmt(vals[vals.length-1]) + ' €</span>' +
+        '<span style="font-family:var(--mono);font-size:10px;color:' + col + ';font-weight:700">' +
+        (diff>=0?'+':'') + fmt(diff) + ' € <span style="font-size:9px;font-weight:400">(' + (diff>=0?'+':'') + pct + '%)</span></span>' +
+        '</div></div>';
+    }).join('');
   }
 }
 
@@ -5378,11 +5496,28 @@ function finSaveStavnica() {
   if (!input || !input.value) return;
   const z = parseFloat(input.value);
   if (isNaN(z)) return;
-  if (!finData.stavnica) finData.stavnica = [];
-  finData.stavnica.push({ znesek: z, datum: new Date().toISOString() });
-  localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
-  input.value = '';
-  renderStavnica();
+  const datumInput = document.getElementById('fin-stav-datum');
+  const datumVal = datumInput && datumInput.value ? datumInput.value : null;
+  const datum = datumVal ? datumVal + 'T12:00:00' : new Date().toISOString();
+  const btn = document.getElementById('stav-save-btn');
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+  fetch(STAVNICA_FB + '.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ znesek: z, datum: datum })
+  })
+    .then(r => r.json())
+    .then(() => {
+      input.value = '';
+      if (datumInput) datumInput.value = '';
+      if (btn) { btn.textContent = '+ VNESI'; btn.disabled = false; }
+      fetchStavnicaFB();
+    })
+    .catch(err => {
+      console.error('Stavnica zapis napaka:', err);
+      alert('Napaka pri shranjevanju v Firebase.');
+      if (btn) { btn.textContent = '+ VNESI'; btn.disabled = false; }
+    });
 }
 
 // ---- INICIALIZACIJA ----
@@ -6552,15 +6687,8 @@ function toggleTab(head, bodyId) {
 // MOŽNOST A — Google Sheets direkten CSV (zahteva javni dostop preglednice)
 const EV_KM_SHEET_ID     = '1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs';
 const EV_CHARGE_SHEET_ID = '14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU';
-
-// MOŽNOST B — Google Apps Script proxy (priporočeno, brez CORS problemov)
-// Ko namestiš Apps Script, vstavi URL sem:
 const EV_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJ_xChL2n2lQf4NNdriBFvMbvT1KU4041uVbq5_FegQM7CBq3c-Vvz67DqniXW0axj/exec';
-
-// ===== SKODA ENYAQ SVG =====
-
-
-const ENYAQ_BAT_KWH = 55.1; // 58 kWh neto * 95% SOH
+const ENYAQ_BAT_KWH = 55.1;
 
 let evKmData = [];
 let evChargeData = [];
@@ -6568,44 +6696,58 @@ let evChargeData = [];
 function switchEvTab(el, tab) {
   document.querySelectorAll('[data-evtab]').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  ['ev-overview','ev-charges','ev-stats'].forEach(t => {
+  ['ev-overview','ev-charges','ev-stats','ev-km'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
   });
-}
-
-function switchEvTab(el, tab) {
-  document.querySelectorAll('[data-evtab]').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['ev-overview','ev-charges','ev-stats'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
-  });
+  if (tab === 'ev-km') renderEvKm();
 }
 
 async function fetchSheetCSV(sheetId, gid) {
-  const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Load failed');
-  return await res.text();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.text();
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timeout (12s)');
+    throw e;
+  }
 }
 
 async function fetchEVData(type) {
-  // Če je Apps Script URL nastavljen, uporabi proxy (brez CORS)
-  if (EV_APPS_SCRIPT_URL) {
-    const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type);
-    if (!res.ok) throw new Error('Apps Script napaka: HTTP ' + res.status);
-    return await res.text();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    if (EV_APPS_SCRIPT_URL) {
+      const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('Apps Script HTTP ' + res.status);
+      const text = await res.text();
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        throw new Error('Apps Script vrnil HTML namesto CSV — preveri deployment');
+      }
+      return text;
+    }
+    clearTimeout(timer);
+    const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
+    const gid     = type === 'km' ? '0' : '852588494';
+    return await fetchSheetCSV(sheetId, gid);
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timeout (12s) — Apps Script se ni odzval');
+    throw e;
   }
-  // Drugače direkten Google Sheets CSV (zahteva javni dostop)
-  const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
-  const gid     = type === 'km' ? '0' : '852588494';
-  return await fetchSheetCSV(sheetId, gid);
 }
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
+  if (!lines.length) return [];
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
   return lines.slice(1).map(line => {
-    // Handle quoted fields with commas inside
     const vals = [];
     let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
@@ -6634,8 +6776,6 @@ function parseNum(s) {
 function parseISODate(s) {
   if (!s) return null;
   try {
-    // Zamenjaj presledek s T za ISO 8601 kompatibilnost (Safari/iOS)
-    // "2026-05-28 10:12:34" -> "2026-05-28T10:12:34"
     const normalized = String(s).trim().replace(' ', 'T');
     const d = new Date(normalized);
     return isNaN(d.getTime()) ? null : d;
@@ -6646,12 +6786,11 @@ function parseSlDate(s) {
   if (!s) return null;
   s = s.trim();
   if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
-    // Zamenjaj presledek s T za ISO 8601 kompatibilnost (Safari/iOS)
     const normalized = s.replace(' ', 'T');
     const d = new Date(normalized);
     return isNaN(d.getTime()) ? null : d;
   }
-  const m = s.match(/(\d+)\.\s*(\d+)\.\s*(\d+)/);
+  const m = s.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
   if (m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
   return null;
 }
@@ -6662,13 +6801,150 @@ function getMonthKey(date) {
 }
 
 function fmtDuration(seconds) {
+  if (!seconds) return '';
   const h = Math.floor(seconds/3600);
   const m = Math.floor((seconds%3600)/60);
-  return h > 0 ? h+'h '+m+'m' : m+'m';
+  return h>0 ? h+'h '+m+'m' : m+'m';
+}
+
+function renderEvKm() {
+  const el = document.getElementById('ev-km-content');
+  if (!el) return;
+  if (!evKmData.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:#a3a3a3;font-family:var(--mono);font-size:11px">Ni podatkov.</div>';
+    return;
+  }
+  const MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+  const fmt = v => v.toLocaleString('sl-SI', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtKm = v => Math.round(v).toLocaleString('sl-SI');
+  const selF = el.__evKmFilter || {leto:''};
+  const leta = [...new Set(evKmData.map(r => r.date.getFullYear()))].sort().reverse();
+  const selStyle = 'font-family:var(--mono);font-size:9px;background:#181818;color:#e8e8e8;border:1px solid #333;border-radius:3px;padding:5px 8px;cursor:pointer;letter-spacing:.08em';
+  let h = '<div style="display:flex;gap:8px;padding:10px 14px;background:#141414;border-bottom:1px solid #252525;flex-wrap:wrap;align-items:center">'
+    + '<span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:#a3a3a3;text-transform:uppercase;margin-right:4px">FILTRI:</span>'
+    + '<select id="evkm-f-leto" style="' + selStyle + '" onchange="evkmApplyFilter()">'
+    + '<option value="">— VSA LETA —</option>'
+    + leta.map(y => '<option value="' + y + '"' + (selF.leto==y?' selected':'') + '>' + y + '</option>').join('')
+    + '</select>';
+  if (selF.leto) h += '<button onclick="evkmClearFilter()" style="font-family:var(--mono);font-size:9px;background:transparent;color:#f97316;border:1px solid #f97316;border-radius:3px;padding:5px 10px;cursor:pointer;letter-spacing:.08em">× POČISTI</button>';
+  h += '</div>';
+  let data = evKmData.filter(r => r.kmDnevno > 0);
+  if (selF.leto) data = data.filter(r => r.date.getFullYear() == selF.leto);
+  const SH = label => '<div style="padding:7px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525"><span style="font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:#a3a3a3;text-transform:uppercase">' + label + '</span></div>';
+  const T = (label, val, unit, col) =>
+    '<div class="ev-stat-tile" style="padding:12px 14px;border-right:1px solid #252525;background:#0d0d0d;display:flex;flex-direction:column;gap:7px">'
+    + '<div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:#a3a3a3;text-transform:uppercase">' + label + '</div>'
+    + '<div style="font-family:var(--mono);font-size:20px;font-weight:700;color:' + col + ';line-height:1">' + val
+    + '<span style="font-size:9px;font-weight:400;color:#a3a3a3;margin-left:4px">' + unit + '</span></div></div>';
+  const skupajKm = data.reduce((s,r) => s + r.kmDnevno, 0);
+  const skupajDizla = data.reduce((s,r) => s + r.strosekDizla, 0);
+  let evStrosek = 0;
+  if (data.length) {
+    const od = data[0].date, do_ = data[data.length-1].date;
+    evStrosek = evChargeData.filter(r => r.dateStart >= od && r.dateStart <= do_).reduce((s,r) => s + r.skupajEur, 0);
+  }
+  const prihranek = skupajDizla - evStrosek;
+  const avgKmDay = data.length ? skupajKm / data.length : 0;
+  h += SH('SKUPNE STATISTIKE');
+  h += '<div class="ev-stat-grid4" style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #252525">';
+  h += T('SKUPAJ KM', fmtKm(skupajKm), 'km', '#e8e8e8');
+  h += T('POVPR. KM/DAN', avgKmDay.toFixed(0), 'km', '#e8e8e8');
+  h += T('STROŠEK EV', fmt(evStrosek), '€', '#22c55e');
+  h += T('STROŠEK DIZLA', fmt(skupajDizla), '€', '#f97316');
+  h += '</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #252525;background:#0d0d0d">';
+  h += '<div style="padding:14px 16px;border-right:1px solid #252525">'
+    + '<div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:#a3a3a3;margin-bottom:8px">PRIHRANEK EV vs DIZLA</div>'
+    + '<div style="font-family:var(--mono);font-size:32px;font-weight:700;color:' + (prihranek>=0?'#22c55e':'#ef4444') + ';line-height:1">'
+    + (prihranek>=0?'+':'') + fmt(prihranek) + ' €</div>'
+    + '<div style="font-family:var(--mono);font-size:10px;color:#a3a3a3;margin-top:6px">pri ' + fmtKm(skupajKm) + ' km prevoženih</div></div>';
+  h += '<div style="padding:14px 16px">'
+    + '<div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:#a3a3a3;margin-bottom:8px">STROŠEK NA 100 KM</div>'
+    + '<div style="display:flex;gap:16px;align-items:flex-end">'
+    + '<div><div style="font-family:var(--mono);font-size:9px;color:#22c55e;margin-bottom:2px">EV</div>'
+    + '<div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#22c55e">' + (skupajKm>0?fmt(evStrosek/skupajKm*100):'—') + ' €</div></div>'
+    + '<div><div style="font-family:var(--mono);font-size:9px;color:#f97316;margin-bottom:2px">DIZLA</div>'
+    + '<div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#f97316">' + (skupajKm>0?fmt(skupajDizla/skupajKm*100):'—') + ' €</div></div>'
+    + '</div></div></div>';
+  h += SH('PO MESECIH');
+  const byMonth = {};
+  data.forEach(r => {
+    const k = r.date.getFullYear() + '-' + String(r.date.getMonth()+1).padStart(2,'0');
+    if (!byMonth[k]) byMonth[k] = {km:0, dizla:0, evEur:0};
+    byMonth[k].km += r.kmDnevno;
+    byMonth[k].dizla += r.strosekDizla;
+  });
+  evChargeData.forEach(r => {
+    const k = r.dateStart.getFullYear() + '-' + String(r.dateStart.getMonth()+1).padStart(2,'0');
+    if (byMonth[k]) byMonth[k].evEur += r.skupajEur;
+  });
+  const maxKm = Math.max(...Object.values(byMonth).map(v=>v.km));
+  h += '<div style="background:#0d0d0d">';
+  Object.keys(byMonth).sort().reverse().forEach(k => {
+    const [yr, mo] = k.split('-');
+    const d = byMonth[k];
+    const label = MONTH_SL[parseInt(mo)-1].toUpperCase() + ' ' + yr;
+    const pct = maxKm > 0 ? Math.round(d.km/maxKm*100) : 0;
+    const prih = d.dizla - d.evEur;
+    const prihCol = prih >= 0 ? '#22c55e' : '#ef4444';
+    h += '<div style="padding:10px 14px;border-bottom:1px solid #181818">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px">'
+      + '<span style="font-family:var(--mono);font-size:11px;color:#f97316;font-weight:700">' + label + '</span>'
+      + '<div style="font-family:var(--mono);font-size:11px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">'
+      + '<span style="color:#e8e8e8;font-weight:700">' + fmtKm(d.km) + ' km</span>'
+      + '<span style="color:#22c55e">EV: ' + fmt(d.evEur) + ' €</span>'
+      + '<span style="color:#f97316">dizla: ' + fmt(d.dizla) + ' €</span>'
+      + '<span style="color:' + prihCol + ';font-weight:700">prih: ' + (prih>=0?'+':'') + fmt(prih) + ' €</span>'
+      + '</div></div>'
+      + '<div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:#e8e8e8;border-radius:3px"></div></div></div>';
+  });
+  h += '</div>';
+  if (!selF.leto) {
+    h += SH('PO LETIH');
+    const byYear = {};
+    data.forEach(r => {
+      const y = String(r.date.getFullYear());
+      if (!byYear[y]) byYear[y] = {km:0, dizla:0, evEur:0};
+      byYear[y].km += r.kmDnevno; byYear[y].dizla += r.strosekDizla;
+    });
+    evChargeData.forEach(r => {
+      const y = String(r.dateStart.getFullYear());
+      if (byYear[y]) byYear[y].evEur += r.skupajEur;
+    });
+    h += '<div style="background:#0d0d0d">';
+    Object.keys(byYear).sort().reverse().forEach(y => {
+      const d = byYear[y];
+      const prih = d.dizla - d.evEur;
+      const prihCol = prih >= 0 ? '#22c55e' : '#ef4444';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #181818;flex-wrap:wrap;gap:8px">'
+        + '<span style="font-family:var(--mono);font-size:14px;color:#f97316;font-weight:700">' + y + '</span>'
+        + '<div style="font-family:var(--mono);font-size:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">'
+        + '<span style="color:#e8e8e8;font-weight:700">' + fmtKm(d.km) + ' km</span>'
+        + '<span style="color:#22c55e">EV: ' + fmt(d.evEur) + ' €</span>'
+        + '<span style="color:#f97316">dizla: ' + fmt(d.dizla) + ' €</span>'
+        + '<span style="color:' + prihCol + ';font-size:14px;font-weight:700">prih: ' + (prih>=0?'+':'') + fmt(prih) + ' €</span>'
+        + '</div></div>';
+    });
+    h += '</div>';
+  }
+  el.innerHTML = h;
+  el.__evKmFilter = selF;
+}
+
+function evkmApplyFilter() {
+  const target = document.getElementById('ev-km-content');
+  if (target) target.__evKmFilter = {leto: document.getElementById('evkm-f-leto')?.value || ''};
+  renderEvKm();
+}
+
+function evkmClearFilter() {
+  const el = document.getElementById('ev-km-content');
+  if (el) el.__evKmFilter = {leto:''};
+  renderEvKm();
 }
 
 async function initEV() {
-  // Zaznaj file:// protokol - API klici ne delujejo lokalno
   if (window.location.protocol === 'file:') {
     const fileMsg = '<div style="padding:20px 16px;font-family:var(--mono)">'
       + '<div style="font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;margin-bottom:10px">⚠️ LOKALNA DATOTEKA</div>'
@@ -6676,11 +6952,9 @@ async function initEV() {
       + 'API klici ne delujejo iz <span style="color:var(--orange)">file://</span> protokola.<br>'
       + 'Odpri datoteko na strežniku da se podatki naložijo.'
       + '</div>'
-      + '<div style="font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;text-transform:uppercase">Možnosti:</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;font-size:9px;color:var(--text);line-height:2">'
       + '① GitHub Pages: <span style="color:var(--orange)">borisstrakl-beep.github.io/boss</span><br>'
-      + '② Lokalni strežnik: <span style="color:var(--orange)">python3 -m http.server 8080</span><br>'
-      + '<span style="color:var(--text3)">→ nato odpri http://localhost:8080</span>'
+      + '② Lokalni strežnik: <span style="color:var(--orange)">python3 -m http.server 8080</span>'
       + '</div>'
       + '</div>';
     ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
@@ -6692,8 +6966,15 @@ async function initEV() {
     return;
   }
 
+  // Pokaži loading
+  ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div>Nalagam podatke...</div>';
+  });
+  const badge = document.getElementById('ev-updated-badge');
+  if (badge) badge.textContent = 'NALAGAM...';
+
   try {
-    // Fetch charge data from your sheet (gid=852588494)
     const chargeCsv = await fetchEVData('charge');
     const chargeRaw = parseCSV(chargeCsv);
 
@@ -6712,7 +6993,6 @@ async function initEV() {
       postaja: r['Polnilna postaja'] || '',
     })).filter(r => r.dateStart).sort((a,b) => a.dateStart - b.dateStart);
 
-    // Fetch km data
     try {
       const kmCsv = await fetchEVData('km');
       const kmRaw = parseCSV(kmCsv);
@@ -6721,48 +7001,47 @@ async function initEV() {
         kmStanje: parseNum(r['Stanje km (zjutraj)']),
         kmDnevno: parseNum(r['Dnevno prevoženo']),
         kmMesecno: parseNum(r['Mesečno število km']),
+        cenaDizla: parseNum(r['Cena dizla']),
+        strosekDizla: parseNum(r['Dnevni strošek dizla']),
       })).filter(r => r.date);
     } catch(e2) { evKmData = []; }
 
     renderEvOverview();
     renderEvCharges();
     renderEvStats();
+    renderEvKm();
 
-    const badge = document.getElementById('ev-updated-badge');
     const now = new Date();
     if (badge) badge.textContent = 'POSOD. '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
   } catch(e) {
-    const is403 = e.message && (e.message.includes('403') || e.message.includes('Load failed'));
-    const msg = '<div style="padding:16px 12px">'
+    const errMsg = '<div style="padding:16px 12px">'
       + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'
       + '<div style="font-size:28px">⚠️</div>'
       + '<div>'
-      + '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.1em">NAPAKA PRI NALAGANJU PODATKOV</div>'
+      + '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.1em">NAPAKA PRI NALAGANJU</div>'
       + '<div style="font-family:var(--cond);font-size:12px;color:var(--text3);margin-top:2px">' + e.message + '</div>'
       + '</div></div>'
-      + '<div style="background:var(--bg3);border:1px solid var(--orange-dim);border-radius:3px;padding:12px;margin-bottom:10px">'
-      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--orange);text-transform:uppercase;margin-bottom:8px">⚡ OBVEZNO — Nastavi javni dostop do preglednic</div>'
+      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:12px;margin-bottom:10px">'
+      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--orange);margin-bottom:8px">MOŽNI VZROKI</div>'
       + '<div style="font-family:var(--cond);font-size:12px;color:var(--text2);line-height:1.7">'
-      + '1. Odpri <strong>Km preglednico</strong> (Google Sheets)<br>'
-      + '2. Klikni <strong>Deli</strong> (gumb zgoraj desno)<br>'
-      + '3. Nastavi: <strong style="color:var(--orange)">Kdorkoli s povezavo → Ogledovalec</strong><br>'
-      + '4. Ponovi za <strong>Polnilno preglednico</strong><br>'
-      + '5. Osveži to stran'
+      + '① Apps Script ni uveden kot Version 3 (preveri datum format)<br>'
+      + '② Apps Script deployment: Execute as Me + Who has access: Anyone<br>'
+      + '③ Preglednici nista nastavljeni na "Kdorkoli s povezavo → Ogledovalec"'
       + '</div></div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-      + '<a href="https://docs.google.com/spreadsheets/d/1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">📊 KM PREGLEDNICA</a>'
-      + '<a href="https://docs.google.com/spreadsheets/d/14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none;letter-spacing:.08em">⚡ POLNILNA PREGLEDNICA</a>'
-      + '<button onclick="initEV()" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--orange);border:1px solid var(--orange);border-radius:3px;color:#000;font-weight:700;cursor:pointer;letter-spacing:.08em">↺ POSKUSI ZNOVA</button>'
+      + '<a href="https://docs.google.com/spreadsheets/d/1HGy0M64n3gtr1qY86-pkX-ZyyY9UUoIQNiif9lD6hfs/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none">📊 KM PREGLEDNICA</a>'
+      + '<a href="https://docs.google.com/spreadsheets/d/14r0P_riRJiBDlDmu6P1JijIGhjYK47ao0yYcxSwoDjU/edit" target="_blank" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--orange);text-decoration:none">⚡ POLNILNA PREGLEDNICA</a>'
+      + '<button onclick="initEV()" style="font-family:var(--mono);font-size:9px;padding:6px 12px;background:var(--orange);border:1px solid var(--orange);border-radius:3px;color:#000;font-weight:700;cursor:pointer">↺ POSKUSI ZNOVA</button>'
       + '</div></div>';
     ['ev-overview-content','ev-charges-content','ev-stats-content'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = msg;
+      if (el) el.innerHTML = errMsg;
     });
-    const badge = document.getElementById('ev-updated-badge');
     if (badge) badge.textContent = 'NAPAKA';
   }
 }
+
 
 function renderEvOverview() {
   const el = document.getElementById('ev-overview-content');
@@ -7031,8 +7310,8 @@ function renderEvStats() {
   })();
   const kwhPer100 = kmInPeriod>0?(totalKwh/kmInPeriod*100):0;
   const eurPer100 = kmInPeriod>0?(totalEur/kmInPeriod*100):0;
-  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
   const freeKwh = data.filter(r=>r.skupajEur===0).reduce((s,r)=>s+r.kWh,0);
+  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
 
   const SH = (label) =>
     `<div style="padding:7px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525">
@@ -7155,7 +7434,6 @@ function renderEvStats() {
   el.__evStatsFilters = filters;
 }
 
-
 function evApplyFilter() {
   const el = document.getElementById('ev-charges-content');
   if (!el) return;
@@ -7188,6 +7466,7 @@ function evsClearFilters() {
   if (el) el.__evStatsFilters = {mesec:'',postaja:''};
   renderEvStats();
 }
+
 
 initEV();
 // EV auto-refresh vsako uro
