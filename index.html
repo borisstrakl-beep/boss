@@ -4964,442 +4964,138 @@ const FIREBASE_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebaseda
 // Bitpanda Apps Script proxy
 const BITPANDA_PROXY = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLjzDBAWfM20FLTe-UAqedUDPkyJvM5NcjMKJoKtmGg_ClYaFKh4cg6w/exec';
 
-// Simboli za Yahoo Finance (Bitpanda cryptocoin_id → Yahoo symbol)
-const BP_STOCK_SYMBOLS = {
-  'GOOGL': { ime:'Alphabet',   yahoo:'GOOGL'   },
-  'AMZN':  { ime:'Amazon',     yahoo:'AMZN'    },
-  'AAPL':  { ime:'Apple',      yahoo:'AAPL'    },
-  'MSFT':  { ime:'Microsoft',  yahoo:'MSFT'    },
-  'NFLX':  { ime:'Netflix',    yahoo:'NFLX'    },
-  'TSLA':  { ime:'Tesla',      yahoo:'TSLA'    },
-  'MSCI-WORLD': { ime:'MSCI World', yahoo:'IQQW.DE' }
-};
-
-let PORTFELJ = []; // se napolni iz Bitpanda API
-let NAKUP_SKUPAJ = 0; // ni na voljo prek API - ostane 0
-let finActiveTab = 'banka';
-let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.16, stavnica:[], portfeljHistory:{} };
-let finCharts = {};
-
-// ---- TABS ----
-function financeTab(el, tab) {
-  document.querySelectorAll('#fin-tab-banka,#fin-tab-portfelj,#fin-tab-stavnica').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['banka','portfelj','stavnica'].forEach(t => {
-    const d = document.getElementById('fin-' + t);
-    if (d) d.style.display = t === tab ? '' : 'none';
-  });
-  finActiveTab = tab;
-  if (tab === 'portfelj' && finData.portfelj.length === 0) fetchPortfelj();
-  if (tab === 'stavnica') renderStavnica();
-}
-
-// ---- CHART HELPER ----
-function makeChart(canvasId, labels, datasets, opts) {
-  const el = document.getElementById(canvasId);
-  if (!el) return;
-  if (finCharts[canvasId]) { finCharts[canvasId].destroy(); }
-  // Nastavi višino eksplicitno na canvas in wrapper
-  if (opts && opts.height) {
-    el.style.height = opts.height + 'px';
-    el.style.maxHeight = opts.height + 'px';
-    if (el.parentElement) {
-      el.parentElement.style.height = opts.height + 'px';
-      el.parentElement.style.maxHeight = opts.height + 'px';
-    }
-  }
-  finCharts[canvasId] = new Chart(el.getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 400 },
-      plugins: { legend: { display: datasets.length > 1 ? true : false,
-        labels: { color:'#999', font:{ family:'var(--mono)', size:9 }, boxWidth:8, padding:8 }
-      }, tooltip: {
-        backgroundColor:'#181818', titleColor:'#999', bodyColor:'#e8e8e8',
-        titleFont:{ family:'var(--mono)', size:9 }, bodyFont:{ family:'var(--mono)', size:10 },
-        callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(2) + ' €' }
-      }},
-      scales: {
-        x: { ticks:{ color:'#555', font:{ family:'var(--mono)', size:8 }, maxTicksLimit: opts?.xTicks || 6 },
-             grid:{ color:'rgba(255,255,255,0.03)' }, border:{ display:false } },
-        y: { ticks:{ color:'#555', font:{ family:'var(--mono)', size:8 }, maxTicksLimit:4,
-               callback: v => v.toFixed(0) + '€' },
-             grid:{ color:'rgba(255,255,255,0.05)' }, border:{ display:false },
-             ...( opts?.yMin != null ? { min: opts.yMin } : {} ),
-             ...( opts?.yMax != null ? { max: opts.yMax } : {} ) }
-      }
-    }
-  });
-}
-
-function lineDataset(data, color, label) {
-  return { label, data, borderColor: color, backgroundColor: color.replace(')',',0.08)').replace('rgb','rgba'),
-    borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3, tension: 0.3, fill: true };
-}
-
-// ---- BANKA ----
-async function fetchBanka() {
-  const badge = document.getElementById('finance-badge');
-  if (badge) badge.textContent = 'NALAGAM...';
-  try {
-    const [settRes, entRes, ccSetRes, ccManRes, payRes] = await Promise.all([
-      fetch(FIREBASE_URL + '/dc_settings.json'),
-      fetch(FIREBASE_URL + '/dc_entries.json'),
-      fetch(FIREBASE_URL + '/cc_settings.json'),
-      fetch(FIREBASE_URL + '/cc_manual.json'),
-      fetch(FIREBASE_URL + '/payments.json')
-    ]);
-    const [sett, entries, ccSet, ccMan, pays] = await Promise.all([
-      settRes.json(), entRes.json(), ccSetRes.json(), ccManRes.json(), payRes.json()
-    ]);
-    console.log('Firebase raw:', { sett, entries, ccSet, ccMan, pays });
-
-    // Helper: Firebase vrne objekt z enim ključem ALI direkten objekt
-    const fbObj = (data) => {
-      if (!data || typeof data !== 'object') return {};
-      const vals = Object.values(data);
-      if (vals.length === 1 && typeof vals[0] === 'object' && vals[0] !== null) return vals[0];
-      return data;
-    };
-    const fbArr = (data) => {
-      if (!data || typeof data !== 'object') return [];
-      return Object.values(data).filter(v => v && typeof v === 'object');
-    };
-
-    // Nastavitve bančnega računa
-    let zacetnoStanje = 0, upostevajBancno = true;
-    if (sett) {
-      const s = fbObj(sett);
-      zacetnoStanje = parseFloat(s.zacetnoStanje || s.startBalance || s.stanje || s.zacetno || 0);
-      upostevajBancno = s.upostevajtransakcije !== false && s.upostevajTransakcije !== false;
-      console.log('Nastavitve:', s, 'Začetno stanje:', zacetnoStanje);
-    }
-
-    // Zberi vse vnose z datumi za grafikon
-    let vnosiArr = [];
-    if (entries) {
-      fbArr(entries).forEach(e => {
-        const z = parseFloat(e.znesek || 0);
-        const d = e.datum || e.date || '';
-        const v = e.vrsta || e.tip || '';
-        if (d) vnosiArr.push({ datum: d, znesek: z, vrsta: v });
-      });
-      console.log('Vnosi:', vnosiArr.length, 'prvi:', vnosiArr[0]);
-    }
-
-    // Transakcije z bančne kartice
-    let bancneTransakcije = [];
-    if (upostevajBancno && pays) {
-      Object.values(pays).forEach(p => {
-        const z = parseFloat(p.znesek || 0);
-        const d = p.datum || p.date || '';
-        if ((p.metoda === 'Bančna kartica' || p.metoda === 'bancna') && z < 0) {
-          bancneTransakcije.push({ datum: d, znesek: z, vrsta: 'odhodek' });
-        }
-      });
-    }
-
-    // Združi vse vnose in sortiraj po datumu
-    const vsiVnosi = [...vnosiArr, ...bancneTransakcije].sort((a,b) => a.datum.localeCompare(b.datum));
-
-    // Izračunaj dnevno stanje za zadnjih 30 dni
-    const danes = new Date();
-    const pred30 = new Date(danes); pred30.setDate(danes.getDate() - 30);
-
-    // Najprej izračunaj stanje na začetku obdobja
-    let stanjePred30 = zacetnoStanje;
-    vsiVnosi.forEach(v => {
-      const d = new Date(v.datum);
-      if (d < pred30) {
-        if (v.vrsta === 'prihodek') stanjePred30 += v.znesek;
-        else if (v.vrsta === 'odhodek') stanjePred30 -= Math.abs(v.znesek);
-        else if (v.vrsta === 'popravek') stanjePred30 = v.znesek;
-      }
-    });
-
-    // Sestavi dnevne točke
-    let dnevnaStanja = [];
-    let tekoceStanje = stanjePred30;
-    for (let i = 0; i <= 30; i++) {
-      const d = new Date(pred30); d.setDate(pred30.getDate() + i);
-      const dStr = d.toISOString().split('T')[0];
-      // Vnosi tega dne
-      vsiVnosi.forEach(v => {
-        if (v.datum && v.datum.startsWith(dStr)) {
-          if (v.vrsta === 'prihodek') tekoceStanje += v.znesek;
-          else if (v.vrsta === 'odhodek') tekoceStanje -= Math.abs(v.znesek);
-          else if (v.vrsta === 'popravek') tekoceStanje = v.znesek;
-        }
-      });
-      dnevnaStanja.push({ datum: dStr, stanje: tekoceStanje });
-    }
-    finData.racunHistory = dnevnaStanja;
-    finData.racun = tekoceStanje;
-
-    // Kreditna kartica
-    let kkLimit = 0, kkObrem = 0;
-    if (ccSet) {
-      const cs = fbObj(ccSet);
-      kkLimit = parseFloat(cs.limit || cs.skupniLimit || cs.skupen_limit || cs.kreditniLimit || 0);
-      console.log('CC nastavitve:', cs, 'Limit:', kkLimit);
-    }
-    if (ccMan) {
-      fbArr(ccMan).forEach(e => {
-        const z = parseFloat(e.znesek || 0);
-        if (e.vrsta === 'obremenitev' || e.tip === 'obremenitev') kkObrem += z;
-        else if (e.vrsta === 'placilo' || e.tip === 'placilo') kkObrem -= z;
-      });
-      console.log('CC obremenitev:', kkObrem);
-    }
-    finData.kkObrem = kkObrem;
-    finData.kkLimit = kkLimit;
-
-    renderBanka();
-    if (badge) badge.textContent = 'FIREBASE ●';
-  } catch(e) {
-    console.warn('Banka fetch error:', e);
-    const badge = document.getElementById('finance-badge');
-    if (badge) badge.textContent = 'NAPAKA';
-    // Prikaži vsaj placeholder
-    renderBankaEmpty();
-  }
-}
-
-function renderBankaEmpty() {
-  ['fin-racun-big','fin-kartica-big'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '—';
-  });
-}
-
-function renderBanka() {
-  const r = finData.racun || 0;
-  const k = finData.kkObrem || 0;
-  const l = finData.kkLimit || 0;
-  const fmt = v => Math.abs(v).toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
-
-  // Kartici
-  const racunEl = document.getElementById('fin-racun-big');
-  if (racunEl) { racunEl.textContent = fmt(r); racunEl.style.color = r >= 0 ? 'var(--green)' : 'var(--red)'; }
-  const racunSubEl = document.getElementById('fin-racun-sub');
-  if (racunSubEl) racunSubEl.textContent = r >= 0 ? 'EUR stanje' : 'EUR minus';
-
-  const kartEl = document.getElementById('fin-kartica-big');
-  if (kartEl) kartEl.textContent = k > 0 ? fmt(k) : '0,00';
-  const kartSubEl = document.getElementById('fin-kartica-sub');
-  if (kartSubEl && l > 0) kartSubEl.textContent = fmt(l - k) + ' € prosto';
-
-  // KK bar
-  const kkInfoEl = document.getElementById('fin-kk-info');
-  const kkBarEl = document.getElementById('fin-kk-bar');
-  if (l > 0) {
-    const pct = Math.min(100, Math.round(k / l * 100));
-    if (kkInfoEl) kkInfoEl.textContent = fmt(k) + ' / ' + fmt(l) + ' € (' + pct + '%)';
-    if (kkBarEl) { kkBarEl.style.width = pct + '%'; kkBarEl.style.background = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--yellow)' : 'var(--blue)'; }
-  }
-
-  const posEl = document.getElementById('fin-posodobljeno');
-  if (posEl) posEl.textContent = new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
-
-  // Graf
-  const hist = finData.racunHistory || [];
-  if (hist.length > 1) {
-    const labels = hist.map(h => {
-      const d = new Date(h.datum);
-      return (d.getDate()) + '.' + (d.getMonth()+1) + '.';
-    });
-    const data = hist.map(h => h.stanje);
-    const fromEl = document.getElementById('fin-banka-chart-from');
-    if (fromEl) fromEl.textContent = labels[0];
-    const minV = Math.min(...data) * 0.98;
-    const maxV = Math.max(...data) * 1.02;
-    makeChart('fin-banka-chart', labels,
-      [lineDataset(data, 'rgb(59,130,246)', 'Stanje računa')],
-      { xTicks:6, yMin: minV, yMax: maxV, height: 80 });
-  }
-}
+let PORTFELJ = [];
+let NAKUP_SKUPAJ = 0;
 
 // ---- PORTFELJ ----
-async function fetchBitpandaWallets() {
-  // Pridobi asset-wallets iz Bitpanda prek Apps Script proxy
-  const res = await fetch(BITPANDA_PROXY + '?endpoint=asset-wallets');
-  const data = await res.json();
-  if (data.errors) throw new Error(data.errors[0]?.title || 'Bitpanda API napaka');
-
-  const attrs = data.data?.attributes || {};
-  const result = [];
-
-  // DELNICE (security → stock)
-  const stocks = attrs.security?.stock?.attributes?.wallets || [];
-  stocks.forEach(w => {
-    const sym = w.attributes?.cryptocoin_symbol;
-    const bal = parseFloat(w.attributes?.balance || '0');
-    if (sym && bal > 0 && BP_STOCK_SYMBOLS[sym]) {
-      result.push({
-        sym: sym,
-        yahoo: BP_STOCK_SYMBOLS[sym].yahoo,
-        ime: BP_STOCK_SYMBOLS[sym].ime,
-        kol: bal,
-        tip: 'delnica',
-        nakup: 0
-      });
-    }
-  });
-
-  // ETF
-  const etfs = attrs.etf?.attributes?.wallets || [];
-  etfs.forEach(w => {
-    const sym = w.attributes?.cryptocoin_symbol;
-    const bal = parseFloat(w.attributes?.balance || '0');
-    if (sym && bal > 0 && BP_STOCK_SYMBOLS[sym]) {
-      result.push({
-        sym: sym,
-        yahoo: BP_STOCK_SYMBOLS[sym].yahoo,
-        ime: BP_STOCK_SYMBOLS[sym].ime,
-        kol: bal,
-        tip: 'etf',
-        nakup: 0
-      });
-    }
-  });
-
-  // KRIPTO
-  const kriptos = attrs.cryptocoin?.attributes?.wallets || [];
-  kriptos.forEach(w => {
-    const sym = w.attributes?.cryptocoin_symbol;
-    const bal = parseFloat(w.attributes?.balance || '0');
-    if (sym && bal > 0) {
-      result.push({
-        sym: sym,
-        yahoo: sym + '-EUR',
-        ime: w.attributes?.name || sym,
-        kol: bal,
-        tip: 'kripto',
-        nakup: 0
-      });
-    }
-  });
-
-  // KOVINE (commodity → metal)
-  const kovine = attrs.commodity?.metal?.attributes?.wallets || [];
-  kovine.forEach(w => {
-    const sym = w.attributes?.cryptocoin_symbol;
-    const bal = parseFloat(w.attributes?.balance || '0');
-    const ime = w.attributes?.name || sym;
-    if (sym && bal > 0) {
-      result.push({
-        sym: sym,
-        yahoo: null,
-        ime: ime,
-        kol: bal,
-        tip: 'kovina',
-        nakup: 0,
-        cenaEur: null,
-        vrednost: null
-      });
-    }
-  });
-
-  return result;
-}
-
 async function fetchPortfelj() {
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam portfelj iz Bitpanda...</div>';
 
   try {
-    // 1. Pridobi stanja iz Bitpanda
-    PORTFELJ = await fetchBitpandaWallets();
-    if (PORTFELJ.length === 0) {
-      if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni pozicij v portfelju.</div>';
-      return;
+    // Vzporedno: stanja + ticker cene
+    const [walletsRes, tickerRes] = await Promise.all([
+      fetch(BITPANDA_PROXY + '?endpoint=asset-wallets'),
+      fetch(BITPANDA_PROXY + '?endpoint=ticker')
+    ]);
+    const walletsJson = await walletsRes.json();
+    const tickerJson  = await tickerRes.json();
+
+    if (walletsJson.errors) throw new Error(walletsJson.errors[0]?.title || 'Wallets napaka');
+
+    // Ticker je { "1": { "EUR": "62753.27", ... }, "2": {...}, ... }  keyed by cryptocoin_id
+    const ticker = tickerJson || {};
+
+    const attrs = walletsJson.data?.attributes || {};
+    const pozicije = [];
+
+    // Helper: iz ticker pridobi EUR ceno za dani cryptocoin_id
+    function getCena(id) {
+      const t = ticker[String(id)];
+      if (!t) return null;
+      const eur = t['EUR'] || t['eur'];
+      return eur ? parseFloat(eur) : null;
     }
 
-    // 2. EUR/USD tečaj
-    try {
-      const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR');
-      const ecbData = await ecbRes.json();
-      if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
-    } catch(e) { finData.eurusd = 1.09; }
+    // Helper: izračunaj dnevno spremembo %
+    function getChgPct(id) {
+      // ticker ne vsebuje % spremembe - pustimo null, pokažemo samo vrednost
+      return null;
+    }
 
-    // 3. Yahoo Finance cene za delnice + ETF + kripto
-    const yahooSyms = PORTFELJ.filter(p => p.yahoo).map(p => p.yahoo);
-    if (yahooSyms.length > 0) {
-      const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSyms.join(',')}&fields=regularMarketPrice,regularMarketChangePercent`;
-      const proxies = [
-        `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`
-      ];
-      let quotes = [];
-      for (const proxy of proxies) {
-        try {
-          const res = await fetch(proxy, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
-          const data = await res.json();
-          quotes = data.quoteResponse?.result || [];
-          if (quotes.length > 0) break;
-        } catch(e) {}
-      }
-
-      PORTFELJ = PORTFELJ.map(p => {
-        if (!p.yahoo) return p;
-        const q = quotes.find(q => q.symbol === p.yahoo);
-        if (!q) return { ...p, cenaEur: null, vrednost: null, chgPct: null };
-        const cenaUsd = q.regularMarketPrice;
-        // ETF kotira v EUR, kripto v EUR, delnice v USD
-        const cenaEur = (p.tip === 'etf' || p.tip === 'kripto') ? cenaUsd : cenaUsd / finData.eurusd;
-        return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.regularMarketChangePercent };
+    // DELNICE
+    const stocks = attrs.security?.stock?.attributes?.wallets || [];
+    stocks.forEach(w => {
+      const a   = w.attributes;
+      const bal = parseFloat(a.balance || '0');
+      if (bal <= 0) return;
+      const cena = getCena(a.cryptocoin_id);
+      pozicije.push({
+        sym:      a.cryptocoin_symbol,
+        ime:      a.name.replace(' Wallet','').replace(' Stock',''),
+        kol:      bal,
+        id:       a.cryptocoin_id,
+        tip:      'delnica',
+        cenaEur:  cena,
+        vrednost: cena ? cena * bal : null,
+        chgPct:   null
       });
-    }
+    });
 
-    finData.portfelj = PORTFELJ;
-    NAKUP_SKUPAJ = 0; // Bitpanda API ne vrne nakupne cene
+    // ETF
+    const etfs = attrs.etf?.attributes?.wallets || [];
+    etfs.forEach(w => {
+      const a   = w.attributes;
+      const bal = parseFloat(a.balance || '0');
+      if (bal <= 0) return;
+      const cena = getCena(a.cryptocoin_id);
+      pozicije.push({
+        sym:      a.cryptocoin_symbol,
+        ime:      a.name.replace(' Wallet','').replace(' ETF',''),
+        kol:      bal,
+        id:       a.cryptocoin_id,
+        tip:      'etf',
+        cenaEur:  cena,
+        vrednost: cena ? cena * bal : null,
+        chgPct:   null
+      });
+    });
 
-    await fetchPortfeljHistory();
+    // KRIPTO
+    const kriptos = attrs.cryptocoin?.attributes?.wallets || [];
+    kriptos.forEach(w => {
+      const a   = w.attributes;
+      const bal = parseFloat(a.balance || '0');
+      if (bal <= 0) return;
+      const cena = getCena(a.cryptocoin_id);
+      pozicije.push({
+        sym:      a.cryptocoin_symbol,
+        ime:      a.name.replace(' Wallet',''),
+        kol:      bal,
+        id:       a.cryptocoin_id,
+        tip:      'kripto',
+        cenaEur:  cena,
+        vrednost: cena ? cena * bal : null,
+        chgPct:   null
+      });
+    });
+
+    // KOVINE
+    const kovine = attrs.commodity?.metal?.attributes?.wallets || [];
+    kovine.forEach(w => {
+      const a   = w.attributes;
+      const bal = parseFloat(a.balance || '0');
+      if (bal <= 0) return;
+      const cena = getCena(a.cryptocoin_id);
+      pozicije.push({
+        sym:      a.cryptocoin_symbol,
+        ime:      a.name.replace(' Wallet',''),
+        kol:      bal,
+        id:       a.cryptocoin_id,
+        tip:      'kovina',
+        cenaEur:  cena,
+        vrednost: cena ? cena * bal : null,
+        chgPct:   null
+      });
+    });
+
+    PORTFELJ = pozicije;
+    finData.portfelj = pozicije;
+    NAKUP_SKUPAJ = 0;
+
     renderPortfelj();
 
   } catch(e) {
     console.error('Portfelj fetch error:', e);
-    if (itemsEl) itemsEl.innerHTML = `<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka: ${e.message}</div>`;
+    if (itemsEl) itemsEl.innerHTML = `<div style="color:#ef4444;font-family:var(--mono);font-size:10px">Napaka: ${e.message}</div>`;
   }
 }
 
+// Brez Yahoo — zgodovina ni na voljo, graf preskočimo
 async function fetchPortfeljHistory() {
-  const endDate = Math.floor(Date.now() / 1000);
-  const startDate = endDate - (90 * 24 * 3600);
   finData.portfeljHistory = {};
-
-  const cached = localStorage.getItem('portfelj_history_bp');
-  if (cached) {
-    const c = JSON.parse(cached);
-    if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
-      finData.portfeljHistory = c.data;
-      return;
-    }
-  }
-
-  for (const p of PORTFELJ.filter(x => x.yahoo)) {
-    try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.yahoo}?interval=1d&period1=${startDate}&period2=${endDate}`;
-      const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      const res = await fetch(proxy, { headers:{'x-requested-with':'XMLHttpRequest'} });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const chart = data.chart?.result?.[0];
-      if (!chart) continue;
-      const timestamps = chart.timestamp || [];
-      const closes = chart.indicators?.quote?.[0]?.close || [];
-      finData.portfeljHistory[p.sym] = timestamps.map((t, i) => ({
-        datum: new Date(t * 1000).toISOString().split('T')[0],
-        cena: closes[i]
-      })).filter(x => x.cena != null);
-      await new Promise(r => setTimeout(r, 200));
-    } catch(e) {}
-  }
-
-  localStorage.setItem('portfelj_history_bp', JSON.stringify({ ts: Date.now(), data: finData.portfeljHistory }));
 }
+
 function renderPortfelj() {
   const skupaj = finData.portfelj.reduce((s, p) => s + (p.vrednost || 0), 0);
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
@@ -5407,87 +5103,83 @@ function renderPortfelj() {
   const skupajEl = document.getElementById('fin-port-skupaj');
   if (skupajEl) skupajEl.textContent = fmt(skupaj) + ' €';
 
-  // Brez nakupne cene ne moremo prikazati spremembe od nakupa
   const chgBigEl = document.getElementById('fin-port-chg-big');
-  if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
+  if (chgBigEl) { chgBigEl.textContent = ''; }
   const chgEurEl = document.getElementById('fin-port-chg-eur');
   if (chgEurEl) { chgEurEl.textContent = 'Bitpanda live'; chgEurEl.style.color = 'var(--text3)'; }
 
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) {
-    // Razvrsti: najprej po vrednosti padajoče
     const sorted = [...finData.portfelj].sort((a,b) => (b.vrednost||0) - (a.vrednost||0));
     const tipCol = t => t==='kripto'?'#22d3ee':t==='etf'?'#818cf8':t==='kovina'?'#fbbf24':'var(--orange)';
+
     itemsEl.innerHTML = sorted.map(p => {
-      const v = p.vrednost, c = p.chgPct;
+      const v   = p.vrednost;
       const vStr = v != null ? fmt(v) + ' €' : '—';
-      const cStr = c != null ? (c >= 0 ? '+' : '') + c.toFixed(2) + '%' : '—';
-      const col = c == null ? 'var(--text3)' : c >= 0 ? 'var(--green)' : 'var(--red)';
-      const tc = tipCol(p.tip);
-      const tipLbl = p.tip ? p.tip.toUpperCase() : '';
-      return `<div class="finance-row" style="padding:5px 0">
-        <div style="display:flex;gap:6px;align-items:center;flex:1">
-          <div>
-            <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
-              <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--orange)">${p.sym.replace('.DE','')}</span>
-              <span style="font-family:var(--mono);font-size:7px;color:${tc};border:1px solid ${tc};padding:1px 4px;border-radius:2px">${tipLbl}</span>
-            </div>
-            <div style="font-family:var(--cond);font-size:12px;color:var(--text)">${p.ime}</div>
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${p.kol.toFixed(p.tip==='kripto'?6:4)} kos</div>
+      const cStr = p.cenaEur != null ? fmt(p.cenaEur) + ' €/kos' : '—';
+      const tc  = tipCol(p.tip);
+      const tipLbl = p.tip.toUpperCase();
+      const kolStr = p.kol < 0.01
+        ? p.kol.toFixed(6)
+        : p.kol < 1
+        ? p.kol.toFixed(4)
+        : p.kol.toFixed(2);
+
+      return `<div class="finance-row" style="padding:6px 0">
+        <div style="flex:1">
+          <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
+            <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--orange)">${p.sym}</span>
+            <span style="font-family:var(--mono);font-size:7px;color:${tc};border:1px solid ${tc};padding:1px 4px;border-radius:2px">${tipLbl}</span>
           </div>
+          <div style="font-family:var(--cond);font-size:12px;color:var(--text)">${p.ime}</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${kolStr} kos · ${cStr}</div>
         </div>
-        <div style="text-align:right">
-          <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)">${vStr}</div>
-          <div style="font-family:var(--mono);font-size:9px;color:${col}">${cStr} danes</div>
+        <div style="text-align:right;min-width:70px">
+          <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">${vStr}</div>
         </div>
       </div>`;
     }).join('<div style="height:0.5px;background:var(--bg3);margin:1px 0"></div>');
   }
 
+  // Preprost bar chart – deleži pozicij
   renderPortfeljChart();
 
   const casEl = document.getElementById('fin-port-cas');
-  if (casEl) casEl.textContent = 'Bitpanda · ' + new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
-  const eurusdEl = document.getElementById('fin-eurusd');
-  if (eurusdEl) eurusdEl.textContent = '1 EUR = ' + finData.eurusd.toFixed(4) + ' USD';
+  if (casEl) casEl.textContent = 'Bitpanda · ' + new Date().toLocaleTimeString('sl-SI', {hour:'2-digit',minute:'2-digit'});
 }
 
 function renderPortfeljChart() {
-  const dateSet = new Set();
-  PORTFELJ.forEach(p => {
-    (finData.portfeljHistory[p.sym] || []).forEach(x => dateSet.add(x.datum));
-  });
-  const dates = Array.from(dateSet).sort();
-  if (dates.length < 2) return;
+  // Prikaži tortni/stolpčni prikaz deležev namesto časovnega grafa
+  const valid = finData.portfelj.filter(p => p.vrednost > 0);
+  if (valid.length === 0) return;
+  const skupaj = valid.reduce((s,p) => s + p.vrednost, 0);
+  const tipCol = t => t==='kripto'?'#22d3ee':t==='etf'?'#818cf8':t==='kovina'?'#fbbf24':'#f97316';
 
-  const skupajData = dates.map(datum => {
-    let vsota = 0;
-    PORTFELJ.forEach(p => {
-      const h = finData.portfeljHistory[p.sym] || [];
-      const pt = h.find(x => x.datum === datum);
-      if (pt) {
-        const cenaEur = (p.tip === 'etf' || p.tip === 'kripto') ? pt.cena : pt.cena / finData.eurusd;
-        vsota += cenaEur * p.kol;
+  const labels  = valid.map(p => p.sym);
+  const values  = valid.map(p => p.vrednost);
+  const colors  = valid.map(p => tipCol(p.tip));
+  const fmt2    = v => v.toLocaleString('sl-SI',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const ctx = document.getElementById('fin-port-chart');
+  if (!ctx) return;
+  if (finCharts['fin-port-chart']) { finCharts['fin-port-chart'].destroy(); }
+  finCharts['fin-port-chart'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{ data: values, backgroundColor: colors, borderColor: '#0d0d0d', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: c => ' ' + c.label + ': ' + fmt2(c.raw) + ' € (' + (c.raw/skupaj*100).toFixed(1) + '%)'
+        }}
       }
-    });
-    return vsota > 0 ? vsota : null;
-  });
-
-  const labels = dates.map((d, i) => {
-    if (i === 0 || i === dates.length - 1 || i % 15 === 0) {
-      const dt = new Date(d);
-      return dt.getDate() + '.' + (dt.getMonth()+1) + '.';
     }
-    return '';
   });
-
-  const validVals = skupajData.filter(v => v != null);
-  if (validVals.length < 2) return;
-  makeChart('fin-port-chart', labels,
-    [lineDataset(skupajData, 'rgb(249,115,22)', 'Skupna vrednost')],
-    { xTicks:4, yMin: Math.min(...validVals)*0.97, yMax: Math.max(...validVals)*1.03, height: 80 });
 }
-
 
 // ---- STAVNICA ----
 const STAVNICA_FB = 'https://boris-stavnica-default-rtdb.europe-west1.firebasedatabase.app/history';
