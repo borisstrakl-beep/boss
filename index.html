@@ -4827,13 +4827,13 @@ window.addEventListener('load', () => {
 // ===== FINANCE =====
 const FIREBASE_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebasedatabase.app';
 const PORTFELJ = [
-  { sym:'GOOGL',   ime:'Alphabet',    kol:0.0787542,   nakup:26.17, tip:'DELNICA' },
-  { sym:'TSLA',    ime:'Tesla',       kol:0.05083422,  nakup:18.74, tip:'DELNICA' },
-  { sym:'NFLX',    ime:'Netflix',     kol:0.2124176,   nakup:16.18, tip:'DELNICA' },
-  { sym:'AAPL',    ime:'Apple',       kol:0.04036689,  nakup:10.78, tip:'DELNICA' },
-  { sym:'AMZN',    ime:'Amazon',      kol:0.0364298,   nakup:8.40,  tip:'DELNICA' },
-  { sym:'MSFT',    ime:'Microsoft',   kol:0.01933049,  nakup:6.98,  tip:'DELNICA' },
-  { sym:'IQQW.DE', ime:'MSCI World',  kol:0.09010188,  nakup:8.03,  tip:'ETF'     }
+  { sym:'GOOGL',   ime:'Alphabet',    kol:0.0787542,   nakup:26.17 },
+  { sym:'TSLA',    ime:'Tesla',       kol:0.05083422,  nakup:18.74 },
+  { sym:'NFLX',    ime:'Netflix',     kol:0.2124176,   nakup:16.18 },
+  { sym:'AAPL',    ime:'Apple',       kol:0.04036689,  nakup:10.78 },
+  { sym:'AMZN',    ime:'Amazon',      kol:0.0364298,   nakup:8.40  },
+  { sym:'MSFT',    ime:'Microsoft',   kol:0.01933049,  nakup:6.98  },
+  { sym:'IQQW.DE', ime:'MSCI World',  kol:0.09010188,  nakup:8.03  }
 ];
 const NAKUP_SKUPAJ = PORTFELJ.reduce((s,p) => s + p.nakup, 0);
 let finActiveTab = 'banka';
@@ -5073,60 +5073,37 @@ function renderBanka() {
 
 // ---- PORTFELJ ----
 async function fetchPortfelj() {
+  const BITP = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLjzDBAWfM20FLTe-UAqedUDPkyJvM5NcjMKJoKtmGg_ClYaFKh4cg6w/exec';
   const itemsEl = document.getElementById('fin-port-items');
   if (itemsEl) itemsEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam cene...</div>';
 
   try {
-    // EUR/USD tečaj
+    // EUR/USD tečaj prek Apps Script
     try {
-      const ecbRes = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR');
+      const ecbRes = await fetch(BITP + '?endpoint=eurusd');
       const ecbData = await ecbRes.json();
       if (ecbData.rates?.EUR) finData.eurusd = 1 / ecbData.rates.EUR;
     } catch(e) { finData.eurusd = 1.16; }
 
-    // Trenutne cene - poskusi več proxyjev
-    const syms = PORTFELJ.map(p => p.sym).join(',');
-    const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChangePercent`;
-    const proxies = [
-      `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
-      `https://proxy.cors.sh/${yahooUrl}`
-    ];
-    let quotes = [];
-    for (const proxy of proxies) {
+    // Trenutne cene — vse prek Apps Script / Finnhub (brez Yahoo)
+    const quotes = await Promise.all(PORTFELJ.map(async p => {
       try {
-        const res = await fetch(proxy, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
-        const data = await res.json();
-        quotes = data.quoteResponse?.result || [];
-        if (quotes.length > 0) { console.log('Yahoo proxy OK:', proxy); break; }
-      } catch(e) { console.warn('Proxy fail:', proxy, e.message); }
-    }
-    if (quotes.length === 0) throw new Error('Vsi proxiji so odpovedali');
+        const res = await fetch(BITP + '?endpoint=finnhub-quote&symbol=' + p.sym);
+        const d = await res.json();
+        if (!d.c || d.c === 0) return null;
+        return { sym: p.sym, c: d.c, dp: d.dp };
+      } catch(e) { return null; }
+    }));
 
-    finData.portfelj = PORTFELJ.map(p => {
-      const q = quotes.find(q => q.symbol === p.sym);
+    finData.portfelj = PORTFELJ.map((p, i) => {
+      const q = quotes[i];
       if (!q) return { ...p, cenaEur:null, vrednost:null, chgPct:null };
-      const cenaUsd = q.regularMarketPrice;
-      const cenaEur = p.sym === 'IQQW.DE' ? cenaUsd : cenaUsd / finData.eurusd;
-      return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.regularMarketChangePercent };
+      // IQQW.DE je na Frankfurtu — Finnhub vrne EUR direktno
+      const cenaEur = p.sym === 'IQQW.DE' ? q.c : q.c / finData.eurusd;
+      return { ...p, cenaEur, vrednost: cenaEur * p.kol, chgPct: q.dp };
     });
 
-    // Posebej za IQQW.DE prek Apps Script / Finnhub (Yahoo pogosto ne vrne Frankfurt ETF)
-    const etfPos = finData.portfelj.find(p => p.sym === 'IQQW.DE');
-    if (etfPos && etfPos.cenaEur == null) {
-      try {
-        const BITP_URL = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLjzDBAWfM20FLTe-UAqedUDPkyJvM5NcjMKJoKtmGg_ClYaFKh4cg6w/exec';
-        const etfRes = await fetch(BITP_URL + '?endpoint=finnhub-quote&symbol=IQQW.DE');
-        const etfData = await etfRes.json();
-        if (etfData.c && etfData.c > 0) {
-          const idx = finData.portfelj.findIndex(p => p.sym === 'IQQW.DE');
-          const cenaEur = etfData.c; // Finnhub za IQQW.DE vrne EUR
-          finData.portfelj[idx] = { ...finData.portfelj[idx], cenaEur, vrednost: cenaEur * finData.portfelj[idx].kol, chgPct: etfData.dp };
-        }
-      } catch(e) { console.warn('ETF Finnhub fallback napaka:', e); }
-    }
-
-    // Zgodovinske cene — 3 mesece za vsako pozicijo
+    // Zgodovinske cene prek Apps Script / Finnhub candles
     await fetchPortfeljHistory();
     renderPortfelj();
   } catch(e) {
@@ -5136,43 +5113,36 @@ async function fetchPortfelj() {
 }
 
 async function fetchPortfeljHistory() {
-  const endDate = Math.floor(Date.now() / 1000);
-  const startDate = endDate - (90 * 24 * 3600);
+  const BITP = 'https://script.google.com/macros/s/AKfycbw9fe7e9BRwlIrLjzDBAWfM20FLTe-UAqedUDPkyJvM5NcjMKJoKtmGg_ClYaFKh4cg6w/exec';
   finData.portfeljHistory = {};
 
   // Preveri cache (velja 6 ur)
   const cached = localStorage.getItem('portfelj_history');
   if (cached) {
-    const c = JSON.parse(cached);
-    if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
-      finData.portfeljHistory = c.data;
-      console.log('Portfelj history iz cache');
-      return;
-    }
+    try {
+      const c = JSON.parse(cached);
+      if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
+        finData.portfeljHistory = c.data;
+        return;
+      }
+    } catch(e) {}
   }
 
-  // Fetch zaporedno (ne vzporedno) da ne preobremeni brskalnika
+  // Fetch prek Apps Script / Finnhub candles — zaporedno
   for (const p of PORTFELJ) {
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${p.sym}?interval=1d&period1=${startDate}&period2=${endDate}`;
-      const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      const res = await fetch(proxy, { headers:{'x-requested-with':'XMLHttpRequest'} });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const chart = data.chart?.result?.[0];
-      if (!chart) continue;
-      const timestamps = chart.timestamp || [];
-      const closes = chart.indicators?.quote?.[0]?.close || [];
-      finData.portfeljHistory[p.sym] = timestamps.map((t, i) => ({
+      const res = await fetch(BITP + '?endpoint=finnhub-candles&symbol=' + p.sym);
+      const d = await res.json();
+      if (d.s !== 'ok' || !d.t) continue;
+      const cenaEur = p.sym === 'IQQW.DE';
+      finData.portfeljHistory[p.sym] = d.t.map((t, i) => ({
         datum: new Date(t * 1000).toISOString().split('T')[0],
-        cena: closes[i]
+        cena: d.c[i]
       })).filter(x => x.cena != null);
-      // Kratka pavza med klici
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 200));
     } catch(e) { console.warn('History err', p.sym, e); }
   }
 
-  // Shrani v cache
   localStorage.setItem('portfelj_history', JSON.stringify({
     ts: Date.now(),
     data: finData.portfeljHistory
@@ -5206,12 +5176,9 @@ function renderPortfelj() {
       const col = c == null ? 'var(--text3)' : c >= 0 ? 'var(--green)' : 'var(--red)';
       const nakupChgPct = p.nakup > 0 && v ? ((v - p.nakup) / p.nakup * 100) : null;
       const ncStr = nakupChgPct != null ? (nakupChgPct >= 0 ? '+' : '') + nakupChgPct.toFixed(1) + '% od nakupa' : '';
-      const tipLabel = p.tip || 'DELNICA';
-      const tipColor = tipLabel === 'ETF' ? 'var(--blue)' : 'var(--orange-dim)';
       return `<div class="finance-row" style="padding:4px 0">
         <div style="display:flex;gap:6px;align-items:center;flex:1">
           <div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--orange);min-width:42px">${p.sym.replace('.DE','')}</div>
-          <div style="font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.08em;border:1px solid ${tipColor};color:${tipColor};padding:1px 4px;border-radius:2px;flex-shrink:0">${tipLabel}</div>
           <div>
             <div style="font-family:var(--cond);font-size:12px;color:var(--text)">${p.ime}</div>
             <div style="font-family:var(--mono);font-size:8px;color:var(--text3)">${ncStr}</div>
