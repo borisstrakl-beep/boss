@@ -2834,7 +2834,15 @@
             <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-stav-chg-sub">od zadnjega vnosa</div>
           </div>
         </div>
-        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">GIBANJE STANJA</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">GIBANJE STANJA</div>
+          <div style="display:flex;gap:3px" id="stav-cas-filtri">
+            <button onclick="stavCasFilter(this,'7d')"  class="fin-flt-btn">7D</button>
+            <button onclick="stavCasFilter(this,'14d')" class="fin-flt-btn">14D</button>
+            <button onclick="stavCasFilter(this,'30d')" class="fin-flt-btn active">30D</button>
+            <button onclick="stavCasFilter(this,'vse')" class="fin-flt-btn">VSE</button>
+          </div>
+        </div>
         <div style="position:relative;height:110px">
           <canvas id="fin-stav-chart"></canvas>
         </div>
@@ -5847,11 +5855,28 @@ function loadStavnica() {
   }
 }
 
+let stavCasOkno = '30d';
+
+function stavCasFilter(btn, okno) {
+  stavCasOkno = okno;
+  document.querySelectorAll('#stav-cas-filtri .fin-flt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStavnica();
+}
+
 function renderStavnica() {
-  const hist = finData.stavnica || [];
+  const allHist = finData.stavnica || [];
   const fmt = v => v.toLocaleString('sl-SI', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  const zadnji = hist.length > 0 ? hist[hist.length - 1].znesek : null;
-  const prejsnji = hist.length > 1 ? hist[hist.length - 2].znesek : null;
+
+  // Filtriraj po izbranem obdobju
+  const od = finDatumOd(stavCasOkno);
+  const hist = od
+    ? allHist.filter(h => h.datum && h.datum.slice(0,10) >= od)
+    : allHist;
+
+  // Kartici — vedno prikazujeta zadnji vnos iz CELOTNE zgodovine
+  const zadnji   = allHist.length > 0 ? allHist[allHist.length - 1].znesek : null;
+  const prejsnji = allHist.length > 1 ? allHist[allHist.length - 2].znesek : null;
 
   const bigEl = document.getElementById('fin-stav-big');
   if (bigEl) bigEl.textContent = zadnji != null ? fmt(zadnji) : '—';
@@ -5864,20 +5889,30 @@ function renderStavnica() {
   } else if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
 
   const vnosiEl = document.getElementById('fin-stav-vnosi');
-  if (vnosiEl) vnosiEl.textContent = hist.length + ' vnosov · zadnji: ' + (hist.length > 0 ? new Date(hist[hist.length-1].datum).toLocaleDateString('sl-SI') : '—');
+  if (vnosiEl) {
+    const naslovi = { '7d':'7 dni', '14d':'14 dni', '30d':'30 dni', 'vse':'vsi' };
+    const filtLabel = stavCasOkno === 'vse' ? 'vsi vnosi' : hist.length + ' vnosov v ' + naslovi[stavCasOkno];
+    vnosiEl.textContent = filtLabel + ' · zadnji: ' + (allHist.length > 0 ? new Date(allHist[allHist.length-1].datum).toLocaleDateString('sl-SI') : '—');
+  }
 
   const input = document.getElementById('fin-stav-input');
   if (input && zadnji != null) input.placeholder = 'Trenutno: ' + fmt(zadnji) + ' €';
 
-  // Graf
+  // Graf — filtrirani podatki
   if (hist.length > 1) {
     const labels = hist.map(h => new Date(h.datum).toLocaleDateString('sl-SI', { day:'numeric', month:'numeric' }));
-    const data = hist.map(h => h.znesek);
-    const minV = Math.min(...data) * 0.97;
-    const maxV = Math.max(...data) * 1.03;
+    const data   = hist.map(h => h.znesek);
+    const minV = Math.min(...data) * 0.95;
+    const maxV = Math.max(...data) * 1.05;
     makeChart('fin-stav-chart', labels,
       [lineDataset(data, 'rgb(234,179,8)', 'Stanje stavnice')],
-      { xTicks:6, yMin: minV, yMax: maxV });
+      { xTicks: hist.length <= 7 ? hist.length : 6, yMin: minV, yMax: maxV });
+  } else if (hist.length === 1) {
+    // En sam vnos — pokaži točko
+    const labels = [new Date(hist[0].datum).toLocaleDateString('sl-SI', { day:'numeric', month:'numeric' })];
+    makeChart('fin-stav-chart', labels,
+      [lineDataset([hist[0].znesek], 'rgb(234,179,8)', 'Stanje stavnice')],
+      { xTicks:1 });
   }
 }
 
