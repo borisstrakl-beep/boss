@@ -4964,8 +4964,6 @@ const PORTFELJ = [
   { sym:'IQQW.DE', ime:'MSCI World',  kol:0.09010188,  nakup:8.03, staticEur:88.99 }
 ];
 const NAKUP_SKUPAJ = PORTFELJ.reduce((s,p) => s + p.nakup, 0);
-// Apps Script URL — isti script kot za EV, samo razširjen (navodila v komentarju fetchPortfelj)
-const PORTFELJ_APPS_SCRIPT_URL = EV_APPS_SCRIPT_URL; // deli isti script
 let finActiveTab = 'banka';
 let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.16, stavnica:[], portfeljHistory:{}, racunHistory:[], mesecOdhodki:0, mesecPrihodki:0, topKat:[], zadnjeTx:[], vsiPayments:[], receipts:null };
 let finCharts = {};
