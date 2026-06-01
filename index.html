@@ -5874,7 +5874,7 @@ function finSaveStavnica() {
 }
 
 // ---- INICIALIZACIJA ----
-// Finance se naloži ob prvem kliku na tab (lazy) — ne ob zagonu
+setTimeout(() => fetchBanka(), 600);
 loadStavnica();
 
 
@@ -7028,26 +7028,12 @@ function toggleAccordion(header, bodyId) {
   if (body) body.classList.toggle('closed', isOpen);
 }
 
-let financeLoaded = false;
-let evLoaded = false;
-
 function toggleTab(head, bodyId) {
   const body = document.getElementById(bodyId);
   if (!body) return;
   const isOpen = head.classList.contains('open');
   head.classList.toggle('open', !isOpen);
   body.classList.toggle('open', !isOpen);
-  // Lazy load ob prvem odprtju
-  if (!isOpen) {
-    if (bodyId === 'tab-finance' && !financeLoaded) {
-      financeLoaded = true;
-      setTimeout(() => fetchBanka(), 100);
-    }
-    if (bodyId === 'tab-evsledenje' && !evLoaded) {
-      evLoaded = true;
-      initEV();
-    }
-  }
 }
 
 // ===== EV KONFIGURACIJA =====
@@ -7085,43 +7071,17 @@ function switchEvTab(el, tab) {
 
 async function fetchSheetCSV(sheetId, gid) {
   const url = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv'+(gid?'&gid='+gid:'');
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 12000);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!res.ok) throw new Error('Load failed: HTTP ' + res.status);
-    const text = await res.text();
-    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-      throw new Error('Sheets vrnil HTML — preveri javni dostop preglednice');
-    }
-    return text;
-  } catch(e) {
-    clearTimeout(timer);
-    if (e.name === 'AbortError') throw new Error('Timeout (12s) — Apps Script se ni odzval');
-    throw e;
-  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Load failed');
+  return await res.text();
 }
 
 async function fetchEVData(type) {
   // Če je Apps Script URL nastavljen, uporabi proxy (brez CORS)
   if (EV_APPS_SCRIPT_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);
-    try {
-      const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type, { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error('Apps Script napaka: HTTP ' + res.status);
-      const text = await res.text();
-      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-        throw new Error('Apps Script vrnil HTML — preveri deployment');
-      }
-      return text;
-    } catch(e) {
-      clearTimeout(timer);
-      if (e.name === 'AbortError') throw new Error('Timeout (12s) — Apps Script se ni odzval');
-      throw e;
-    }
+    const res = await fetch(EV_APPS_SCRIPT_URL + '?type=' + type);
+    if (!res.ok) throw new Error('Apps Script napaka: HTTP ' + res.status);
+    return await res.text();
   }
   // Drugače direkten Google Sheets CSV (zahteva javni dostop)
   const sheetId = type === 'km' ? EV_KM_SHEET_ID : EV_CHARGE_SHEET_ID;
@@ -7717,16 +7677,9 @@ function evsClearFilters() {
   renderEvStats();
 }
 
-// Finance tab je privzeto odprt — naloži takoj
-financeLoaded = true;
-setTimeout(() => fetchBanka(), 400);
-
-// EV tab je privzeto odprt — naloži z zamikom da ne blokira strani
-evLoaded = true;
-setTimeout(() => initEV(), 1200);
-
+initEV();
 // EV auto-refresh vsako uro
-setInterval(() => initEV(), 60 * 60 * 1000);
+setInterval(initEV, 60 * 60 * 1000);
 
 
 document.querySelectorAll('.modal-overlay').forEach(o=>{
