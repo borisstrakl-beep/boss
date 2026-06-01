@@ -5817,13 +5817,33 @@ function loadStavnica() {
   if (saved) {
     finData.stavnica = JSON.parse(saved);
   } else {
-    // Migracija iz stare shranitve
-    const old = localStorage.getItem('fin_stavnica');
-    if (old) {
-      const d = JSON.parse(old);
-      finData.stavnica = [{ znesek: d.znesek, datum: d.datum || new Date().toISOString() }];
-      localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
-    }
+    // Prednaloženi podatki
+    const seed = [
+      { znesek:7.48,  datum:'2026-05-10T12:00:00.000Z' },
+      { znesek:10.90, datum:'2026-05-11T12:00:00.000Z' },
+      { znesek:12.50, datum:'2026-05-12T12:00:00.000Z' },
+      { znesek:11.62, datum:'2026-05-13T12:00:00.000Z' },
+      { znesek:15.06, datum:'2026-05-14T12:00:00.000Z' },
+      { znesek:17.13, datum:'2026-05-15T12:00:00.000Z' },
+      { znesek:14.92, datum:'2026-05-16T12:00:00.000Z' },
+      { znesek:16.12, datum:'2026-05-17T12:00:00.000Z' },
+      { znesek:15.78, datum:'2026-05-18T12:00:00.000Z' },
+      { znesek:17.73, datum:'2026-05-19T12:00:00.000Z' },
+      { znesek:16.74, datum:'2026-05-20T12:00:00.000Z' },
+      { znesek:19.78, datum:'2026-05-21T12:00:00.000Z' },
+      { znesek:24.51, datum:'2026-05-22T12:00:00.000Z' },
+      { znesek:25.50, datum:'2026-05-23T12:00:00.000Z' },
+      { znesek:30.48, datum:'2026-05-24T12:00:00.000Z' },
+      { znesek:28.59, datum:'2026-05-25T12:00:00.000Z' },
+      { znesek:34.51, datum:'2026-05-26T12:00:00.000Z' },
+      { znesek:37.10, datum:'2026-05-27T12:00:00.000Z' },
+      { znesek:40.73, datum:'2026-05-28T12:00:00.000Z' },
+      { znesek:42.44, datum:'2026-05-29T12:00:00.000Z' },
+      { znesek:49.38, datum:'2026-05-30T12:00:00.000Z' },
+      { znesek:50.59, datum:'2026-05-31T12:00:00.000Z' },
+    ];
+    finData.stavnica = seed;
+    localStorage.setItem('fin_stavnica_history', JSON.stringify(seed));
   }
 }
 
@@ -7519,8 +7539,8 @@ function renderEvStats() {
   })();
   const kwhPer100 = kmInPeriod>0?(totalKwh/kmInPeriod*100):0;
   const eurPer100 = kmInPeriod>0?(totalEur/kmInPeriod*100):0;
-  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
   const freeKwh = data.filter(r=>r.skupajEur===0).reduce((s,r)=>s+r.kWh,0);
+  const freePct = totalKwh>0 ? Math.round(freeKwh/totalKwh*100) : 0;
 
   const SH = (label) =>
     `<div style="padding:7px 14px;background:#141414;border-top:1px solid #2a2a2a;border-bottom:1px solid #252525">
