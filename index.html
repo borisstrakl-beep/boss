@@ -8045,6 +8045,14 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.add('hidden'); });
 });
 
+// Inicializiraj Google Koledar
+if (typeof google !== 'undefined') {
+  gcalInit();
+} else {
+  // Google GSI script se še nalaga (async) — počakamo
+  setTimeout(gcalInit, 1500);
+}
+
 </script>
 </body>
 </html>
