@@ -3159,7 +3159,7 @@
         <div style="position:relative;height:90px;margin-bottom:10px">
           <canvas id="trg-month-chart"></canvas>
         </div>
-        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);margin-bottom:6px">TOP ARTIKLI</div>
+        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);margin-bottom:6px">TOP SKUPINE ARTIKLOV</div>
         <div id="trg-top-items" style="margin-bottom:10px">
           <div style="color:var(--text3);font-family:var(--mono);font-size:10px">—</div>
         </div>
@@ -5277,7 +5277,7 @@ const PORTFELJ = [
 ];
 const NAKUP_SKUPAJ = PORTFELJ.reduce((s,p) => s + p.nakup, 0);
 let finActiveTab = 'banka';
-let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.16, stavnica:[], portfeljHistory:{}, racunHistory:[], mesecOdhodki:0, mesecPrihodki:0, topKat:[], zadnjeTx:[], vsiPayments:[], receipts:null };
+let finData = { racun:null, kkObrem:null, kkLimit:null, portfelj:[], eurusd:1.16, stavnica:[], portfeljHistory:{}, racunHistory:[], mesecOdhodki:0, mesecPrihodki:0, topKat:[], zadnjeTx:[], vsiPayments:[], receipts:null, itemGroups:{} };
 let finCharts = {};
 
 // ---- TABS ----
@@ -5649,16 +5649,32 @@ async function fetchTrgovina() {
   const statusEl = document.getElementById('trg-status');
   if (statusEl) statusEl.textContent = 'Nalagam...';
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 10000);
-    const raw = await fetch(FIREBASE_URL + '/receipts.json', { signal: ctrl.signal })
-      .then(r => { clearTimeout(timer); return r.json(); })
-      .catch(e => { clearTimeout(timer); throw e; });
+    const fbGet = (path) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 10000);
+      return fetch(FIREBASE_URL + path, { signal: ctrl.signal })
+        .then(r => { clearTimeout(timer); return r.json(); })
+        .catch(e => { clearTimeout(timer); return null; });
+    };
+    const [rawReceipts, rawGroups] = await Promise.all([
+      fbGet('/receipts.json'),
+      fbGet('/item_group_memory.json')
+    ]);
+
+    // Razčleni item_group_memory → { "Tus gel": "Kozmetika", ... }
+    let itemGroups = {};
+    if (rawGroups) {
+      let pg = rawGroups;
+      if (typeof pg === 'string') { try { pg = JSON.parse(pg); } catch(e) {} }
+      if (pg && typeof pg === 'object' && !Array.isArray(pg)) itemGroups = pg;
+    }
+    finData.itemGroups = itemGroups;
+
+    // Razčleni račune
     let receipts = [];
-    if (raw) {
-      // Shranjeno kot JSON string { receipts: [...], nextId: N }
-      let parsed = raw;
-      if (typeof raw === 'string') { try { parsed = JSON.parse(raw); } catch(e) {} }
+    if (rawReceipts) {
+      let parsed = rawReceipts;
+      if (typeof parsed === 'string') { try { parsed = JSON.parse(parsed); } catch(e) {} }
       if (parsed && parsed.value && typeof parsed.value === 'string') { try { parsed = JSON.parse(parsed.value); } catch(e) {} }
       if (parsed && Array.isArray(parsed.receipts)) receipts = parsed.receipts;
       else if (Array.isArray(parsed)) receipts = parsed;
@@ -5775,28 +5791,29 @@ function renderTrgovina() {
     });
   }
 
-  // ── Top artikli ──
-  const itemMap = {};
+  // ── Top skupine artiklov (po item.group) ──
+  const grpMap = finData.itemGroups || {};
+  const skupineMap = {};
   receipts.forEach(r => {
     (r.items || []).forEach(it => {
-      const key = (it.name || '').trim();
-      if (!key) return;
-      if (!itemMap[key]) itemMap[key] = { name: key, kolicina: 0, skupaj: 0, nakupov: 0 };
-      itemMap[key].kolicina += parseFloat(it.qty || 1);
-      itemMap[key].skupaj   += parseFloat(it.price || 0) * parseFloat(it.qty || 1);
-      itemMap[key].nakupov++;
+      const ime = (it.name || '').trim();
+      // group je direktno na artiklu; item_group_memory kot fallback
+      const key = (it.group || it.skupina || it.cat || grpMap[ime] || 'Ostalo').trim();
+      const val = parseFloat(it.price || 0) * parseFloat(it.qty || 1);
+      if (!skupineMap[key]) skupineMap[key] = { name: key, skupaj: 0, artiklov: 0 };
+      skupineMap[key].skupaj  += val;
+      skupineMap[key].artiklov++;
     });
   });
-  const topItems = Object.values(itemMap).sort((a,b) => b.skupaj - a.skupaj).slice(0, 8);
+  const topItems = Object.values(skupineMap).sort((a,b) => b.skupaj - a.skupaj).slice(0, 8);
   const topEl = document.getElementById('trg-top-items');
   if (topEl) {
     if (topItems.length === 0) {
-      topEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni artiklov</div>';
+      topEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni skupin</div>';
     } else {
       const maxAmt = topItems[0].skupaj;
       topEl.innerHTML = topItems.map(it => {
         const pct = Math.round(it.skupaj / maxAmt * 100);
-        const qtyStr = it.kolicina % 1 === 0 ? it.kolicina + '×' : it.kolicina.toFixed(2) + '×';
         return `<div style="margin-bottom:5px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
             <span style="font-family:var(--mono);font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68%">${it.name}</span>
@@ -5806,7 +5823,7 @@ function renderTrgovina() {
             <div style="flex:1;height:3px;background:var(--bg3);border-radius:2px">
               <div style="height:3px;width:${pct}%;background:var(--orange);border-radius:2px"></div>
             </div>
-            <span style="font-family:var(--mono);font-size:8px;color:var(--text3);white-space:nowrap">${qtyStr} · ${it.nakupov} rac.</span>
+            <span style="font-family:var(--mono);font-size:8px;color:var(--text3);white-space:nowrap">${it.artiklov} art.</span>
           </div>
         </div>`;
       }).join('');
