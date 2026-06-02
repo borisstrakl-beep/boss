@@ -1245,104 +1245,372 @@
   .p3 { background: var(--blue); }
   .p4 { background: var(--text3); }
 
-  /* KOLEDAR */
-  .cal-week {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+  /* ===== GOOGLE KOLEDAR — NOVI MODUL ===== */
+
+  .gcal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     margin-bottom: 10px;
   }
 
-  .cal-day {
-    text-align: center;
-    padding: 6px 2px;
-    border-radius: 3px;
+  .gcal-filter-btn {
+    font-family: var(--mono);
+    font-size: 7.5px;
+    letter-spacing: 0.07em;
+    padding: 3px 7px;
+    border-radius: 2px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    opacity: 0.45;
+    white-space: nowrap;
+  }
+  .gcal-filter-btn.active { opacity: 1; }
+  .gcal-filter-btn:hover { opacity: 0.85; }
+
+  .gcal-view-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 6px;
   }
 
-  .cal-day-name {
+  .gcal-nav { display: flex; align-items: center; gap: 6px; }
+
+  .gcal-nav-btn {
     font-family: var(--mono);
-    font-size: 8px;
+    font-size: 11px;
     color: var(--text3);
-    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 0;
+    line-height: 1;
+  }
+  .gcal-nav-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  .gcal-nav-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    text-transform: uppercase;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .gcal-views { display: flex; gap: 3px; }
+
+  .gcal-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
     margin-bottom: 4px;
   }
 
-  .cal-day-num {
+  .gcal-week-col { min-width: 0; }
+
+  .gcal-week-col-header {
+    text-align: center;
+    padding: 5px 2px;
+    border-radius: 2px 2px 0 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 3px;
+  }
+  .gcal-week-col-header.today {
+    border-bottom-color: var(--orange);
+    background: var(--orange-glow2);
+  }
+
+  .gcal-week-col-name {
     font-family: var(--mono);
-    font-size: 14px;
+    font-size: 7px;
+    color: var(--text3);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .gcal-week-col-num {
+    font-family: var(--mono);
+    font-size: 13px;
     font-weight: 700;
     color: var(--text2);
+    line-height: 1.2;
   }
+  .gcal-week-col-header.today .gcal-week-col-num { color: var(--orange); }
 
-  .cal-day.today {
-    background: var(--orange-glow);
-    border: 1px solid var(--orange-dim);
-  }
-
-  .cal-day.today .cal-day-num { color: var(--orange); }
-
-  .cal-event {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .cal-event:last-child { border-bottom: none; }
-
-  .cal-event-time {
-    font-family: var(--mono);
+  .gcal-week-event {
+    font-family: var(--cond);
     font-size: 10px;
+    line-height: 1.3;
+    padding: 2px 4px;
+    border-radius: 2px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: filter 0.1s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-left: 2px solid transparent;
+  }
+  .gcal-week-event:hover { filter: brightness(1.2); }
+
+  .gcal-week-empty {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text3);
+    text-align: center;
+    padding: 4px 0;
+    opacity: 0.5;
+  }
+
+  .gcal-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .gcal-month-day-header {
+    background: var(--bg3);
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    text-transform: uppercase;
+    text-align: center;
+    padding: 5px 2px;
+  }
+
+  .gcal-month-cell {
+    background: var(--bg2);
+    min-height: 56px;
+    padding: 3px;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .gcal-month-cell:hover { background: var(--bg3); }
+  .gcal-month-cell.today { background: var(--orange-glow2); }
+  .gcal-month-cell.other-month { opacity: 0.35; }
+
+  .gcal-month-cell-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text2);
+    margin-bottom: 2px;
+    line-height: 1;
+  }
+  .gcal-month-cell.today .gcal-month-cell-num { color: var(--orange); }
+
+  .gcal-month-evt {
+    font-family: var(--cond);
+    font-size: 9px;
+    line-height: 1.2;
+    padding: 1px 3px;
+    border-radius: 1px;
+    margin-bottom: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.1s;
+  }
+  .gcal-month-evt:hover { filter: brightness(1.25); }
+
+  .gcal-month-more {
+    font-family: var(--mono);
+    font-size: 7px;
+    color: var(--text3);
+    padding-left: 2px;
+    cursor: pointer;
+  }
+
+  .gcal-event-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s, padding-left 0.1s;
+    border-radius: 2px;
+  }
+  .gcal-event-row:last-child { border-bottom: none; }
+  .gcal-event-row:hover { background: var(--bg3); padding-left: 4px; }
+
+  .gcal-event-time {
+    font-family: var(--mono);
+    font-size: 9.5px;
     color: var(--text3);
     white-space: nowrap;
     flex-shrink: 0;
-    width: 42px;
+    width: 40px;
+    padding-top: 1px;
   }
 
-  .cal-event-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+  .gcal-event-bar {
+    width: 3px;
+    min-height: 18px;
+    border-radius: 2px;
     flex-shrink: 0;
+    margin-top: 2px;
   }
 
-  .cal-event-name {
+  .gcal-event-body { flex: 1; min-width: 0; }
+
+  .gcal-event-title {
     font-family: var(--cond);
     font-size: 13px;
     font-weight: 500;
     color: var(--text);
-    flex: 1;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .cal-event-desc {
-    font-size: 11px;
+  .gcal-event-cal {
+    font-family: var(--mono);
+    font-size: 7.5px;
+    letter-spacing: 0.06em;
     color: var(--text3);
-    font-family: var(--cond);
-    font-weight: 400;
+    text-transform: uppercase;
+    margin-top: 1px;
   }
 
-  .cal-now-line {
-    height: 1px;
-    background: linear-gradient(90deg, var(--orange), transparent);
-    margin: 4px 0;
+  .gcal-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: gcalFadeIn 0.15s ease;
+  }
+
+  @keyframes gcalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .gcal-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 360px;
+    padding: 16px;
+    animation: gcalSlideUp 0.15s ease;
     position: relative;
   }
 
-  .cal-now-line::before {
-    content: 'ZDAJ';
-    position: absolute;
-    left: 0;
-    top: -8px;
+  @keyframes gcalSlideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .gcal-modal-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .gcal-modal-color-bar {
+    width: 4px;
+    min-height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .gcal-modal-title {
+    font-family: var(--cond);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .gcal-modal-close {
     font-family: var(--mono);
-    font-size: 7px;
-    color: var(--orange);
-    letter-spacing: 0.1em;
+    font-size: 12px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.1s;
+  }
+  .gcal-modal-close:hover { color: var(--text); }
+
+  .gcal-modal-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 7px;
+  }
+
+  .gcal-modal-icon { font-size: 11px; width: 16px; flex-shrink: 0; padding-top: 1px; }
+
+  .gcal-modal-val {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .gcal-modal-label {
+    font-family: var(--mono);
+    font-size: 7.5px;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .gcal-modal-desc {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-family: var(--sans);
+    font-size: 11.5px;
+    color: var(--text2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  .gcal-empty {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    padding: 20px 0;
+    letter-spacing: 0.05em;
   }
 
   /* PREHRANA */
+
   .nutrition-macros {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -3040,27 +3308,48 @@
     </div>
     <div class="tab-head-right">
       <span class="tab-badge" id="cal-badge">NALAGAM...</span>
-      <span class="tab-arrow">▼</span>
+      <span class="tab-arrow">&#9660;</span>
     </div>
   </div>
   <div class="tab-body open" id="tab-googlekoledar">
     <div class="tab-content">
-<div class="card-body">
-      <!-- Tedenski mini strip -->
-      <div class="cal-week" id="cal-week-strip"></div>
-      <!-- Tab: Danes / Ta teden -->
-      <div style="display:flex;gap:6px;margin:10px 0 8px">
-        <div class="proj-tab active" onclick="calSwitchTab(this,'danes')" id="cal-tab-danes">DANES</div>
-        <div class="proj-tab" onclick="calSwitchTab(this,'teden')" id="cal-tab-teden">TA TEDEN</div>
-        <div class="proj-tab" onclick="calSwitchTab(this,'sluzba')" id="cal-tab-sluzba">SLUŽBA</div>
+      <div class="card-body">
+
+        <!-- Filtri po koledarjih -->
+        <div class="gcal-filters" id="gcal-filters"></div>
+
+        <!-- Navigacija in pogled -->
+        <div class="gcal-view-row">
+          <div class="gcal-nav">
+            <button class="gcal-nav-btn" onclick="gcalNavPrev()">&#8249;</button>
+            <div class="gcal-nav-label" id="gcal-nav-label">&#8212;</div>
+            <button class="gcal-nav-btn" onclick="gcalNavNext()">&#8250;</button>
+            <button class="gcal-nav-btn" onclick="gcalGoToday()" title="Danes" style="width:auto;padding:0 6px;font-size:7px;letter-spacing:.06em">DANES</button>
+          </div>
+          <div class="gcal-views">
+            <div class="proj-tab active" onclick="gcalSwitchView(this,'dan')" id="gcal-view-dan">DAN</div>
+            <div class="proj-tab" onclick="gcalSwitchView(this,'teden')" id="gcal-view-teden">TEDEN</div>
+            <div class="proj-tab" onclick="gcalSwitchView(this,'mesec')" id="gcal-view-mesec">MESEC</div>
+          </div>
+        </div>
+
+        <!-- Vsebina -->
+        <div id="gcal-content"></div>
+
       </div>
-      <!-- Dogodki -->
-      <div id="cal-events-danes"></div>
-      <div id="cal-events-teden" style="display:none"></div>
-      <div id="cal-events-sluzba" style="display:none"></div>
     </div>
   </div>
+</div>
+
+<!-- Modal podrobnosti -->
+<div class="gcal-modal-overlay" id="gcal-modal" style="display:none" onclick="gcalCloseModal(event)">
+  <div class="gcal-modal" id="gcal-modal-inner">
+    <div class="gcal-modal-top">
+      <div class="gcal-modal-color-bar" id="gcal-modal-bar"></div>
+      <div class="gcal-modal-title" id="gcal-modal-title"></div>
+      <button class="gcal-modal-close" onclick="gcalCloseModal()">&#x2715;</button>
     </div>
+    <div id="gcal-modal-body"></div>
   </div>
 </div>
 
@@ -4609,67 +4898,54 @@ initWeather();
 // Mobilni layout ob zagonu
 setTimeout(applyWeatherMobileLayout, 100);
 
-// ===== GOOGLE KOLEDAR =====
-const CAL_IDS = {
-  osebni: 'boris.strakl@gmail.com',
-  sluzba: '9qecr3t237ecmi4h1fhrth1n90@group.calendar.google.com',
-  trening: 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com'
+// ===== GOOGLE KOLEDAR — NOVI MODUL =====
+
+const GCAL_CALENDARS = [
+  { id: 'boris.strakl@gmail.com',                                                                     key: 'boris',    label: 'Boris Strakl',  color: '#f97316' },
+  { id: 'family02895135917728340897@group.calendar.google.com',                                       key: 'druzinski',label: 'Družinski',     color: '#22c55e' },
+  { id: 'addressbook#contacts@group.v.calendar.google.com',                                           key: 'rojstni',  label: 'Rojstni dnevi', color: '#eab308' },
+  { id: 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com', key: 'treningi', label: 'Treningi',      color: '#3b82f6' },
+  { id: 'sl.slovenian#holiday@group.v.calendar.google.com',                                           key: 'koledar',  label: 'Koledar',       color: '#a855f7' },
+  { id: 'tasks@group.v.calendar.google.com',                                                          key: 'todoist',  label: 'Todoist',       color: '#ef4444' },
+  { id: '9qecr3t237ecmi4h1fhrth1n90@group.calendar.google.com',                                                            key: 'msora',    label: 'M Sora',        color: '#06b6d4' },
+  { id: '6eg1noirmh70doip6aa3gsmnis@group.calendar.google.com',                                                        key: 'spielplan',label: 'Spielplan',     color: '#f472b6' },
+];
+
+const CAL_DAY_SL    = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
+const CAL_MONTH_SL  = ['januar','februar','marec','april','maj','junij','julij','avgust','september','oktober','november','december'];
+const CAL_MONTH_SHORT = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+
+function startOfDay(d) { const r = new Date(d); r.setHours(0,0,0,0); return r; }
+
+let gcalState = {
+  view:          'dan',
+  cursor:        startOfDay(new Date()),
+  events:        {},
+  activeFilters: new Set(GCAL_CALENDARS.map(c => c.key)),
+  token:         null,
+  loaded:        false,
 };
-const CAL_DAY_SL = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
-const CAL_MONTH_SL = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
 
-// Barvni preslikovalnik: glede na opis ali ime koledarja
-function calColor(src) {
-  if (src === 'sluzba') return 'var(--blue)';
-  if (src === 'trening') return 'var(--green)';
-  if (src === 'praznik') return 'var(--text3)';
-  return 'var(--orange)';
-}
-
-function calFormatTime(dt) {
-  if (!dt) return '';
-  const d = new Date(dt);
-  return d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-}
-
-function calEventHtml(ev, src) {
-  const isAllDay = !ev.start.dateTime;
-  const timeStr = isAllDay ? 'ves dan' : calFormatTime(ev.start.dateTime);
-  const color = calColor(src);
-  const desc = ev.description ? ev.description.replace(/<[^>]+>/g,'').trim() : '';
-  return `<div class="cal-event">
-    <div class="cal-event-time">${timeStr}</div>
-    <div class="cal-event-dot" style="background:${color}"></div>
-    <div class="cal-event-name">${ev.summary||''}${desc ? '<span class="cal-event-desc"> · '+desc.substring(0,60)+'</span>' : ''}</div>
-  </div>`;
-}
-
-let calAllEvents = { osebni: [], sluzba: [], trening: [] };
-let calActiveTab = 'danes';
-
-// ===== GOOGLE CALENDAR OAUTH =====
+// ── OAuth ──────────────────────────────────────────────────────────────
 const GCAL_CLIENT_ID = '473865047869-2nfkcgaddvcnpci0ftsslv4sd39g774b.apps.googleusercontent.com';
-const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
-let gcalToken = null;
+const GCAL_SCOPE     = 'https://www.googleapis.com/auth/calendar.readonly';
 
 function gcalInit() {
-  // Preveri ali imamo shranjen token
   const saved = localStorage.getItem('gcal_token');
   if (saved) {
     const t = JSON.parse(saved);
     if (t.expires > Date.now()) {
-      gcalToken = t.access_token;
+      gcalState.token = t.access_token;
       showGcalOk();
-      fetchCalendarEvents();
+      gcalBuildFilters();
+      gcalFetchAll();
       return;
     }
   }
-  // Pokaži gumb za prijavo
   const btn = document.getElementById('gcal-auth-btn');
   if (btn) btn.style.display = 'block';
-  // Prikaži prazen stanje v koledarju
-  renderCalWeekStrip(new Date());
-  updateCalBadge();
+  gcalBuildFilters();
+  gcalRender();
 }
 
 function gcalSignIn() {
@@ -4678,14 +4954,13 @@ function gcalSignIn() {
     scope: GCAL_SCOPE,
     callback: (response) => {
       if (response.access_token) {
-        gcalToken = response.access_token;
-        // Shrani token (velja 1 uro)
+        gcalState.token = response.access_token;
         localStorage.setItem('gcal_token', JSON.stringify({
           access_token: response.access_token,
           expires: Date.now() + (response.expires_in * 1000)
         }));
         showGcalOk();
-        fetchCalendarEvents();
+        gcalFetchAll();
       }
     }
   });
@@ -4693,7 +4968,7 @@ function gcalSignIn() {
 }
 
 function gcalSignOut() {
-  gcalToken = null;
+  gcalState.token = null;
   localStorage.removeItem('gcal_token');
   const btn = document.getElementById('gcal-auth-btn');
   if (btn) btn.style.display = 'block';
@@ -4708,255 +4983,284 @@ function showGcalOk() {
   if (ok) ok.style.display = 'block';
 }
 
-async function fetchCalendarEvents() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59).toISOString();
-
-  renderCalWeekStrip(now);
-
-  if (!gcalToken) {
-    renderCalEvents();
-    renderTodayTraining();
-    updateCalBadge();
-    return;
-  }
-
-  const fetchCal = async (calId) => {
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${todayStart}&timeMax=${weekEnd}&singleEvents=true&orderBy=startTime&maxResults=50`;
+// ── Fetch ──────────────────────────────────────────────────────────────
+async function gcalFetchAll() {
+  if (!gcalState.token) { gcalRender(); return; }
+  const from = new Date(); from.setMonth(from.getMonth() - 1); from.setDate(1);
+  const to   = new Date(); to.setMonth(to.getMonth() + 3);
+  const fetchOne = async (cal) => {
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events`
+      + `?timeMin=${from.toISOString()}&timeMax=${to.toISOString()}`
+      + `&singleEvents=true&orderBy=startTime&maxResults=200`;
     try {
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${gcalToken}` }
-      });
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${gcalState.token}` } });
       if (res.status === 401) { gcalSignOut(); return []; }
-      if (!res.ok) { console.warn('Cal error', calId, res.status); return []; }
+      if (!res.ok) return [];
       const data = await res.json();
       return (data.items || []).map(e => ({
-        summary: e.summary || '',
-        description: e.description || '',
-        start: e.start,
-        end: e.end
+        id: e.id, summary: e.summary || '(brez naslova)',
+        description: e.description ? e.description.replace(/<[^>]+>/g,'').trim() : '',
+        location: e.location || '', start: e.start, end: e.end,
+        calKey: cal.key, calLabel: cal.label, calColor: cal.color,
       }));
-    } catch(e) { console.warn('Cal error', calId, e); return []; }
+    } catch(e) { return []; }
   };
+  const results = await Promise.all(GCAL_CALENDARS.map(fetchOne));
+  GCAL_CALENDARS.forEach((cal, i) => { gcalState.events[cal.key] = results[i]; });
+  gcalState.loaded = true;
+  gcalRender();
+  gcalUpdateBadge();
+  // Posodobi trening widget (kompatibilnost)
+  renderTodayTraining && renderTodayTraining();
+}
 
-  try {
-    const [osebni, sluzba, trening] = await Promise.all([
-      fetchCal(CAL_IDS.osebni),
-      fetchCal(CAL_IDS.sluzba),
-      fetchCal(CAL_IDS.trening)
-    ]);
-    calAllEvents.osebni = osebni;
-    calAllEvents.sluzba = sluzba;
-    calAllEvents.trening = trening;
-    console.log('Kalendar OK:', osebni.length, 'osebnih,', sluzba.length, 'službenih,', trening.length, 'treningov');
-  } catch(e) {
-    console.warn('Calendar fetch error:', e);
+// Kompatibilnost s starim klicem
+function fetchCalendarEvents() { gcalFetchAll(); }
+
+// ── Pomožne ────────────────────────────────────────────────────────────
+function gcalGetEventsForDate(date) {
+  const ds = date.toDateString();
+  let all = [];
+  for (const cal of GCAL_CALENDARS) {
+    if (!gcalState.activeFilters.has(cal.key)) continue;
+    for (const e of (gcalState.events[cal.key] || [])) {
+      const eDate = e.start.dateTime ? new Date(e.start.dateTime) : new Date(e.start.date);
+      if (eDate.toDateString() === ds) all.push(e);
+    }
   }
-
-  renderCalEvents();
-  renderTodayTraining();
-  updateCalBadge();
+  return all.sort((a,b) => (a.start.dateTime||a.start.date).localeCompare(b.start.dateTime||b.start.date));
 }
 
-function renderCalWeekStrip(now) {
-  const strip = document.getElementById('cal-week-strip');
-  if (!strip) return;
-  // Ponedeljek tega tedna
-  const day = now.getDay();
-  const mon = new Date(now);
-  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  let html = '';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(mon);
-    d.setDate(mon.getDate() + i);
-    const isToday = d.toDateString() === now.toDateString();
-    html += `<div class="cal-day${isToday ? ' today' : ''}">
-      <div class="cal-day-name">${CAL_DAY_SL[d.getDay()]}</div>
-      <div class="cal-day-num">${d.getDate()}</div>
-    </div>`;
-  }
-  strip.innerHTML = html;
+function fmtTime(dt) {
+  if (!dt) return 'ves dan';
+  return new Date(dt).toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
 }
 
-function updateCalBadge() {
-  const badge = document.getElementById('cal-badge');
-  if (!badge) return;
-  const now = new Date();
-  badge.textContent = CAL_MONTH_SL[now.getMonth()].toUpperCase() + ' ' + now.getFullYear();
+function fmtDate(d) {
+  return CAL_DAY_SL[d.getDay()] + ', ' + d.getDate() + '. ' + CAL_MONTH_SHORT[d.getMonth()];
 }
 
-function calSwitchTab(el, tab) {
-  document.querySelectorAll('#cal-tab-danes,#cal-tab-teden,#cal-tab-sluzba').forEach(t => t.classList.remove('active'));
+function getMonday(d) {
+  const r = new Date(d); r.setHours(0,0,0,0);
+  const day = r.getDay();
+  r.setDate(r.getDate() - (day === 0 ? 6 : day - 1));
+  return r;
+}
+
+// ── Filtri ─────────────────────────────────────────────────────────────
+function gcalBuildFilters() {
+  const el = document.getElementById('gcal-filters');
+  if (!el) return;
+  el.innerHTML = GCAL_CALENDARS.map(cal => `
+    <div class="gcal-filter-btn active" id="gcal-f-${cal.key}" data-key="${cal.key}"
+         style="background:${cal.color}22;border-color:${cal.color};color:${cal.color}"
+         onclick="gcalToggleFilter('${cal.key}')">${cal.label}</div>
+  `).join('');
+}
+
+function gcalToggleFilter(key) {
+  gcalState.activeFilters.has(key) ? gcalState.activeFilters.delete(key) : gcalState.activeFilters.add(key);
+  const btn = document.getElementById('gcal-f-' + key);
+  if (btn) btn.classList.toggle('active', gcalState.activeFilters.has(key));
+  gcalRender();
+}
+
+// ── Navigacija ─────────────────────────────────────────────────────────
+function gcalSwitchView(el, view) {
+  gcalState.view = view;
+  document.querySelectorAll('#gcal-view-dan,#gcal-view-teden,#gcal-view-mesec').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  ['danes','teden','sluzba'].forEach(t => {
-    const el2 = document.getElementById('cal-events-' + t);
-    if (el2) el2.style.display = t === tab ? '' : 'none';
-  });
-  calActiveTab = tab;
+  gcalRender();
 }
 
-function renderCalEvents() {
-  const now = new Date();
-  const todayStr = now.toDateString();
+function gcalNavPrev() {
+  const c = gcalState.cursor;
+  if (gcalState.view === 'dan')   c.setDate(c.getDate() - 1);
+  if (gcalState.view === 'teden') c.setDate(c.getDate() - 7);
+  if (gcalState.view === 'mesec') c.setMonth(c.getMonth() - 1);
+  gcalRender();
+}
 
-  const all = [
-    ...calAllEvents.osebni.map(e => ({...e, _src: 'osebni'})),
-    ...calAllEvents.sluzba.map(e => ({...e, _src: 'sluzba'})),
-    ...calAllEvents.trening.map(e => ({...e, _src: 'trening'}))
-  ].sort((a,b) => {
-    const ta = a.start.dateTime || a.start.date || '';
-    const tb = b.start.dateTime || b.start.date || '';
-    return ta.localeCompare(tb);
-  });
+function gcalNavNext() {
+  const c = gcalState.cursor;
+  if (gcalState.view === 'dan')   c.setDate(c.getDate() + 1);
+  if (gcalState.view === 'teden') c.setDate(c.getDate() + 7);
+  if (gcalState.view === 'mesec') c.setMonth(c.getMonth() + 1);
+  gcalRender();
+}
 
-  // DANES
-  const danes = all.filter(e => {
-    const dt = e.start.dateTime || e.start.date;
-    return dt && new Date(dt).toDateString() === todayStr;
-  });
-  const dEl = document.getElementById('cal-events-danes');
-  if (dEl) {
-    if (danes.length === 0) {
-      dEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px;padding:8px 0">Danes ni dogodkov.</div>';
-    } else {
-      dEl.innerHTML = danes.map(e => calEventHtml(e, e._src)).join('');
-    }
+function gcalGoToday() {
+  gcalState.cursor = startOfDay(new Date());
+  gcalRender();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────
+function gcalRender() {
+  gcalUpdateNavLabel();
+  const el = document.getElementById('gcal-content');
+  if (!el) return;
+  if (gcalState.view === 'dan')   el.innerHTML = gcalRenderDay();
+  if (gcalState.view === 'teden') el.innerHTML = gcalRenderWeek();
+  if (gcalState.view === 'mesec') el.innerHTML = gcalRenderMonth();
+}
+
+function gcalUpdateNavLabel() {
+  const el = document.getElementById('gcal-nav-label');
+  if (!el) return;
+  const c = gcalState.cursor;
+  if (gcalState.view === 'dan') {
+    const today = startOfDay(new Date());
+    const diff = Math.round((c - today) / 86400000);
+    if (diff === 0) el.textContent = 'DANES';
+    else if (diff === 1) el.textContent = 'JUTRI';
+    else if (diff === -1) el.textContent = 'VČERAJ';
+    else el.textContent = (CAL_DAY_SL[c.getDay()] + ' ' + c.getDate() + '. ' + CAL_MONTH_SHORT[c.getMonth()]).toUpperCase();
+  } else if (gcalState.view === 'teden') {
+    const mon = getMonday(c);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    el.textContent = mon.getDate() + '.–' + sun.getDate() + '. ' + CAL_MONTH_SHORT[sun.getMonth()].toUpperCase();
+  } else {
+    el.textContent = CAL_MONTH_SHORT[c.getMonth()].toUpperCase() + ' ' + c.getFullYear();
   }
+}
 
-  // TA TEDEN
-  const tEl = document.getElementById('cal-events-teden');
-  if (tEl) {
-    if (all.length === 0) {
-      tEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px;padding:8px 0">Ni dogodkov ta teden.</div>';
+// DAN pogled
+function gcalRenderDay() {
+  if (!gcalState.loaded && gcalState.token) return '<div class="gcal-empty">NALAGAM DOGODKE...</div>';
+  const evs = gcalGetEventsForDate(gcalState.cursor);
+  if (evs.length === 0) return '<div class="gcal-empty">NI DOGODKOV TA DAN</div>';
+  return '<div>' + evs.map(gcalEventRowHtml).join('') + '</div>';
+}
+
+// TEDEN pogled
+function gcalRenderWeek() {
+  const mon = getMonday(gcalState.cursor);
+  const today = startOfDay(new Date());
+  let html = '<div class="gcal-week-grid">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const isToday = d.toDateString() === today.toDateString();
+    const evs = gcalGetEventsForDate(d);
+    html += `<div class="gcal-week-col">
+      <div class="gcal-week-col-header${isToday?' today':''}">
+        <div class="gcal-week-col-name">${CAL_DAY_SL[d.getDay()]}</div>
+        <div class="gcal-week-col-num">${d.getDate()}</div>
+      </div>`;
+    if (evs.length === 0) {
+      html += '<div class="gcal-week-empty">·</div>';
     } else {
-      let prevDay = '';
-      let html = '';
-      all.forEach(e => {
-        const dt = e.start.dateTime || e.start.date;
-        if (!dt) return;
-        const d = new Date(dt);
-        const dayLabel = CAL_DAY_SL[d.getDay()] + ', ' + d.getDate() + '. ' + CAL_MONTH_SL[d.getMonth()];
-        if (dayLabel !== prevDay) {
-          html += `<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin:10px 0 4px">${dayLabel}</div>`;
-          prevDay = dayLabel;
-        }
-        html += calEventHtml(e, e._src);
+      evs.forEach(e => {
+        const safeE = JSON.stringify(e).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        html += `<div class="gcal-week-event" style="background:${e.calColor}22;border-left-color:${e.calColor};color:${e.calColor}" onclick="gcalOpenModalById('${e.calKey}','${e.id}')" title="${e.summary.replace(/"/g,'&quot;')}">${e.summary}</div>`;
       });
-      tEl.innerHTML = html;
     }
-  }
-
-  // SLUŽBA
-  const sEl = document.getElementById('cal-events-sluzba');
-  if (sEl) {
-    if (calAllEvents.sluzba.length === 0) {
-      sEl.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px;padding:8px 0">Ni službenih dogodkov ta teden.</div>';
-    } else {
-      sEl.innerHTML = calAllEvents.sluzba.map(e => calEventHtml(e, 'sluzba')).join('');
-    }
-  }
-}
-
-// Razčleni opis treninga (format: TIP / KM / TEMPO / NAVODILA / KOMENTAR)
-function parseTreningDesc(raw) {
-  if (!raw) return null;
-  const text = raw.replace(/<[^>]+>/g,'').trim();
-
-  // Format A: bogati multi-vrstični format (TIP: ... \n KM: ... \n TEMPO: ...)
-  const getField = (key) => {
-    const re = new RegExp(key + '[:\\s]+([^\\n━]+)', 'i');
-    const m = text.match(re);
-    return m ? m[1].trim() : '';
-  };
-
-  const tipRaw = getField('TIP');
-  const km = getField('KM');
-  const tempo = getField('TEMPO');
-
-  if (tipRaw || km || tempo) {
-    // Izvleci samo kratko oznako tipa (pred pomišljajem ali oklepajem)
-    const tipShort = tipRaw.split(/[—\-\(]/)[0].trim();
-
-    // Izvleci navodila (besedilo za • znaki, največ 3 vrstice)
-    const bulletLines = (text.match(/•[^\n•━]*/g) || [])
-      .map(l => l.replace(/^•\s*/,'').trim())
-      .filter(l => l.length > 0)
-      .slice(0, 4);
-
-    // SR cona
-    const srMatch = text.match(/SR[^\n]*(\d{3})[^\d]*(\d{3})\s*bpm/i);
-    const srZona = srMatch ? `${srMatch[1]}–${srMatch[2]} bpm` : '';
-
-    return { tip: tipShort, km, tempo, srZona, navodila: bulletLines, raw: text, format: 'rich' };
-  }
-
-  // Format B: preprosti slash-ločeni format
-  const parts = text.split('/').map(p => p.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    return { tip: parts[0]||'', km: parts[1]||'', tempo: parts[2]||'', navodila: parts[3] ? [parts[3]] : [], raw: text, format: 'simple' };
-  }
-
-  return { raw: text, format: 'plain' };
-}
-
-function renderTreningDetails(p) {
-  if (p.format === 'plain') return `<div style="color:var(--text2);font-family:var(--cond);font-size:12px;line-height:1.4">${p.raw.substring(0,200)}</div>`;
-
-  let html = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">';
-  if (p.tip) html += `<div style="flex:1;min-width:120px"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:2px">TIP</div><div style="font-family:var(--cond);font-size:13px;font-weight:600;color:var(--green);line-height:1.2">${p.tip}</div></div>`;
-  if (p.km) html += `<div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:2px">RAZDALJA</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">${p.km}</div></div>`;
-  if (p.tempo) html += `<div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:2px">TEMPO /km</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">${p.tempo.split('\\n')[0].split('↳')[0].trim()}</div></div>`;
-  html += '</div>';
-  if (p.srZona) html += `<div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:6px">❤ ${p.srZona}</div>`;
-  if (p.navodila && p.navodila.length > 0) {
-    html += '<div style="border-left:2px solid var(--green);padding-left:8px;margin-top:4px">';
-    p.navodila.forEach(l => {
-      html += `<div style="font-family:var(--cond);font-size:11px;color:var(--text2);line-height:1.5">· ${l}</div>`;
-    });
     html += '</div>';
   }
-  return html;
+  return html + '</div>';
 }
 
-function renderTodayTraining() {
-  const el = document.getElementById('training-today');
-  if (!el) return;
-  const now = new Date();
-  const todayStr = now.toDateString();
-  const todayT = calAllEvents.trening.filter(e => {
-    const dt = e.start.dateTime || e.start.date;
-    return dt && new Date(dt).toDateString() === todayStr;
-  });
-  if (todayT.length === 0) {
-    const tom = new Date(now); tom.setDate(now.getDate()+1);
-    const tomT = calAllEvents.trening.filter(e => {
-      const dt = e.start.dateTime || e.start.date;
-      return dt && new Date(dt).toDateString() === tom.toDateString();
+// MESEC pogled
+function gcalRenderMonth() {
+  const c = gcalState.cursor, y = c.getFullYear(), m = c.getMonth();
+  const today = startOfDay(new Date());
+  const first = new Date(y, m, 1);
+  const firstDow = first.getDay();
+  const startOffset = firstDow === 0 ? 6 : firstDow - 1;
+  const start = new Date(first); start.setDate(1 - startOffset);
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+  const headers = ['Pon','Tor','Sre','Čet','Pet','Sob','Ned'];
+  let html = '<div class="gcal-month-grid">';
+  headers.forEach(h => { html += `<div class="gcal-month-day-header">${h}</div>`; });
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const inMonth = d.getMonth() === m;
+    const isToday = d.toDateString() === today.toDateString();
+    const evs = gcalGetEventsForDate(d);
+    html += `<div class="gcal-month-cell${isToday?' today':''}${!inMonth?' other-month':''}" onclick="gcalClickMonthDay(${d.getTime()})">
+      <div class="gcal-month-cell-num">${d.getDate()}</div>`;
+    evs.slice(0,2).forEach(e => {
+      html += `<div class="gcal-month-evt" style="background:${e.calColor}33;color:${e.calColor}" onclick="event.stopPropagation();gcalOpenModalById('${e.calKey}','${e.id}')" title="${e.summary.replace(/"/g,'&quot;')}">${e.summary}</div>`;
     });
-    if (tomT.length > 0) {
-      const t = tomT[0];
-      const p = parseTreningDesc(t.description);
-      el.innerHTML = `<div style="color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:.08em;margin-bottom:6px">JUTRI — ${t.summary||'TRENING'}</div>${p ? renderTreningDetails(p) : ''}`;
-    } else {
-      el.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Danes ni planiranega treninga.</div>';
-    }
-    return;
+    if (evs.length > 2) html += `<div class="gcal-month-more">+${evs.length-2}</div>`;
+    html += '</div>';
   }
-  const t = todayT[0];
-  const p = parseTreningDesc(t.description);
-  el.innerHTML = `<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--green);margin-bottom:6px">DANES — ${t.summary||'TRENING'}</div>${p ? renderTreningDetails(p) : '<div style="color:var(--text2);font-size:12px">' + (t.description||'').replace(/<[^>]+>/g,'') + '</div>'}`;
+  return html + '</div>';
 }
 
-// Inicializiraj Google Calendar (OAuth)
-window.addEventListener('load', () => {
-  // Počakaj da se Google Identity Services naloži
-  if (typeof google !== 'undefined') {
-    gcalInit();
-  } else {
-    setTimeout(gcalInit, 1500);
-  }
+function gcalClickMonthDay(ts) {
+  gcalState.cursor = new Date(ts); gcalState.cursor.setHours(0,0,0,0);
+  gcalSwitchView(document.getElementById('gcal-view-dan'), 'dan');
+}
+
+// Event row (dan pogled)
+function gcalEventRowHtml(e) {
+  const timeStr = e.start.dateTime ? fmtTime(e.start.dateTime) : 'ves dan';
+  return `<div class="gcal-event-row" onclick="gcalOpenModalById('${e.calKey}','${e.id}')">
+    <div class="gcal-event-time">${timeStr}</div>
+    <div class="gcal-event-bar" style="background:${e.calColor}"></div>
+    <div class="gcal-event-body">
+      <div class="gcal-event-title">${e.summary}</div>
+      <div class="gcal-event-cal">${e.calLabel}</div>
+    </div>
+  </div>`;
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────
+function gcalOpenModalById(calKey, eventId) {
+  const evs = gcalState.events[calKey] || [];
+  const e = evs.find(x => x.id === eventId);
+  if (e) gcalOpenModal(e);
+}
+
+function gcalOpenModal(e) {
+  const modal = document.getElementById('gcal-modal');
+  if (!modal) return;
+  document.getElementById('gcal-modal-bar').style.background = e.calColor;
+  document.getElementById('gcal-modal-title').textContent = e.summary;
+  const isAllDay = !e.start.dateTime;
+  const startDt  = e.start.dateTime ? new Date(e.start.dateTime) : new Date(e.start.date);
+  const endDt    = e.end?.dateTime  ? new Date(e.end.dateTime)   : null;
+  let timeStr = isAllDay ? 'Ves dan' : fmtTime(e.start.dateTime) + (endDt ? ' – ' + fmtTime(e.end.dateTime) : '');
+  let body = `
+    <div class="gcal-modal-row">
+      <div class="gcal-modal-icon">📅</div>
+      <div class="gcal-modal-val">${fmtDate(startDt)}<br>${timeStr}</div>
+    </div>
+    <div class="gcal-modal-row">
+      <div style="width:10px;height:10px;background:${e.calColor};border-radius:50%;flex-shrink:0;margin-top:3px"></div>
+      <div class="gcal-modal-val">${e.calLabel}</div>
+    </div>`;
+  if (e.location) body += `<div class="gcal-modal-row"><div class="gcal-modal-icon">📍</div><div class="gcal-modal-val">${e.location}</div></div>`;
+  if (e.description) body += `<div style="margin-top:8px"><div class="gcal-modal-label">Opis</div><div class="gcal-modal-desc">${e.description}</div></div>`;
+  document.getElementById('gcal-modal-body').innerHTML = body;
+  modal.style.display = 'flex';
+}
+
+function gcalCloseModal(event) {
+  if (event && event.target !== document.getElementById('gcal-modal')) return;
+  document.getElementById('gcal-modal').style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { const m = document.getElementById('gcal-modal'); if(m) m.style.display='none'; }
 });
+
+// ── Badge & kompatibilnost ─────────────────────────────────────────────
+function gcalUpdateBadge() {
+  const badge = document.getElementById('cal-badge');
+  if (!badge) return;
+  const today = gcalGetEventsForDate(new Date());
+  badge.textContent = today.length ? today.length + ' DANES' : CAL_MONTH_SHORT[new Date().getMonth()].toUpperCase();
+}
+
+// Stare funkcije za trening widget — berejo iz gcalState
+function calColor(src) {
+  const cal = GCAL_CALENDARS.find(c => c.key === src);
+  return cal ? cal.color : 'var(--orange)';
+}
+
+function calFormatTime(dt) { return fmtTime(dt); }
 
 
 // ===== FINANCE =====
