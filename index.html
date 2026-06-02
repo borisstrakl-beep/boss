@@ -3848,7 +3848,19 @@
         <input class="form-input" id="add-progress" type="number" min="0" placeholder="0">
       </div>
       <div class="divider-line"></div>
-      <button class="btn btn-secondary" onclick="fetchBookInfo()" id="btn-fetch" style="width:100%;margin-bottom:12px">🔍 PRIDOBI PODATKE Z AI (žanr, opis, naslovnica)</button>
+      <div class="form-group">
+        <label class="form-label">NASLOVNICA</label>
+        <div id="cover-paste-zone" onclick="document.getElementById('cover-file-input').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:10px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;min-height:60px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <img id="cover-paste-preview" src="" alt="" style="display:none;height:80px;width:54px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="cover-paste-hint" style="font-family:var(--mono);font-size:9px;color:var(--text3)">
+            📋 Prilepi sliko (Ctrl+V) ali klikni za izbiro datoteke
+          </div>
+          <button id="cover-paste-clear" onclick="clearCoverPaste(event)" style="display:none;position:absolute;top:4px;right:6px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:2px">✕</button>
+        </div>
+        <input type="file" id="cover-file-input" accept="image/*" style="display:none" onchange="handleCoverFile(this.files[0])">
+      </div>
+      <button class="btn btn-secondary" onclick="fetchBookInfo()" id="btn-fetch" style="width:100%;margin-bottom:12px">🔍 PRIDOBI PODATKE Z AI (žanr, opis)</button>
       <div class="ai-loading hidden" id="ai-loading"><div class="ai-spinner"></div>Iščem podatke o knjigi...</div>
       <div class="ai-preview hidden" id="ai-preview">
         <div class="ai-preview-info" style="width:100%">
@@ -3874,6 +3886,16 @@
     </div>
     <div class="modal-body">
       <div id="progress-book-info" style="margin-bottom:14px"></div>
+      <div class="form-group">
+        <label class="form-label">NASLOVNICA (opcijsko)</label>
+        <div id="cover-paste-zone-p" onclick="document.getElementById('cover-file-input-p').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:8px;text-align:center;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:50px">
+          <img id="cover-paste-preview-p" src="" alt="" style="display:none;height:60px;width:40px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="cover-paste-hint-p" style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 Prilepi (Ctrl+V) ali klikni za sliko</div>
+          <button id="cover-paste-clear-p" onclick="clearCoverPasteP(event)" style="display:none;margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="file" id="cover-file-input-p" accept="image/*" style="display:none" onchange="handleCoverFileP(this.files[0])">
+      </div>
       <div class="form-group">
         <label class="form-label" id="progress-label">TRENUTNA STRAN</label>
         <input class="form-input" id="progress-value" type="number" min="0">
@@ -6304,12 +6326,50 @@ function filterTasks(el, filter) {
 }
 
 // ===== KNJIŽNICA =====
-let books = JSON.parse(localStorage.getItem('borisBooks') || '[]');
+let books = [];
 let editingProgressId = null;
 let currentRating = 0;
 let aiData = {};
+let booksSyncing = false;
 
-function saveBooks() { localStorage.setItem('borisBooks', JSON.stringify(books)); }
+// Firebase sync za knjige
+async function saveBooksFirebase() {
+  if (booksSyncing) return;
+  booksSyncing = true;
+  try {
+    await fetch(FIREBASE_URL + '/books.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ books, updatedAt: new Date().toISOString() })
+    });
+  } catch(e) { console.warn('Firebase books save error:', e); }
+  booksSyncing = false;
+}
+
+function saveBooks() {
+  localStorage.setItem('borisBooks', JSON.stringify(books)); // backup
+  saveBooksFirebase();
+}
+
+async function fetchBooksFirebase() {
+  const badge = document.querySelector('#tab-knjinica .tab-badge') || document.getElementById('lib-status');
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    const raw = await fetch(FIREBASE_URL + '/books.json', { signal: ctrl.signal })
+      .then(r => r.json()).catch(() => null);
+    if (raw && raw.books && Array.isArray(raw.books) && raw.books.length > 0) {
+      books = raw.books;
+      localStorage.setItem('borisBooks', JSON.stringify(books));
+      renderAll();
+      return true;
+    }
+  } catch(e) { console.warn('Firebase books fetch error:', e); }
+  // Fallback: localStorage
+  const local = JSON.parse(localStorage.getItem('borisBooks') || '[]');
+  if (local.length > 0) { books = local; }
+  return false;
+}
 
 const LANG_LABELS = { sl:'🇸🇮 SLO', en:'🇬🇧 ENG', de:'🇩🇪 DE' };
 const LANG_TAG_CLASS = { sl:'tag-lang-sl', en:'tag-lang-en', de:'tag-lang-de' };
@@ -6596,6 +6656,15 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 // ---- ADD BOOK ----
 function openAddBook() {
+  window._newCoverDataUrl = null;
+  const pz = document.getElementById('cover-paste-zone');
+  if(pz) { pz.style.borderColor=''; }
+  const pp = document.getElementById('cover-paste-preview');
+  if(pp) { pp.style.display='none'; pp.src=''; }
+  const ph = document.getElementById('cover-paste-hint');
+  if(ph) ph.style.display='';
+  const pc = document.getElementById('cover-paste-clear');
+  if(pc) pc.style.display='none';
   ['add-title','add-author'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('lang-sl').checked=true;
   document.getElementById('src-unknown').checked=true;
@@ -6670,11 +6739,12 @@ function saveBook() {
   books.push({
     id:Date.now().toString(),title,author,lang,source,status,medium,
     genre:aiData.genre||'',description:aiData.description||'',
-    coverUrl: aiData.coverUrl || generateSvgCover(title, author, null, null),
+    coverUrl: (window._newCoverDataUrl || aiData.coverUrl) || generateSvgCover(title, author, null, null),
     progress:initProg,totalPages:null,rating:0,
     addedDate:new Date().toLocaleDateString('sl-SI'),readDate:null,
     queueOrder:status==='queue'?maxO+1:0
   });
+  window._newCoverDataUrl = null;
   saveBooks(); renderAll(); closeModal('modal-add');
 }
 
@@ -6705,6 +6775,7 @@ function saveProgress() {
   b.progress=b.medium==='kindle'?Math.min(100,v):v;
   if(tot) b.totalPages=tot;
   if(currentRating) b.rating=currentRating;
+  if(window._newCoverDataUrlP) { b.coverUrl=window._newCoverDataUrlP; window._newCoverDataUrlP=null; }
   saveBooks(); renderAll(); closeModal('modal-progress');
 }
 
@@ -6755,8 +6826,79 @@ function deleteBook(id) {
   saveBooks(); renderAll();
 }
 
+// ---- COVER PASTE ----
+function setCoverPreview(dataUrl, isProgress) {
+  if (isProgress) {
+    window._newCoverDataUrlP = dataUrl;
+    const img = document.getElementById('cover-paste-preview-p');
+    const hint = document.getElementById('cover-paste-hint-p');
+    const clr = document.getElementById('cover-paste-clear-p');
+    if(img) { img.src=dataUrl; img.style.display=''; }
+    if(hint) hint.style.display='none';
+    if(clr) clr.style.display='';
+  } else {
+    window._newCoverDataUrl = dataUrl;
+    const img = document.getElementById('cover-paste-preview');
+    const hint = document.getElementById('cover-paste-hint');
+    const clr = document.getElementById('cover-paste-clear');
+    const zone = document.getElementById('cover-paste-zone');
+    if(img) { img.src=dataUrl; img.style.display=''; }
+    if(hint) hint.style.display='none';
+    if(clr) clr.style.display='';
+    if(zone) zone.style.borderColor='var(--orange)';
+  }
+}
+
+function fileToDataUrl(file, isProgress) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => setCoverPreview(e.target.result, isProgress);
+  reader.readAsDataURL(file);
+}
+
+function handleCoverFile(file) { fileToDataUrl(file, false); }
+function handleCoverFileP(file) { fileToDataUrl(file, true); }
+
+function clearCoverPaste(e) {
+  e.stopPropagation();
+  window._newCoverDataUrl = null;
+  const img=document.getElementById('cover-paste-preview');
+  const hint=document.getElementById('cover-paste-hint');
+  const clr=document.getElementById('cover-paste-clear');
+  const zone=document.getElementById('cover-paste-zone');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+  if(zone)zone.style.borderColor='';
+}
+
+function clearCoverPasteP(e) {
+  e.stopPropagation();
+  window._newCoverDataUrlP = null;
+  const img=document.getElementById('cover-paste-preview-p');
+  const hint=document.getElementById('cover-paste-hint-p');
+  const clr=document.getElementById('cover-paste-clear-p');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+}
+
+// Globalni paste poslušalec — deluje ko je modal odprt
+document.addEventListener('paste', function(e) {
+  const addOpen = !document.getElementById('modal-add').classList.contains('hidden');
+  const progOpen = !document.getElementById('modal-progress').classList.contains('hidden');
+  if (!addOpen && !progOpen) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      fileToDataUrl(file, progOpen);
+      break;
+    }
+  }
+});
+
 // ---- MOCK + BACKMAN SEED ----
-// Google Books API cover fetch
 // SVG naslovnice — generirane lokalno, brez zunanjih API klicev
 function generateSvgCover(title, author, color1, color2) {
   const c1 = color1 || '#1a1a2e';
@@ -6839,8 +6981,13 @@ function seedData() {
   saveBooks();
 }
 
-seedData();
-renderAll();
+// Najprej naloži iz Firebase, seedData samo če je vse prazno
+fetchBooksFirebase().then(fromFirebase => {
+  if (!fromFirebase && books.length === 0) {
+    seedData();
+  }
+  renderAll();
+});
 
 
 // ===== PREHRANA & VODA =====
