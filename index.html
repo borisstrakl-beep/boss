@@ -3098,6 +3098,34 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Firebase Firestore SDK (habitflow) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const HF_CONFIG = {
+      apiKey: "AIzaSyAP_Yi-N3JIx2srDn-hOx-Iltnuvb8xAeA",
+      authDomain: "habitflow-4fab5.firebaseapp.com",
+      projectId: "habitflow-4fab5",
+      storageBucket: "habitflow-4fab5.firebasestorage.app",
+      messagingSenderId: "601971762927",
+      appId: "1:601971762927:web:8b1fc2f79e6d982b615d1a"
+    };
+    const HF_USER_ID = 'u4bA5jW8U0ZJ9hptuzuwnnlNA1g1';
+
+    const hfApp = initializeApp(HF_CONFIG, 'habitflow');
+    const hfDb = getFirestore(hfApp);
+
+    // Expose to global scope
+    window._hfDb = hfDb;
+    window._hfDoc = doc;
+    window._hfGetDoc = getDoc;
+    window._hfSetDoc = setDoc;
+    window._hfOnSnapshot = onSnapshot;
+    window._hfUserId = HF_USER_ID;
+    window._hfReady = true;
+    window.dispatchEvent(new Event('hfReady'));
+  </script>
 </head>
 <body>
 
@@ -3640,36 +3668,16 @@
 <div class="card-body">
       <div class="habit-score">
         <div class="habit-score-num" id="habit-done">0</div>
-        <div class="habit-score-total">/16</div>
+        <div class="habit-score-total" id="habit-total">/0</div>
         <div class="habit-score-label">DNEVNI REZULTAT</div>
+        <div id="habit-sync-status" style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);">⟳</div>
       </div>
       <div class="habit-progress-bar">
         <div class="habit-progress-fill" id="habit-bar" style="width:0%"></div>
       </div>
-
-      <div class="habit-section-label">
-        <span>☀ JUTRO · 6–9h</span><span id="s1">0/3</span>
+      <div id="habit-list-container">
+        <div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">Nalagam navade...</div>
       </div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Zobje</div><div class="habit-tag">ZDRAVJE</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Voda (3 dcl)</div><div class="habit-tag">HIDRACIJA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Kreatin (5g)</div><div class="habit-tag">PREHRANA</div></div>
-
-      <div class="habit-section-label" style="margin-top:6px">
-        <span>🌤 DOPOLDAN · 9–12h</span><span id="s2">0/2</span>
-      </div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Voda (3 dcl)</div><div class="habit-tag">HIDRACIJA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Finančni pregled</div><div class="habit-tag">PRODUKTIVNOST</div></div>
-
-      <div class="habit-section-label" style="margin-top:6px">
-        <span>🌙 VEČER · 18–22h</span><span id="s3">0/7</span>
-      </div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Zobje</div><div class="habit-tag">ZDRAVJE</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Voda (3 dcl)</div><div class="habit-tag">HIDRACIJA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Plan za naslednji dan</div><div class="habit-tag">UM & DUŠA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Kosilo za naslednji dan</div><div class="habit-tag">PREHRANA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Knjiga (15 strani)</div><div class="habit-tag">UM & DUŠA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Pisanje knjige (15 min)</div><div class="habit-tag">UM & DUŠA</div></div>
-      <div class="habit-item"><div class="habit-check" onclick="toggleHabit(this)"></div><div class="habit-name">Plank (2x 1 min)</div><div class="habit-tag">FITNES</div></div>
     </div>
   </div>
     </div>
@@ -7112,24 +7120,213 @@ setTimeout(() => fetchBanka(), 600);
 loadStavnica();
 
 
-// ===== NAVADE =====
-function toggleHabit(el) {
-  el.classList.toggle('done');
-  updateHabits();
+// ===== NAVADE (Firestore habitflow) =====
+
+const HF_DAY_PARTS = {
+  morning:   { label: '☀ JUTRO',     time: '6–9h'   },
+  forenoon:  { label: '🌤 DOPOLDAN', time: '9–12h'  },
+  afternoon: { label: '☀ POPOLDAN',  time: '12–18h' },
+  evening:   { label: '🌙 VEČER',    time: '18–22h' },
+  night:     { label: '😴 NOČ',      time: '22–6h'  }
+};
+
+const HF_CAT_COLORS = {
+  health:       'var(--red)',
+  hydration:    'var(--blue)',
+  productivity: 'var(--orange)',
+  nutrition:    'var(--green)',
+  mindfulness:  '#a78bfa',
+  learning:     '#22d3ee',
+  fitness:      'var(--yellow)'
+};
+
+const HF_CAT_LABELS = {
+  health: 'ZDRAVJE', hydration: 'HIDRACIJA', productivity: 'PRODUKTIVNOST',
+  nutrition: 'PREHRANA', mindfulness: 'UM & DUŠA', learning: 'UČENJE', fitness: 'FITNES'
+};
+
+let hfHabits = [];       // definicije navad iz Firestore
+let hfLogs = {};         // logs iz Firestore  { "habitId|dayPart": { "2026-06-03": 1, ... } }
+let hfToday = '';        // "2026-06-03"
+let hfSaving = false;
+
+function hfGetToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-function updateHabits() {
-  const all = document.querySelectorAll('.habit-check');
-  const done = document.querySelectorAll('.habit-check.done').length;
-  const total = all.length;
-  const pct = Math.round((done / total) * 100);
+function hfIsDone(habitId, dayPart) {
+  const key = dayPart ? habitId + '|' + dayPart : habitId;
+  return !!(hfLogs[key] && hfLogs[key][hfToday]);
+}
+
+function hfCountDone() {
+  let done = 0, total = 0;
+  hfHabits.forEach(h => {
+    if (!hfIsActiveToday(h)) return;
+    (h.dayParts || []).forEach(dp => { total++; if (hfIsDone(h.id, dp)) done++; });
+  });
+  return { done, total };
+}
+
+function hfIsActiveToday(habit) {
+  if (habit.frequency === 'daily') return true;
+  if (habit.frequency === 'weekends') {
+    const day = new Date().getDay();
+    return day === 0 || day === 6;
+  }
+  if (habit.frequency === 'weekdays') {
+    const day = new Date().getDay();
+    return day >= 1 && day <= 5;
+  }
+  return true;
+}
+
+function hfRender() {
+  const container = document.getElementById('habit-list-container');
+  if (!container) return;
+
+  // Grupiraj po dayParts vrstnem redu
+  const order = ['morning','forenoon','afternoon','evening','night'];
+  const groups = {};
+  order.forEach(dp => groups[dp] = []);
+
+  hfHabits.forEach(h => {
+    if (!hfIsActiveToday(h)) return;
+    (h.dayParts || []).forEach(dp => {
+      if (groups[dp]) groups[dp].push(h);
+    });
+  });
+
+  let html = '';
+  order.forEach(dp => {
+    const items = groups[dp];
+    if (!items.length) return;
+    const doneInGroup = items.filter(h => hfIsDone(h.id, dp)).length;
+    const info = HF_DAY_PARTS[dp];
+    html += '<div class="habit-section-label" style="margin-top:6px">';
+    html += '<span>' + info.label + ' · ' + info.time + '</span>';
+    html += '<span>' + doneInGroup + '/' + items.length + '</span>';
+    html += '</div>';
+    items.forEach(h => {
+      const done = hfIsDone(h.id, dp);
+      const color = HF_CAT_COLORS[h.category] || 'var(--orange)';
+      const catLabel = HF_CAT_LABELS[h.category] || h.category.toUpperCase();
+      html += '<div class="habit-item" data-id="' + h.id + '" data-dp="' + dp + '">';
+      html += '<div class="habit-check' + (done ? ' done' : '') + '" onclick="hfToggle(this)" style="' + (done ? 'background:'+color+';border-color:'+color+';' : '') + '">' + (done ? '✓' : '') + '</div>';
+      html += '<div class="habit-name">' + (h.emoji ? h.emoji + ' ' : '') + h.name + '</div>';
+      html += '<div class="habit-tag" style="color:' + color + '">' + catLabel + '</div>';
+      html += '</div>';
+    });
+  });
+
+  if (!html) html = '<div style="padding:16px;color:var(--text3);font-size:11px;">Ni aktivnih navad za danes.</div>';
+  container.innerHTML = html;
+  hfUpdateScore();
+}
+
+function hfUpdateScore() {
+  const { done, total } = hfCountDone();
+  const pct = total ? Math.round((done / total) * 100) : 0;
   const doneEl = document.getElementById('habit-done');
+  const totalEl = document.getElementById('habit-total');
   const barEl = document.getElementById('habit-bar');
   const counterEl = document.getElementById('habit-counter');
   if (doneEl) doneEl.textContent = done;
+  if (totalEl) totalEl.textContent = '/' + total;
   if (barEl) barEl.style.width = pct + '%';
   if (counterEl) counterEl.textContent = done + '/' + total + ' · ' + pct + '%';
 }
+
+async function hfToggle(el) {
+  const item = el.closest('.habit-item');
+  if (!item) return;
+  const habitId = item.dataset.id;
+  const dayPart = item.dataset.dp;
+  const key = habitId + '|' + dayPart;
+  const wasDone = hfIsDone(habitId, dayPart);
+
+  // Optimistično posodobi UI
+  if (!hfLogs[key]) hfLogs[key] = {};
+  if (wasDone) {
+    delete hfLogs[key][hfToday];
+  } else {
+    hfLogs[key][hfToday] = 1;
+  }
+  hfRender();
+
+  // Shrani v Firestore
+  await hfSaveLog(key);
+}
+
+async function hfSaveLog(key) {
+  if (!window._hfReady) return;
+  const syncEl = document.getElementById('habit-sync-status');
+  if (syncEl) syncEl.textContent = '⟳ sync...';
+  try {
+    const db = window._hfDb;
+    const docRef = window._hfDoc(db, 'users', window._hfUserId);
+    const snap = await window._hfGetDoc(docRef);
+    const data = snap.exists() ? snap.data() : {};
+    const logs = data.logs || {};
+    logs[key] = hfLogs[key] || {};
+    await window._hfSetDoc(docRef, { logs }, { merge: true });
+    if (syncEl) syncEl.textContent = '✓ synced';
+    setTimeout(() => { if (syncEl) syncEl.textContent = ''; }, 2000);
+  } catch(e) {
+    console.warn('hfSaveLog error:', e);
+    if (syncEl) syncEl.textContent = '⚠ offline';
+  }
+}
+
+async function hfInit() {
+  hfToday = hfGetToday();
+
+  // Počakaj da je Firebase SDK pripravljen
+  if (!window._hfReady) {
+    await new Promise(res => window.addEventListener('hfReady', res, { once: true }));
+  }
+
+  const syncEl = document.getElementById('habit-sync-status');
+  if (syncEl) syncEl.textContent = '⟳';
+
+  try {
+    const db = window._hfDb;
+    const docRef = window._hfDoc(db, 'users', window._hfUserId);
+    const snap = await window._hfGetDoc(docRef);
+    if (!snap.exists()) {
+      console.warn('habitflow: user doc not found');
+      const container = document.getElementById('habit-list-container');
+      if (container) container.innerHTML = '<div style="padding:16px;color:var(--red);font-size:11px;">Napaka: habitflow user ni najden.</div>';
+      return;
+    }
+    const data = snap.data();
+    hfHabits = Array.isArray(data.habits) ? data.habits : [];
+    hfLogs = data.logs || {};
+    hfRender();
+    if (syncEl) syncEl.textContent = '✓';
+    setTimeout(() => { if (syncEl) syncEl.textContent = ''; }, 2000);
+
+    // Real-time listener za spremembe (npr. iz habitflow app)
+    window._hfOnSnapshot(docRef, (doc) => {
+      if (doc.exists()) {
+        const d = doc.data();
+        hfHabits = Array.isArray(d.habits) ? d.habits : [];
+        hfLogs = d.logs || {};
+        hfRender();
+      }
+    });
+  } catch(e) {
+    console.warn('hfInit error:', e);
+    if (syncEl) syncEl.textContent = '⚠';
+    const container = document.getElementById('habit-list-container');
+    if (container) container.innerHTML = '<div style="padding:16px;color:var(--red);font-size:11px;">Napaka povezave s habitflow.</div>';
+  }
+}
+
+// Stara funkcija za kompatibilnost (ne dela nič več)
+function toggleHabit(el) {}
+function updateHabits() { hfUpdateScore(); }
 
 // ===== TODOIST NALOGE =====
 function toggleTask(el) {
@@ -7816,6 +8013,9 @@ function seedData() {
   books = [...existing, ...seed];
   saveBooks();
 }
+
+// Inicializiraj habitflow navade
+hfInit();
 
 // Najprej naloži iz Firebase, seedData samo če je vse prazno
 fetchBooksFirebase().then(fromFirebase => {
