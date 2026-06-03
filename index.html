@@ -3314,9 +3314,11 @@
         </div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px" id="fin-stav-vnosi">— vnosov</div>
         <div class="o-divider"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <input type="number" id="fin-stav-input" placeholder="Novo stanje (EUR)..." step="0.01"
-            style="flex:1;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+            style="flex:2;min-width:120px;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+          <input type="date" id="fin-stav-datum"
+            style="flex:1;min-width:110px;box-sizing:border-box;font-family:var(--mono);font-size:11px;padding:6px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text2);colorscheme:dark">
           <button onclick="finSaveStavnica()" class="add-btn" style="white-space:nowrap">+ VNESI</button>
         </div>
       </div>
@@ -6583,39 +6585,74 @@ function renderPortfeljChart() {
 }
 
 // ---- STAVNICA ----
+const STAVNICA_SEED = [
+  { znesek:7.48,  datum:'2026-05-10T12:00:00.000Z' },
+  { znesek:10.90, datum:'2026-05-11T12:00:00.000Z' },
+  { znesek:12.50, datum:'2026-05-12T12:00:00.000Z' },
+  { znesek:11.62, datum:'2026-05-13T12:00:00.000Z' },
+  { znesek:15.06, datum:'2026-05-14T12:00:00.000Z' },
+  { znesek:17.13, datum:'2026-05-15T12:00:00.000Z' },
+  { znesek:14.92, datum:'2026-05-16T12:00:00.000Z' },
+  { znesek:16.12, datum:'2026-05-17T12:00:00.000Z' },
+  { znesek:15.78, datum:'2026-05-18T12:00:00.000Z' },
+  { znesek:17.73, datum:'2026-05-19T12:00:00.000Z' },
+  { znesek:16.74, datum:'2026-05-20T12:00:00.000Z' },
+  { znesek:19.78, datum:'2026-05-21T12:00:00.000Z' },
+  { znesek:24.51, datum:'2026-05-22T12:00:00.000Z' },
+  { znesek:25.50, datum:'2026-05-23T12:00:00.000Z' },
+  { znesek:30.48, datum:'2026-05-24T12:00:00.000Z' },
+  { znesek:28.59, datum:'2026-05-25T12:00:00.000Z' },
+  { znesek:34.51, datum:'2026-05-26T12:00:00.000Z' },
+  { znesek:37.10, datum:'2026-05-27T12:00:00.000Z' },
+  { znesek:40.73, datum:'2026-05-28T12:00:00.000Z' },
+  { znesek:42.44, datum:'2026-05-29T12:00:00.000Z' },
+  { znesek:49.38, datum:'2026-05-30T12:00:00.000Z' },
+  { znesek:50.59, datum:'2026-05-31T12:00:00.000Z' },
+];
+
+async function fetchStavnicaFB() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    const raw = await fetch(FIREBASE_URL + '/stavnica.json', { signal: ctrl.signal })
+      .then(r => r.json()).catch(() => null);
+    if (raw && Array.isArray(raw) && raw.length > 0) {
+      finData.stavnica = raw.sort((a,b) => a.datum.localeCompare(b.datum));
+      localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
+      renderStavnica();
+      return true;
+    }
+  } catch(e) { console.warn('Firebase stavnica fetch:', e); }
+  return false;
+}
+
+async function saveStavnicaFB() {
+  try {
+    await fetch(FIREBASE_URL + '/stavnica.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(finData.stavnica)
+    });
+  } catch(e) { console.warn('Firebase stavnica save:', e); }
+}
+
 function loadStavnica() {
-  const saved = localStorage.getItem('fin_stavnica_history');
-  if (saved) {
-    finData.stavnica = JSON.parse(saved);
-  } else {
-    // Prednaloženi podatki
-    const seed = [
-      { znesek:7.48,  datum:'2026-05-10T12:00:00.000Z' },
-      { znesek:10.90, datum:'2026-05-11T12:00:00.000Z' },
-      { znesek:12.50, datum:'2026-05-12T12:00:00.000Z' },
-      { znesek:11.62, datum:'2026-05-13T12:00:00.000Z' },
-      { znesek:15.06, datum:'2026-05-14T12:00:00.000Z' },
-      { znesek:17.13, datum:'2026-05-15T12:00:00.000Z' },
-      { znesek:14.92, datum:'2026-05-16T12:00:00.000Z' },
-      { znesek:16.12, datum:'2026-05-17T12:00:00.000Z' },
-      { znesek:15.78, datum:'2026-05-18T12:00:00.000Z' },
-      { znesek:17.73, datum:'2026-05-19T12:00:00.000Z' },
-      { znesek:16.74, datum:'2026-05-20T12:00:00.000Z' },
-      { znesek:19.78, datum:'2026-05-21T12:00:00.000Z' },
-      { znesek:24.51, datum:'2026-05-22T12:00:00.000Z' },
-      { znesek:25.50, datum:'2026-05-23T12:00:00.000Z' },
-      { znesek:30.48, datum:'2026-05-24T12:00:00.000Z' },
-      { znesek:28.59, datum:'2026-05-25T12:00:00.000Z' },
-      { znesek:34.51, datum:'2026-05-26T12:00:00.000Z' },
-      { znesek:37.10, datum:'2026-05-27T12:00:00.000Z' },
-      { znesek:40.73, datum:'2026-05-28T12:00:00.000Z' },
-      { znesek:42.44, datum:'2026-05-29T12:00:00.000Z' },
-      { znesek:49.38, datum:'2026-05-30T12:00:00.000Z' },
-      { znesek:50.59, datum:'2026-05-31T12:00:00.000Z' },
-    ];
-    finData.stavnica = seed;
-    localStorage.setItem('fin_stavnica_history', JSON.stringify(seed));
+  // Takoj prikaži iz localStorage (brez zakasnitve)
+  const cached = localStorage.getItem('fin_stavnica_history');
+  if (cached) {
+    finData.stavnica = JSON.parse(cached);
+    renderStavnica();
   }
+  // V ozadju osveži iz Firebase
+  fetchStavnicaFB().then(ok => {
+    if (!ok && (!finData.stavnica || finData.stavnica.length === 0)) {
+      // Prvo zagonu: naloži seed podatke in jih shrani v Firebase
+      finData.stavnica = STAVNICA_SEED;
+      localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
+      saveStavnicaFB();
+      renderStavnica();
+    }
+  });
 }
 
 let stavCasOkno = '30d';
@@ -6684,10 +6721,17 @@ function finSaveStavnica() {
   if (!input || !input.value) return;
   const z = parseFloat(input.value);
   if (isNaN(z)) return;
+  const datumInput = document.getElementById('fin-stav-datum');
+  const datum = datumInput && datumInput.value
+    ? datumInput.value + 'T12:00:00.000Z'
+    : new Date().toISOString();
   if (!finData.stavnica) finData.stavnica = [];
-  finData.stavnica.push({ znesek: z, datum: new Date().toISOString() });
+  finData.stavnica.push({ znesek: z, datum });
+  finData.stavnica.sort((a,b) => a.datum.localeCompare(b.datum));
   localStorage.setItem('fin_stavnica_history', JSON.stringify(finData.stavnica));
+  saveStavnicaFB();
   input.value = '';
+  if (datumInput) datumInput.value = '';
   renderStavnica();
 }
 
