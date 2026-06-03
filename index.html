@@ -2670,6 +2670,204 @@
     .span3 { grid-column: span 2; }
   }
 
+  /* ===== TV SERIJE ===== */
+  .shows-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .show-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .show-card:hover {
+    border-color: var(--orange-dim);
+    transform: translateY(-2px);
+  }
+
+  .show-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+    background: var(--bg4);
+  }
+
+  .show-poster-placeholder {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: linear-gradient(135deg, var(--bg4), var(--bg3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+
+  .show-info {
+    padding: 8px 10px;
+  }
+
+  .show-title {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+
+  .show-meta-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .show-tag {
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    padding: 2px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .tag-platform-netflix  { background: rgba(229,9,20,0.18);   color: #e50914; }
+  .tag-platform-hbo      { background: rgba(100,65,165,0.2);  color: #9b77d6; }
+  .tag-platform-amazon   { background: rgba(0,168,225,0.18);  color: #00a8e1; }
+  .tag-platform-apple    { background: rgba(255,255,255,0.1); color: #aaa; }
+  .tag-platform-sky      { background: rgba(59,130,246,0.18); color: #60a5fa; }
+  .tag-platform-disney   { background: rgba(17,60,219,0.2);   color: #6d8fff; }
+  .tag-platform-voyo     { background: rgba(249,115,22,0.18); color: #f97316; }
+  .tag-platform-eon      { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  .tag-platform-drugo    { background: rgba(120,120,120,0.15);color: #888; }
+
+  .tag-genre-show {
+    background: rgba(255,255,255,0.06);
+    color: var(--text2);
+  }
+
+  .show-progress-bar {
+    height: 3px;
+    background: var(--bg4);
+    border-radius: 2px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+
+  .show-progress-fill {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .show-episode-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .show-rating {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .show-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .show-btn {
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    padding: 3px 7px;
+    border-radius: 2px;
+    border: 1px solid var(--border2);
+    background: var(--bg4);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex: 1;
+    text-align: center;
+  }
+
+  .show-btn:hover { border-color: var(--orange-dim); color: var(--orange); }
+  .show-btn.primary { background: var(--orange-glow); border-color: var(--orange-dim); color: var(--orange); }
+
+  /* Zavihek za platforme v čakalni vrsti */
+  .show-platform-section { margin-bottom: 16px; }
+  .show-platform-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .show-platform-name {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .show-platform-count {
+    font-family: var(--mono);
+    font-size: 8px;
+    background: var(--bg4);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--text3);
+  }
+
+  /* TV Analitika */
+  .tv-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .tv-stat-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .tv-stat-num {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--orange);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .tv-stat-label {
+    font-family: var(--cond);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
+    .shows-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .tv-analytics-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* ===== WEATHER BUNNY — DESKTOP ===== */
   #weather-bunny-panel {
     width: 160px;
@@ -3925,10 +4123,232 @@
   </div>
 </div>
 
+<!-- ===== TV SERIJE TAB ===== -->
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-tvserije')">
+    <div class="tab-head-left">
+      <span class="tab-num">12 //</span>
+      <span class="tab-title">TV SERIJE</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="tv-status-badge"></span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-tvserije">
+    <div class="tab-content">
+<div class="library-section" style="margin-top:0">
+  <div class="library-card">
+    <div class="library-header">
+      <div class="card-label" style="font-size:11px"><span class="num">12 //</span> TV SERIJE</div>
+      <button class="btn btn-primary" onclick="openAddShow()" style="font-size:8px;padding:6px 14px">+ DODAJ SERIJO</button>
+    </div>
+    <div class="library-tabs">
+      <div class="lib-tab active" onclick="switchShowTab(this,'watching')" data-showtab="watching">GLEDAM <span class="lib-tab-count" id="cnt-watching">0</span></div>
+      <div class="lib-tab" onclick="switchShowTab(this,'showqueue')" data-showtab="showqueue">SEZNAM <span class="lib-tab-count" id="cnt-showqueue">0</span></div>
+      <div class="lib-tab" onclick="switchShowTab(this,'watched')" data-showtab="watched">GLEDANO <span class="lib-tab-count" id="cnt-watched">0</span></div>
+      <div class="lib-tab" onclick="switchShowTab(this,'tvanalytics')" data-showtab="tvanalytics">ANALITIKA</div>
+    </div>
+
+    <!-- TAB: GLEDAM -->
+    <div id="tab-watching" class="library-body">
+      <div id="watching-shows" class="shows-grid"></div>
+      <div id="watching-empty" class="empty-state hidden"><div class="empty-icon">📺</div>Trenutno ne gledaš nobene serije.</div>
+    </div>
+
+    <!-- TAB: SEZNAM (čakalna vrsta po platformah) -->
+    <div id="tab-showqueue" class="library-body" style="display:none">
+      <div id="showqueue-content"></div>
+      <div id="showqueue-empty" class="empty-state hidden"><div class="empty-icon">🎬</div>Seznam za gledanje je prazen.</div>
+    </div>
+
+    <!-- TAB: GLEDANO -->
+    <div id="tab-watched" class="library-body" style="display:none">
+      <div id="watched-shows" class="shows-grid"></div>
+      <div id="watched-empty" class="empty-state hidden"><div class="empty-icon">✅</div>Še ni označenih serij kot gledano.</div>
+    </div>
+
+    <!-- TAB: ANALITIKA -->
+    <div id="tab-tvanalytics" class="library-body" style="display:none">
+      <div id="tvanalytics-content"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODAL: DODAJ SERIJO -->
+<div class="modal-overlay hidden" id="modal-add-show">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">+ DODAJ TV SERIJO</div>
+      <button class="modal-close" onclick="closeModal('modal-add-show')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">NASLOV SERIJE *</label>
+        <input class="form-input" id="show-add-title" type="text" placeholder="Vpiši naslov...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PLATFORMA *</label>
+        <div class="form-radio-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-netflix" value="netflix" checked><label for="plat-netflix">🔴 Netflix</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-hbo" value="hbo"><label for="plat-hbo">🟣 HBO Max</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-amazon" value="amazon"><label for="plat-amazon">🔵 Amazon Prime</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-apple" value="apple"><label for="plat-apple">⬜ Apple TV+</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-sky" value="sky"><label for="plat-sky">🔷 Sky Showtime</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-disney" value="disney"><label for="plat-disney">🟦 Disney+</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-voyo" value="voyo"><label for="plat-voyo">🟠 Voyo</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-eon" value="eon"><label for="plat-eon">🟢 EON</label></div>
+          <div class="form-radio"><input type="radio" name="show-platform" id="plat-drugo" value="drugo"><label for="plat-drugo">⚫ Drugo</label></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ŽANR</label>
+        <select class="form-input" id="show-add-genre">
+          <option value="Triler">🔪 Triler</option>
+          <option value="Drama">🎭 Drama</option>
+          <option value="Komedija">😄 Komedija</option>
+          <option value="Akcija">💥 Akcija</option>
+          <option value="Sci-Fi">🚀 Sci-Fi</option>
+          <option value="Kriminalka">🕵️ Kriminalka</option>
+          <option value="Dokumentarec">🎬 Dokumentarec</option>
+          <option value="Fantasy">🧙 Fantasy</option>
+          <option value="Grozljivka">👻 Grozljivka</option>
+          <option value="Romantika">💕 Romantika</option>
+          <option value="Anime">⛩️ Anime</option>
+          <option value="Drugo">📺 Drugo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">STATUS *</label>
+        <div class="form-radio-group">
+          <div class="form-radio"><input type="radio" name="show-status" id="show-watching" value="watching"><label for="show-watching">▶️ Trenutno gledam</label></div>
+          <div class="form-radio"><input type="radio" name="show-status" id="show-queue" value="showqueue" checked><label for="show-queue">📋 Seznam za gledanje</label></div>
+        </div>
+      </div>
+      <div id="show-episode-group" class="form-group" style="display:none">
+        <label class="form-label">SEZONA / EPIZODA</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:center">
+          <div>
+            <label class="form-label" style="font-size:8px">SEZONA</label>
+            <input class="form-input" id="show-season" type="number" min="1" value="1" placeholder="1">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">EPIZODA</label>
+            <input class="form-input" id="show-episode" type="number" min="1" value="1" placeholder="1">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">SKUPAJ SEZ.</label>
+            <input class="form-input" id="show-total-seasons" type="number" min="1" placeholder="?">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">EP./SEZ.</label>
+            <input class="form-input" id="show-eps-per-season" type="number" min="1" placeholder="?">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PLAKAT (slika)</label>
+        <div id="show-cover-zone" onclick="document.getElementById('show-cover-file').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:10px;text-align:center;cursor:pointer;transition:border-color .2s;min-height:60px;display:flex;align-items:center;justify-content:center;gap:10px;position:relative">
+          <img id="show-cover-preview" src="" alt="" style="display:none;height:80px;width:54px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="show-cover-hint" style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 Prilepi sliko (Ctrl+V) ali klikni za izbiro</div>
+          <button id="show-cover-clear" onclick="clearShowCover(event)" style="display:none;position:absolute;top:4px;right:6px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="file" id="show-cover-file" accept="image/*" style="display:none" onchange="handleShowCoverFile(this.files[0])">
+      </div>
+      <div class="form-group">
+        <label class="form-label">KOMENTAR (opcijsko)</label>
+        <input class="form-input" id="show-add-note" type="text" placeholder="Kratka opomba...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-show')">PREKLIČI</button>
+      <button class="btn btn-primary" onclick="saveShow()">SHRANI SERIJO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: POSODOBI SERIJO -->
+<div class="modal-overlay hidden" id="modal-update-show">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title" id="update-show-title-header">POSODOBI SERIJO</div>
+      <button class="modal-close" onclick="closeModal('modal-update-show')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="update-show-info" style="font-family:var(--cond);font-size:13px;color:var(--text2);margin-bottom:14px"></div>
+      <div class="form-group">
+        <label class="form-label">PLAKAT (opcijsko)</label>
+        <div id="show-cover-zone-u" onclick="document.getElementById('show-cover-file-u').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:8px;text-align:center;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:50px;position:relative">
+          <img id="show-cover-preview-u" src="" alt="" style="display:none;height:60px;width:40px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="show-cover-hint-u" style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 Prilepi (Ctrl+V) ali klikni za sliko</div>
+          <button id="show-cover-clear-u" onclick="clearShowCoverU(event)" style="display:none;margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="file" id="show-cover-file-u" accept="image/*" style="display:none" onchange="handleShowCoverFileU(this.files[0])">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SEZONA / EPIZODA</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+          <div>
+            <label class="form-label" style="font-size:8px">SEZONA</label>
+            <input class="form-input" id="upd-season" type="number" min="1" value="1">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">EPIZODA</label>
+            <input class="form-input" id="upd-episode" type="number" min="1" value="1">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">SKUPAJ SEZ.</label>
+            <input class="form-input" id="upd-total-seasons" type="number" min="1" placeholder="?">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:8px">EP./SEZ.</label>
+            <input class="form-input" id="upd-eps-per-season" type="number" min="1" placeholder="?">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">OCENA</label>
+        <div style="display:flex;gap:6px">
+          <button class="book-action-btn" onclick="setShowRating(1)" data-showrating="1">⭐</button>
+          <button class="book-action-btn" onclick="setShowRating(2)" data-showrating="2">⭐⭐</button>
+          <button class="book-action-btn" onclick="setShowRating(3)" data-showrating="3">⭐⭐⭐</button>
+          <button class="book-action-btn" onclick="setShowRating(4)" data-showrating="4">⭐⭐⭐⭐</button>
+          <button class="book-action-btn" onclick="setShowRating(5)" data-showrating="5">⭐⭐⭐⭐⭐</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PREMAKNI V</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="show-btn" onclick="moveShow('watching')">▶️ GLEDAM</button>
+          <button class="show-btn" onclick="moveShow('showqueue')">📋 SEZNAM</button>
+          <button class="show-btn" onclick="moveShow('watched')">✅ GLEDANO</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">KOMENTAR</label>
+        <input class="form-input" id="upd-show-note" type="text" placeholder="Kratka opomba...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-update-show')">PREKLIČI</button>
+      <button class="btn btn-danger" onclick="deleteShow()" style="background:var(--red-dim);border-color:var(--red);color:var(--red);font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:8px 16px;border-radius:3px;cursor:pointer">IZBRIŠI</button>
+      <button class="btn btn-primary" onclick="saveShowUpdate()">SHRANI</button>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+
 <div class="tab-strip">
   <div class="tab-head open" onclick="toggleTab(this,'tab-evsledenje')">
     <div class="tab-head-left">
-      <span class="tab-num">12 //</span>
+      <span class="tab-num">13 //</span>
       <span class="tab-title">EV — ENYAQ</span>
 
     </div>
@@ -3942,7 +4362,7 @@
 <div class="library-section" style="margin-top:0">
       <div class="library-card">
         <div class="library-header">
-          <div class="card-label" style="font-size:11px"><span class="num">12 //</span> EV — ENYAQ</div>
+          <div class="card-label" style="font-size:11px"><span class="num">13 //</span> EV — ENYAQ</div>
           <div id="ev-updated-badge-inner" class="card-badge"></div>
         </div>
         <div class="library-tabs">
@@ -4931,7 +5351,6 @@ const GCAL_CALENDARS = [
   { id: 'tasks@group.v.calendar.google.com',                                                          key: 'todoist',  label: 'Todoist',       color: '#ef4444' },
   { id: '9qecr3t237ecmi4h1fhrth1n90@group.calendar.google.com',                                                            key: 'msora',    label: 'M Sora',        color: '#06b6d4' },
   { id: '6eg1noirmh70doip6aa3gsmnis@group.calendar.google.com',                                                        key: 'spielplan',label: 'Spielplan',     color: '#f472b6' },
-  { id: '3t72q009s3qtleo0sa3s5iade317l66e@import.calendar.google.com',                                               key: 'oa',       label: 'Okenska arhitektura', color: '#fb923c' },
 ];
 
 const CAL_DAY_SL    = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
@@ -8200,6 +8619,438 @@ function evsClearFilters() {
   if (el) el.__evStatsFilters = {mesec:'',postaja:''};
   renderEvStats();
 }
+
+// ===== TV SERIJE =====
+let shows = [];
+let showsSyncing = false;
+let editingShowId = null;
+let currentShowRating = 0;
+window._newShowCoverDataUrl = null;
+window._newShowCoverDataUrlU = null;
+
+const PLATFORM_LABELS = {
+  netflix:'Netflix', hbo:'HBO Max', amazon:'Amazon Prime',
+  apple:'Apple TV+', sky:'Sky Showtime', disney:'Disney+',
+  voyo:'Voyo', eon:'EON', drugo:'Drugo'
+};
+const PLATFORM_ICONS = {
+  netflix:'\uD83D\uDD34', hbo:'\uD83D\uDFE3', amazon:'\uD83D\uDD35', apple:'\u2B1C',
+  sky:'\uD83D\uDD37', disney:'\uD83D\uDFE6', voyo:'\uD83D\uDFE0', eon:'\uD83D\uDFE2', drugo:'\u26AB'
+};
+
+async function saveShowsFirebase() {
+  if (showsSyncing) return;
+  showsSyncing = true;
+  try {
+    await fetch(FIREBASE_URL + '/shows.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shows, updatedAt: new Date().toISOString() })
+    });
+  } catch(e) { console.warn('Firebase shows save:', e); }
+  showsSyncing = false;
+}
+
+function saveShows() {
+  localStorage.setItem('borisShows', JSON.stringify(shows));
+  saveShowsFirebase();
+}
+
+async function fetchShowsFirebase() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    const raw = await fetch(FIREBASE_URL + '/shows.json', { signal: ctrl.signal })
+      .then(r => r.json()).catch(() => null);
+    if (raw && raw.shows && Array.isArray(raw.shows) && raw.shows.length > 0) {
+      shows = raw.shows;
+      localStorage.setItem('borisShows', JSON.stringify(shows));
+      renderAllShows(); updateShowCounts();
+      return true;
+    }
+  } catch(e) { console.warn('Firebase shows fetch:', e); }
+  const local = JSON.parse(localStorage.getItem('borisShows') || '[]');
+  if (local.length > 0) { shows = local; }
+  return false;
+}
+
+function generateShowSvg(title) {
+  const colors = ['#0f172a','#1a0a1a','#0a1a0a','#1a1a0a','#0a0a1a','#1a0a0a'];
+  const accents = ['#e50914','#9b77d6','#00a8e1','#f97316','#3b82f6','#22c55e'];
+  const idx = Math.abs(title.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % colors.length;
+  const c1 = colors[idx], c2 = accents[idx];
+  const words = title.split(' ');
+  let lines = [], cur = '';
+  words.forEach(w => {
+    if ((cur+' '+w).trim().length > 12) { if(cur) lines.push(cur); cur=w; }
+    else cur = (cur+' '+w).trim();
+  });
+  if (cur) lines.push(cur);
+  lines = lines.slice(0,5);
+  const titleY = 170 - (lines.length-1)*16;
+  const titleSvg = lines.map((l,i) =>
+    '<text x="100" y="' + (titleY+i*20) + '" font-family="Georgia,serif" font-size="13" font-weight="bold" fill="' + c2 + '" text-anchor="middle">' + l + '</text>'
+  ).join('');
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">'
+    + '<defs><linearGradient id="sg' + idx + '" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="' + c1 + '"/><stop offset="100%" stop-color="#050505"/>'
+    + '</linearGradient></defs>'
+    + '<rect width="200" height="300" fill="url(#sg' + idx + ')"/>'
+    + '<rect x="0" y="0" width="200" height="4" fill="' + c2 + '" opacity="0.8"/>'
+    + '<rect x="0" y="296" width="200" height="4" fill="' + c2 + '" opacity="0.4"/>'
+    + titleSvg
+    + '<text x="100" y="265" font-family="Arial,sans-serif" font-size="8" fill="#555" text-anchor="middle">TV</text>'
+    + '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function calcShowProgress(s) {
+  if (!s.totalSeasons || !s.epsPerSeason) return null;
+  const total = s.totalSeasons * s.epsPerSeason;
+  const done = Math.max(0, ((s.season||1)-1) * s.epsPerSeason + (s.episode||1) - 1);
+  return Math.min(100, Math.round((done/total)*100));
+}
+
+function showEpisodeLabel(s) {
+  let label = 'S' + String(s.season||1).padStart(2,'0') + 'E' + String(s.episode||1).padStart(2,'0');
+  if (s.totalSeasons) label += ' / S' + String(s.totalSeasons).padStart(2,'0');
+  return label;
+}
+
+function renderShowCard(s) {
+  const pct = calcShowProgress(s);
+  const coverHtml = (s.posterUrl && s.posterUrl.length > 0)
+    ? '<img class="show-poster" src="' + s.posterUrl + '" alt="' + s.title + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+      + '<div class="show-poster-placeholder" style="display:none">\uD83D\uDCFA</div>'
+    : '<div class="show-poster-placeholder">\uD83D\uDCFA</div>';
+  const ratingHtml = s.rating ? '\u2B50'.repeat(s.rating) : '';
+  const episodeHtml = (s.season || s.episode) ? '<div class="show-episode-label">' + showEpisodeLabel(s) + (pct !== null ? ' \u2014 ' + pct + '%' : '') + '</div>' : '';
+  const progressHtml = (pct !== null && s.status === 'watching')
+    ? episodeHtml + '<div class="show-progress-bar"><div class="show-progress-fill" style="width:' + pct + '%"></div></div>'
+    : (s.status === 'watching' ? episodeHtml : '');
+  const noteHtml = s.note ? '<div style="font-family:var(--cond);font-size:10px;color:var(--text2);margin-top:3px;line-height:1.3">' + s.note + '</div>' : '';
+  const platIcon = PLATFORM_ICONS[s.platform] || '\uD83D\uDCFA';
+  const platLabel = PLATFORM_LABELS[s.platform] || s.platform;
+  return '<div class="show-card" onclick="openUpdateShow(\'' + s.id + '\')">'
+    + coverHtml
+    + '<div class="show-info">'
+    + '<div class="show-title">' + s.title + '</div>'
+    + '<div class="show-meta-row">'
+    + '<span class="show-tag tag-platform-' + s.platform + '">' + platIcon + ' ' + platLabel + '</span>'
+    + '<span class="show-tag tag-genre-show">' + (s.genre||'Serija') + '</span>'
+    + '</div>'
+    + progressHtml
+    + (ratingHtml ? '<div class="show-rating">' + ratingHtml + '</div>' : '')
+    + noteHtml
+    + '</div></div>';
+}
+
+function renderWatching() {
+  const list = shows.filter(s=>s.status==='watching');
+  const grid = document.getElementById('watching-shows');
+  const empty = document.getElementById('watching-empty');
+  if (!grid) return;
+  if (list.length === 0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = list.map(s=>renderShowCard(s)).join('');
+}
+
+function renderShowQueue() {
+  const list = shows.filter(s=>s.status==='showqueue');
+  const content = document.getElementById('showqueue-content');
+  const empty = document.getElementById('showqueue-empty');
+  if (!content) return;
+  if (list.length===0) { content.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  const byPlatform = {};
+  list.forEach(s => { if (!byPlatform[s.platform]) byPlatform[s.platform]=[]; byPlatform[s.platform].push(s); });
+  const order = ['netflix','hbo','amazon','apple','sky','disney','voyo','eon','drugo'];
+  let html = '';
+  order.forEach(plat => {
+    if (!byPlatform[plat] || !byPlatform[plat].length) return;
+    const platIcon = PLATFORM_ICONS[plat] || '';
+    const platLabel = PLATFORM_LABELS[plat] || plat;
+    html += '<div class="show-platform-section">'
+      + '<div class="show-platform-header">'
+      + '<span class="show-platform-name show-tag tag-platform-' + plat + '">' + platIcon + ' ' + platLabel + '</span>'
+      + '<span class="show-platform-count">' + byPlatform[plat].length + '</span>'
+      + '</div>'
+      + '<div class="shows-grid">' + byPlatform[plat].map(s=>renderShowCard(s)).join('') + '</div>'
+      + '</div>';
+  });
+  content.innerHTML = html;
+}
+
+function renderWatched() {
+  const list = shows.filter(s=>s.status==='watched').sort((a,b)=>(b.watchedDate||'').localeCompare(a.watchedDate||''));
+  const grid = document.getElementById('watched-shows');
+  const empty = document.getElementById('watched-empty');
+  if (!grid) return;
+  if (list.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = list.map(s=>renderShowCard(s)).join('');
+}
+
+function renderTvAnalytics() {
+  const el = document.getElementById('tvanalytics-content');
+  if (!el) return;
+  const total = shows.length;
+  const watching = shows.filter(s=>s.status==='watching').length;
+  const watched = shows.filter(s=>s.status==='watched').length;
+  const byPlat = {};
+  shows.forEach(s=>{ byPlat[s.platform]=(byPlat[s.platform]||0)+1; });
+  const platRows = Object.entries(byPlat).sort((a,b)=>b[1]-a[1]).map(([p,n])=>{
+    const pct = total>0 ? Math.round(n/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      + '<span class="show-tag tag-platform-' + p + '" style="min-width:95px">' + (PLATFORM_ICONS[p]||'') + ' ' + (PLATFORM_LABELS[p]||p) + '</span>'
+      + '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:var(--orange);border-radius:3px"></div></div>'
+      + '<span style="font-family:var(--mono);font-size:9px;color:var(--text2);min-width:16px">' + n + '</span>'
+      + '</div>';
+  }).join('');
+  const byGenre = {};
+  shows.forEach(s=>{ byGenre[s.genre||'Drugo']=(byGenre[s.genre||'Drugo']||0)+1; });
+  const genreRows = Object.entries(byGenre).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([g,n])=>{
+    const pct = total>0 ? Math.round(n/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      + '<span style="font-family:var(--cond);font-size:11px;color:var(--text);min-width:90px">' + g + '</span>'
+      + '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:var(--blue);border-radius:3px"></div></div>'
+      + '<span style="font-family:var(--mono);font-size:9px;color:var(--text2);min-width:16px">' + n + '</span>'
+      + '</div>';
+  }).join('');
+  const topRated = shows.filter(s=>s.rating>=4&&s.status==='watched').sort((a,b)=>b.rating-a.rating).slice(0,5);
+  const topHtml = topRated.length ? topRated.map(s=>
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
+    + '<span class="show-tag tag-platform-' + s.platform + '">' + (PLATFORM_ICONS[s.platform]||'') + '</span>'
+    + '<span style="font-family:var(--cond);font-size:13px;flex:1">' + s.title + '</span>'
+    + '<span style="font-size:10px">\u2B50</span><span style="font-family:var(--mono);font-size:9px;color:var(--orange)">' + s.rating + '</span>'
+    + '</div>').join('')
+    : '<div style="font-family:var(--cond);font-size:12px;color:var(--text2);padding:10px 0">\u0160e ni ocenjenih serij.</div>';
+  el.innerHTML = '<div class="tv-analytics-grid">'
+    + '<div class="tv-stat-card"><div class="tv-stat-num">' + total + '</div><div class="tv-stat-label">Skupaj</div></div>'
+    + '<div class="tv-stat-card"><div class="tv-stat-num" style="color:var(--green)">' + watching + '</div><div class="tv-stat-label">Gledam</div></div>'
+    + '<div class="tv-stat-card"><div class="tv-stat-num" style="color:var(--text2)">' + watched + '</div><div class="tv-stat-label">Gledano</div></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">PO PLATFORMAH</div>' + (platRows||'<div style="color:var(--text3);font-size:11px">Ni podatkov</div>') + '</div>'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">PO \u017dANRIH</div>' + (genreRows||'<div style="color:var(--text3);font-size:11px">Ni podatkov</div>') + '</div>'
+    + '</div>'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">TOP OCENJENE</div>' + topHtml + '</div>';
+}
+
+function renderAllShows() { renderWatching(); renderShowQueue(); renderWatched(); updateShowCounts(); }
+
+function updateShowCounts() {
+  const w = document.getElementById('cnt-watching');
+  const q = document.getElementById('cnt-showqueue');
+  const d = document.getElementById('cnt-watched');
+  const badge = document.getElementById('tv-status-badge');
+  if(w) w.textContent = shows.filter(s=>s.status==='watching').length;
+  if(q) q.textContent = shows.filter(s=>s.status==='showqueue').length;
+  if(d) d.textContent = shows.filter(s=>s.status==='watched').length;
+  if(badge) { const n=shows.filter(s=>s.status==='watching').length; badge.textContent = n>0 ? n+' V TEKU' : ''; }
+}
+
+function switchShowTab(el, tab) {
+  document.querySelectorAll('[data-showtab]').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['watching','showqueue','watched','tvanalytics'].forEach(t=>{
+    const el2=document.getElementById('tab-'+t);
+    if(el2) el2.style.display = t===tab ? '' : 'none';
+  });
+  if (tab==='tvanalytics') renderTvAnalytics();
+}
+
+function openAddShow() {
+  window._newShowCoverDataUrl = null;
+  document.getElementById('show-add-title').value = '';
+  document.getElementById('show-add-genre').value = 'Triler';
+  document.getElementById('show-add-note').value = '';
+  document.querySelector('input[name="show-platform"][value="netflix"]').checked = true;
+  document.querySelector('input[name="show-status"][value="showqueue"]').checked = true;
+  document.getElementById('show-episode-group').style.display = 'none';
+  document.getElementById('show-season').value = 1;
+  document.getElementById('show-episode').value = 1;
+  document.getElementById('show-total-seasons').value = '';
+  document.getElementById('show-eps-per-season').value = '';
+  resetShowCoverZone();
+  document.querySelectorAll('input[name="show-status"]').forEach(r => {
+    r.onchange = () => {
+      document.getElementById('show-episode-group').style.display =
+        document.querySelector('input[name="show-status"]:checked')?.value === 'watching' ? '' : 'none';
+    };
+  });
+  document.getElementById('modal-add-show').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('show-add-title').focus(),100);
+}
+
+function resetShowCoverZone() {
+  window._newShowCoverDataUrl = null;
+  const img=document.getElementById('show-cover-preview');
+  const hint=document.getElementById('show-cover-hint');
+  const clr=document.getElementById('show-cover-clear');
+  const zone=document.getElementById('show-cover-zone');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+  if(zone)zone.style.borderColor='';
+}
+
+function clearShowCover(e) { e.stopPropagation(); resetShowCoverZone(); }
+
+function handleShowCoverFile(file) {
+  if(!file||!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    window._newShowCoverDataUrl = ev.target.result;
+    const img=document.getElementById('show-cover-preview');
+    const hint=document.getElementById('show-cover-hint');
+    const clr=document.getElementById('show-cover-clear');
+    const zone=document.getElementById('show-cover-zone');
+    if(img){img.src=ev.target.result;img.style.display='';}
+    if(hint)hint.style.display='none';
+    if(clr)clr.style.display='';
+    if(zone)zone.style.borderColor='var(--orange)';
+  };
+  r.readAsDataURL(file);
+}
+
+function resetShowCoverZoneU() {
+  window._newShowCoverDataUrlU = null;
+  const img=document.getElementById('show-cover-preview-u');
+  const hint=document.getElementById('show-cover-hint-u');
+  const clr=document.getElementById('show-cover-clear-u');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+}
+
+function clearShowCoverU(e) { e.stopPropagation(); resetShowCoverZoneU(); }
+
+function handleShowCoverFileU(file) {
+  if(!file||!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    window._newShowCoverDataUrlU = ev.target.result;
+    const img=document.getElementById('show-cover-preview-u');
+    const hint=document.getElementById('show-cover-hint-u');
+    const clr=document.getElementById('show-cover-clear-u');
+    if(img){img.src=ev.target.result;img.style.display='';}
+    if(hint)hint.style.display='none';
+    if(clr)clr.style.display='';
+  };
+  r.readAsDataURL(file);
+}
+
+function openUpdateShow(id) {
+  const s = shows.find(x=>x.id===id);
+  if (!s) return;
+  editingShowId = id;
+  currentShowRating = s.rating||0;
+  resetShowCoverZoneU();
+  document.getElementById('update-show-title-header').textContent = s.title;
+  document.getElementById('update-show-info').textContent = (PLATFORM_ICONS[s.platform]||'') + ' ' + (PLATFORM_LABELS[s.platform]||s.platform) + ' \u00B7 ' + (s.genre||'Serija');
+  document.getElementById('upd-season').value = s.season||1;
+  document.getElementById('upd-episode').value = s.episode||1;
+  document.getElementById('upd-total-seasons').value = s.totalSeasons||'';
+  document.getElementById('upd-eps-per-season').value = s.epsPerSeason||'';
+  document.getElementById('upd-show-note').value = s.note||'';
+  document.querySelectorAll('[data-showrating]').forEach(b=>{
+    b.style.opacity = parseInt(b.dataset.showrating) <= currentShowRating ? '1' : '0.4';
+  });
+  if (s.posterUrl && !s.posterUrl.startsWith('data:image/svg')) {
+    const img=document.getElementById('show-cover-preview-u');
+    const hint=document.getElementById('show-cover-hint-u');
+    if(img){img.src=s.posterUrl;img.style.display='';}
+    if(hint)hint.style.display='none';
+  }
+  document.getElementById('modal-update-show').classList.remove('hidden');
+}
+
+function setShowRating(n) {
+  currentShowRating = n;
+  document.querySelectorAll('[data-showrating]').forEach(b=>{
+    b.style.opacity = parseInt(b.dataset.showrating) <= n ? '1' : '0.4';
+  });
+}
+
+function saveShow() {
+  const title = document.getElementById('show-add-title').value.trim();
+  if (!title) { alert('Vpi\u0161i naslov serije!'); return; }
+  const platform = document.querySelector('input[name="show-platform"]:checked')?.value || 'netflix';
+  const status = document.querySelector('input[name="show-status"]:checked')?.value || 'showqueue';
+  const genre = document.getElementById('show-add-genre').value;
+  const note = document.getElementById('show-add-note').value.trim();
+  const season = parseInt(document.getElementById('show-season').value)||1;
+  const episode = parseInt(document.getElementById('show-episode').value)||1;
+  const totalSeasons = parseInt(document.getElementById('show-total-seasons').value)||null;
+  const epsPerSeason = parseInt(document.getElementById('show-eps-per-season').value)||null;
+  const posterUrl = window._newShowCoverDataUrl || generateShowSvg(title);
+  const id = 'tv' + Date.now();
+  const now = new Date();
+  const dateStr = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+  shows.push({ id, title, platform, genre, status, season, episode, totalSeasons, epsPerSeason,
+    posterUrl, note, rating: 0, addedDate: dateStr, watchedDate: null });
+  saveShows(); renderAllShows();
+  closeModal('modal-add-show');
+}
+
+function saveShowUpdate() {
+  const s = shows.find(x=>x.id===editingShowId);
+  if (!s) return;
+  s.season = parseInt(document.getElementById('upd-season').value)||1;
+  s.episode = parseInt(document.getElementById('upd-episode').value)||1;
+  s.totalSeasons = parseInt(document.getElementById('upd-total-seasons').value)||null;
+  s.epsPerSeason = parseInt(document.getElementById('upd-eps-per-season').value)||null;
+  s.note = document.getElementById('upd-show-note').value.trim();
+  s.rating = currentShowRating;
+  if (window._newShowCoverDataUrlU) s.posterUrl = window._newShowCoverDataUrlU;
+  saveShows(); renderAllShows();
+  closeModal('modal-update-show');
+}
+
+function moveShow(status) {
+  const s = shows.find(x=>x.id===editingShowId);
+  if (!s) return;
+  s.status = status;
+  if (status === 'watched') {
+    const now = new Date();
+    s.watchedDate = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+    s.rating = currentShowRating;
+  }
+  saveShows(); renderAllShows();
+  closeModal('modal-update-show');
+}
+
+function deleteShow() {
+  if (!confirm('Izbri\u0161i serijo?')) return;
+  shows = shows.filter(x=>x.id!==editingShowId);
+  saveShows(); renderAllShows();
+  closeModal('modal-update-show');
+}
+
+// Paste poslusalec za plakate serij
+document.addEventListener('paste', function(e) {
+  const addOpen = !document.getElementById('modal-add-show').classList.contains('hidden');
+  const updOpen = !document.getElementById('modal-update-show').classList.contains('hidden');
+  if (!addOpen && !updOpen) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (addOpen) handleShowCoverFile(file);
+      else handleShowCoverFileU(file);
+      break;
+    }
+  }
+}, true);
+
+fetchShowsFirebase().then(fromFirebase => {
+  if (!fromFirebase) { /* Prazen seznam ob prvem zagonu */ }
+  renderAllShows();
+});
+
 
 initEV();
 // EV auto-refresh vsako uro
