@@ -2750,6 +2750,8 @@
   .tag-platform-voyo     { background: rgba(249,115,22,0.18); color: #f97316; }
   .tag-platform-eon      { background: rgba(34,197,94,0.15);  color: #22c55e; }
   .tag-platform-drugo    { background: rgba(120,120,120,0.15);color: #888; }
+  .tag-platform-kino     { background: rgba(251,191,36,0.18);  color: #fbbf24; }
+  .tag-platform-tv       { background: rgba(156,163,175,0.15); color: #9ca3af; }
 
   .tag-genre-show {
     background: rgba(255,255,255,0.06);
@@ -4323,6 +4325,13 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">HITRI ZAKLJUČEK</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="show-btn primary" onclick="finishSeason()" style="flex:1">✔ ZAKLJUČI SEZONO</button>
+          <button class="show-btn primary" onclick="finishShow()" style="flex:1">🏁 ZAKLJUČI SERIJO</button>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="form-label">PREMAKNI V</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="show-btn" onclick="moveShow('watching')">▶️ GLEDAM</button>
@@ -4347,10 +4356,189 @@
   </div>
 </div>
 
+<!-- ===== FILMI TAB ===== -->
+<div class="tab-strip">
+  <div class="tab-head open" onclick="toggleTab(this,'tab-filmi')">
+    <div class="tab-head-left">
+      <span class="tab-num">13 //</span>
+      <span class="tab-title">FILMI</span>
+    </div>
+    <div class="tab-head-right">
+      <span class="tab-badge" id="film-status-badge"></span>
+      <span class="tab-arrow">▼</span>
+    </div>
+  </div>
+  <div class="tab-body open" id="tab-filmi">
+    <div class="tab-content">
+<div class="library-section" style="margin-top:0">
+  <div class="library-card">
+    <div class="library-header">
+      <div class="card-label" style="font-size:11px"><span class="num">13 //</span> FILMI</div>
+      <button class="btn btn-primary" onclick="openAddFilm()" style="font-size:8px;padding:6px 14px">+ DODAJ FILM</button>
+    </div>
+    <div class="library-tabs">
+      <div class="lib-tab active" onclick="switchFilmTab(this,'watchingf')" data-filmtab="watchingf">GLEDAM <span class="lib-tab-count" id="cnt-watchingf">0</span></div>
+      <div class="lib-tab" onclick="switchFilmTab(this,'filmqueue')" data-filmtab="filmqueue">SEZNAM <span class="lib-tab-count" id="cnt-filmqueue">0</span></div>
+      <div class="lib-tab" onclick="switchFilmTab(this,'watchedf')" data-filmtab="watchedf">GLEDANO <span class="lib-tab-count" id="cnt-watchedf">0</span></div>
+      <div class="lib-tab" onclick="switchFilmTab(this,'filmanalytics')" data-filmtab="filmanalytics">ANALITIKA</div>
+    </div>
+
+    <div id="tab-watchingf" class="library-body">
+      <div id="watchingf-films" class="shows-grid"></div>
+      <div id="watchingf-empty" class="empty-state hidden"><div class="empty-icon">🎬</div>Trenutno ne gledaš nobenega filma.</div>
+    </div>
+
+    <div id="tab-filmqueue" class="library-body" style="display:none">
+      <div id="filmqueue-content"></div>
+      <div id="filmqueue-empty" class="empty-state hidden"><div class="empty-icon">🎞️</div>Seznam za gledanje je prazen.</div>
+    </div>
+
+    <div id="tab-watchedf" class="library-body" style="display:none">
+      <div id="watchedf-films" class="shows-grid"></div>
+      <div id="watchedf-empty" class="empty-state hidden"><div class="empty-icon">✅</div>Še ni označenih filmov kot gledano.</div>
+    </div>
+
+    <div id="tab-filmanalytics" class="library-body" style="display:none">
+      <div id="filmanalytics-content"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: DODAJ FILM -->
+<div class="modal-overlay hidden" id="modal-add-film">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">+ DODAJ FILM</div>
+      <button class="modal-close" onclick="closeModal('modal-add-film')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">NASLOV FILMA *</label>
+        <input class="form-input" id="film-add-title" type="text" placeholder="Vpiši naslov...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">VIR *</label>
+        <div class="form-radio-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-netflix" value="netflix" checked><label for="fplat-netflix">🔴 Netflix</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-hbo" value="hbo"><label for="fplat-hbo">🟣 HBO Max</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-amazon" value="amazon"><label for="fplat-amazon">🔵 Amazon Prime</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-apple" value="apple"><label for="fplat-apple">⬜ Apple TV+</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-sky" value="sky"><label for="fplat-sky">🔷 Sky Showtime</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-disney" value="disney"><label for="fplat-disney">🟦 Disney+</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-voyo" value="voyo"><label for="fplat-voyo">🟠 Voyo</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-eon" value="eon"><label for="fplat-eon">🟢 EON</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-kino" value="kino"><label for="fplat-kino">🎬 Kino</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-tv" value="tv"><label for="fplat-tv">📺 TV</label></div>
+          <div class="form-radio"><input type="radio" name="film-platform" id="fplat-drugo" value="drugo"><label for="fplat-drugo">⚫ Drugo</label></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ŽANR</label>
+        <select class="form-input" id="film-add-genre">
+          <option value="Triler">🔪 Triler</option>
+          <option value="Drama">🎭 Drama</option>
+          <option value="Komedija">😄 Komedija</option>
+          <option value="Akcija">💥 Akcija</option>
+          <option value="Sci-Fi">🚀 Sci-Fi</option>
+          <option value="Kriminalka">🕵️ Kriminalka</option>
+          <option value="Dokumentarec">🎬 Dokumentarec</option>
+          <option value="Fantasy">🧙 Fantasy</option>
+          <option value="Grozljivka">👻 Grozljivka</option>
+          <option value="Romantika">💕 Romantika</option>
+          <option value="Animacija">🎨 Animacija</option>
+          <option value="Zgodovinski">📜 Zgodovinski</option>
+          <option value="Drugo">🎞️ Drugo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">STATUS *</label>
+        <div class="form-radio-group">
+          <div class="form-radio"><input type="radio" name="film-status" id="film-watching" value="watchingf"><label for="film-watching">▶️ Trenutno gledam</label></div>
+          <div class="form-radio"><input type="radio" name="film-status" id="film-queue" value="filmqueue" checked><label for="film-queue">📋 Seznam za gledanje</label></div>
+          <div class="form-radio"><input type="radio" name="film-status" id="film-watched" value="watchedf"><label for="film-watched">✅ Že gledano</label></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PLAKAT (opcijsko)</label>
+        <div id="film-cover-zone" onclick="document.getElementById('film-cover-file').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:10px;text-align:center;cursor:pointer;display:flex;align-items:center;gap:10px;position:relative;min-height:60px">
+          <img id="film-cover-preview" src="" alt="" style="display:none;height:80px;width:54px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="film-cover-hint" style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 Prilepi sliko (Ctrl+V) ali klikni za izbiro</div>
+          <button id="film-cover-clear" onclick="clearFilmCover(event)" style="display:none;position:absolute;top:4px;right:6px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="file" id="film-cover-file" accept="image/*" style="display:none" onchange="handleFilmCoverFile(this.files[0])">
+      </div>
+      <div class="form-group">
+        <label class="form-label">KOMENTAR (opcijsko)</label>
+        <input class="form-input" id="film-add-note" type="text" placeholder="Kratka opomba...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-film')">PREKLIČI</button>
+      <button class="btn btn-primary" onclick="saveFilm()">SHRANI FILM</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: POSODOBI FILM -->
+<div class="modal-overlay hidden" id="modal-update-film">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title" id="update-film-title-header">POSODOBI FILM</div>
+      <button class="modal-close" onclick="closeModal('modal-update-film')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="update-film-info" style="font-family:var(--cond);font-size:13px;color:var(--text2);margin-bottom:14px"></div>
+      <div class="form-group">
+        <label class="form-label">PLAKAT (opcijsko)</label>
+        <div id="film-cover-zone-u" onclick="document.getElementById('film-cover-file-u').click()"
+          style="border:2px dashed var(--border);border-radius:4px;padding:8px;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:50px;position:relative">
+          <img id="film-cover-preview-u" src="" alt="" style="display:none;height:60px;width:40px;object-fit:cover;border-radius:2px;flex-shrink:0">
+          <div id="film-cover-hint-u" style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 Prilepi (Ctrl+V) ali klikni za sliko</div>
+          <button id="film-cover-clear-u" onclick="clearFilmCoverU(event)" style="display:none;margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="file" id="film-cover-file-u" accept="image/*" style="display:none" onchange="handleFilmCoverFileU(this.files[0])">
+      </div>
+      <div class="form-group">
+        <label class="form-label">OCENA</label>
+        <div style="display:flex;gap:6px">
+          <button class="book-action-btn" onclick="setFilmRating(1)" data-filmrating="1">⭐</button>
+          <button class="book-action-btn" onclick="setFilmRating(2)" data-filmrating="2">⭐⭐</button>
+          <button class="book-action-btn" onclick="setFilmRating(3)" data-filmrating="3">⭐⭐⭐</button>
+          <button class="book-action-btn" onclick="setFilmRating(4)" data-filmrating="4">⭐⭐⭐⭐</button>
+          <button class="book-action-btn" onclick="setFilmRating(5)" data-filmrating="5">⭐⭐⭐⭐⭐</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PREMAKNI V</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="show-btn" onclick="moveFilm('watchingf')">▶️ GLEDAM</button>
+          <button class="show-btn" onclick="moveFilm('filmqueue')">📋 SEZNAM</button>
+          <button class="show-btn" onclick="moveFilm('watchedf')">✅ GLEDANO</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">KOMENTAR</label>
+        <input class="form-input" id="upd-film-note" type="text" placeholder="Kratka opomba...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-update-film')">PREKLIČI</button>
+      <button class="btn btn-danger" onclick="deleteFilm()" style="background:var(--red-dim);border-color:var(--red);color:var(--red);font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:8px 16px;border-radius:3px;cursor:pointer">IZBRIŠI</button>
+      <button class="btn btn-primary" onclick="saveFilmUpdate()">SHRANI</button>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+
 <div class="tab-strip">
   <div class="tab-head open" onclick="toggleTab(this,'tab-evsledenje')">
     <div class="tab-head-left">
-      <span class="tab-num">13 //</span>
+      <span class="tab-num">14 //</span>
       <span class="tab-title">EV — ENYAQ</span>
 
     </div>
@@ -4364,7 +4552,7 @@
 <div class="library-section" style="margin-top:0">
       <div class="library-card">
         <div class="library-header">
-          <div class="card-label" style="font-size:11px"><span class="num">13 //</span> EV — ENYAQ</div>
+          <div class="card-label" style="font-size:11px"><span class="num">14 //</span> EV — ENYAQ</div>
           <div id="ev-updated-badge-inner" class="card-badge"></div>
         </div>
         <div class="library-tabs">
@@ -9098,11 +9286,434 @@ document.addEventListener('paste', function(e) {
   }
 }, true);
 
+
+function finishSeason() {
+  const s = shows.find(x=>x.id===editingShowId);
+  if (!s) return;
+  // Premakni na naslednjo sezono, epizoda 1
+  const nextSeason = (s.season||1) + 1;
+  if (s.totalSeasons && nextSeason > s.totalSeasons) {
+    // To je bila zadnja sezona — zaključi serijo
+    finishShow();
+    return;
+  }
+  s.season = nextSeason;
+  s.episode = 1;
+  s.rating = currentShowRating;
+  if (document.getElementById('upd-show-note').value.trim())
+    s.note = document.getElementById('upd-show-note').value.trim();
+  saveShows(); renderAllShows();
+  closeModal('modal-update-show');
+}
+
+function finishShow() {
+  const s = shows.find(x=>x.id===editingShowId);
+  if (!s) return;
+  s.status = 'watched';
+  const now = new Date();
+  s.watchedDate = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+  s.rating = currentShowRating;
+  if (document.getElementById('upd-show-note').value.trim())
+    s.note = document.getElementById('upd-show-note').value.trim();
+  saveShows(); renderAllShows();
+  closeModal('modal-update-show');
+}
+
 fetchShowsFirebase().then(fromFirebase => {
   if (!fromFirebase) { /* Prazen seznam ob prvem zagonu */ }
   renderAllShows();
 });
 
+
+
+// ===== FILMI =====
+let films = [];
+let filmsSyncing = false;
+let editingFilmId = null;
+let currentFilmRating = 0;
+window._newFilmCoverDataUrl = null;
+window._newFilmCoverDataUrlU = null;
+
+const FILM_PLATFORM_LABELS = {
+  netflix:'Netflix', hbo:'HBO Max', amazon:'Amazon Prime',
+  apple:'Apple TV+', sky:'Sky Showtime', disney:'Disney+',
+  voyo:'Voyo', eon:'EON', kino:'Kino', tv:'TV', drugo:'Drugo'
+};
+const FILM_PLATFORM_ICONS = {
+  netflix:'\uD83D\uDD34', hbo:'\uD83D\uDFE3', amazon:'\uD83D\uDD35', apple:'\u2B1C',
+  sky:'\uD83D\uDD37', disney:'\uD83D\uDFE6', voyo:'\uD83D\uDFE0', eon:'\uD83D\uDFE2',
+  kino:'\uD83C\uDFAC', tv:'\uD83D\uDCFA', drugo:'\u26AB'
+};
+
+async function saveFilmsFirebase() {
+  if (filmsSyncing) return;
+  filmsSyncing = true;
+  try {
+    await fetch(FIREBASE_URL + '/films.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ films, updatedAt: new Date().toISOString() })
+    });
+  } catch(e) { console.warn('Firebase films save:', e); }
+  filmsSyncing = false;
+}
+
+function saveFilms() {
+  localStorage.setItem('borisFilms', JSON.stringify(films));
+  saveFilmsFirebase();
+}
+
+async function fetchFilmsFirebase() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    const raw = await fetch(FIREBASE_URL + '/films.json', { signal: ctrl.signal })
+      .then(r => r.json()).catch(() => null);
+    if (raw && raw.films && Array.isArray(raw.films) && raw.films.length > 0) {
+      films = raw.films;
+      localStorage.setItem('borisFilms', JSON.stringify(films));
+      renderAllFilms(); updateFilmCounts();
+      return true;
+    }
+  } catch(e) { console.warn('Firebase films fetch:', e); }
+  const local = JSON.parse(localStorage.getItem('borisFilms') || '[]');
+  if (local.length > 0) { films = local; }
+  return false;
+}
+
+function generateFilmSvg(title) {
+  const colors = ['#0f1a0f','#1a0f1a','#0f0f1a','#1a0f0f','#1a1a0f','#0f1a1a'];
+  const accents = ['#22c55e','#c026d3','#6366f1','#ef4444','#eab308','#06b6d4'];
+  const idx = Math.abs(title.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % colors.length;
+  const c1 = colors[idx], c2 = accents[idx];
+  const words = title.split(' ');
+  let lines = [], cur = '';
+  words.forEach(w => {
+    if ((cur+' '+w).trim().length > 12) { if(cur) lines.push(cur); cur=w; }
+    else cur = (cur+' '+w).trim();
+  });
+  if (cur) lines.push(cur);
+  lines = lines.slice(0,5);
+  const titleY = 170 - (lines.length-1)*16;
+  const titleSvg = lines.map((l,i) =>
+    '<text x="100" y="' + (titleY+i*20) + '" font-family="Georgia,serif" font-size="13" font-weight="bold" fill="' + c2 + '" text-anchor="middle">' + l + '</text>'
+  ).join('');
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">'
+    + '<defs><linearGradient id="fg' + idx + '" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="' + c1 + '"/><stop offset="100%" stop-color="#030303"/>'
+    + '</linearGradient></defs>'
+    + '<rect width="200" height="300" fill="url(#fg' + idx + ')"/>'
+    + '<rect x="0" y="0" width="200" height="4" fill="' + c2 + '" opacity="0.8"/>'
+    + '<rect x="0" y="296" width="200" height="4" fill="' + c2 + '" opacity="0.4"/>'
+    + titleSvg
+    + '<text x="100" y="265" font-family="Arial,sans-serif" font-size="8" fill="#555" text-anchor="middle">\uD83C\uDFAC</text>'
+    + '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function renderFilmCard(f) {
+  const coverHtml = (f.posterUrl && f.posterUrl.length > 0)
+    ? '<img class="show-poster" src="' + f.posterUrl + '" alt="' + f.title + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+      + '<div class="show-poster-placeholder" style="display:none">\uD83C\uDFAC</div>'
+    : '<div class="show-poster-placeholder">\uD83C\uDFAC</div>';
+  const ratingHtml = f.rating ? '\u2B50'.repeat(f.rating) : '';
+  const noteHtml = f.note ? '<div style="font-family:var(--cond);font-size:10px;color:var(--text2);margin-top:3px;line-height:1.3">' + f.note + '</div>' : '';
+  const platIcon = FILM_PLATFORM_ICONS[f.platform] || '\uD83C\uDFAC';
+  const platLabel = FILM_PLATFORM_LABELS[f.platform] || f.platform;
+  return '<div class="show-card" onclick="openUpdateFilm(\'' + f.id + '\')">'
+    + coverHtml
+    + '<div class="show-info">'
+    + '<div class="show-title">' + f.title + '</div>'
+    + '<div class="show-meta-row">'
+    + '<span class="show-tag tag-platform-' + f.platform + '">' + platIcon + ' ' + platLabel + '</span>'
+    + '<span class="show-tag tag-genre-show">' + (f.genre||'Film') + '</span>'
+    + '</div>'
+    + (ratingHtml ? '<div class="show-rating">' + ratingHtml + '</div>' : '')
+    + noteHtml
+    + '</div></div>';
+}
+
+function renderWatchingFilms() {
+  const list = films.filter(f=>f.status==='watchingf');
+  const grid = document.getElementById('watchingf-films');
+  const empty = document.getElementById('watchingf-empty');
+  if (!grid) return;
+  if (list.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = list.map(f=>renderFilmCard(f)).join('');
+}
+
+function renderFilmQueue() {
+  const list = films.filter(f=>f.status==='filmqueue');
+  const content = document.getElementById('filmqueue-content');
+  const empty = document.getElementById('filmqueue-empty');
+  if (!content) return;
+  if (list.length===0) { content.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  const byPlatform = {};
+  list.forEach(f => { if (!byPlatform[f.platform]) byPlatform[f.platform]=[]; byPlatform[f.platform].push(f); });
+  const order = ['netflix','hbo','amazon','apple','sky','disney','voyo','eon','kino','tv','drugo'];
+  let html = '';
+  order.forEach(plat => {
+    if (!byPlatform[plat] || !byPlatform[plat].length) return;
+    html += '<div class="show-platform-section">'
+      + '<div class="show-platform-header">'
+      + '<span class="show-platform-name show-tag tag-platform-' + plat + '">' + (FILM_PLATFORM_ICONS[plat]||'') + ' ' + (FILM_PLATFORM_LABELS[plat]||plat) + '</span>'
+      + '<span class="show-platform-count">' + byPlatform[plat].length + '</span>'
+      + '</div>'
+      + '<div class="shows-grid">' + byPlatform[plat].map(f=>renderFilmCard(f)).join('') + '</div>'
+      + '</div>';
+  });
+  content.innerHTML = html;
+}
+
+function renderWatchedFilms() {
+  const list = films.filter(f=>f.status==='watchedf').sort((a,b)=>(b.watchedDate||'').localeCompare(a.watchedDate||''));
+  const grid = document.getElementById('watchedf-films');
+  const empty = document.getElementById('watchedf-empty');
+  if (!grid) return;
+  if (list.length===0) { grid.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = list.map(f=>renderFilmCard(f)).join('');
+}
+
+function renderFilmAnalytics() {
+  const el = document.getElementById('filmanalytics-content');
+  if (!el) return;
+  const total = films.length;
+  const watching = films.filter(f=>f.status==='watchingf').length;
+  const watched = films.filter(f=>f.status==='watchedf').length;
+  const byPlat = {};
+  films.forEach(f=>{ byPlat[f.platform]=(byPlat[f.platform]||0)+1; });
+  const platRows = Object.entries(byPlat).sort((a,b)=>b[1]-a[1]).map(([p,n])=>{
+    const pct = total>0 ? Math.round(n/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      + '<span class="show-tag tag-platform-' + p + '" style="min-width:95px">' + (FILM_PLATFORM_ICONS[p]||'') + ' ' + (FILM_PLATFORM_LABELS[p]||p) + '</span>'
+      + '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:var(--orange);border-radius:3px"></div></div>'
+      + '<span style="font-family:var(--mono);font-size:9px;color:var(--text2);min-width:16px">' + n + '</span>'
+      + '</div>';
+  }).join('');
+  const byGenre = {};
+  films.forEach(f=>{ byGenre[f.genre||'Film']=(byGenre[f.genre||'Film']||0)+1; });
+  const genreRows = Object.entries(byGenre).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([g,n])=>{
+    const pct = total>0 ? Math.round(n/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      + '<span style="font-family:var(--cond);font-size:11px;color:var(--text);min-width:90px">' + g + '</span>'
+      + '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:var(--blue);border-radius:3px"></div></div>'
+      + '<span style="font-family:var(--mono);font-size:9px;color:var(--text2);min-width:16px">' + n + '</span>'
+      + '</div>';
+  }).join('');
+  const topRated = films.filter(f=>f.rating>=4&&f.status==='watchedf').sort((a,b)=>b.rating-a.rating).slice(0,5);
+  const topHtml = topRated.length ? topRated.map(f=>
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
+    + '<span class="show-tag tag-platform-' + f.platform + '">' + (FILM_PLATFORM_ICONS[f.platform]||'') + '</span>'
+    + '<span style="font-family:var(--cond);font-size:13px;flex:1">' + f.title + '</span>'
+    + '<span style="font-family:var(--mono);font-size:9px;color:var(--orange)">' + f.rating + ' \u2B50</span>'
+    + '</div>').join('')
+    : '<div style="font-family:var(--cond);font-size:12px;color:var(--text2);padding:10px 0">\u0160e ni ocenjenih filmov.</div>';
+  el.innerHTML = '<div class="tv-analytics-grid">'
+    + '<div class="tv-stat-card"><div class="tv-stat-num">' + total + '</div><div class="tv-stat-label">Skupaj</div></div>'
+    + '<div class="tv-stat-card"><div class="tv-stat-num" style="color:var(--green)">' + watching + '</div><div class="tv-stat-label">Gledam</div></div>'
+    + '<div class="tv-stat-card"><div class="tv-stat-num" style="color:var(--text2)">' + watched + '</div><div class="tv-stat-label">Gledano</div></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">PO VIRIH</div>' + (platRows||'<div style="color:var(--text3);font-size:11px">Ni podatkov</div>') + '</div>'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">PO \u017dANRIH</div>' + (genreRows||'<div style="color:var(--text3);font-size:11px">Ni podatkov</div>') + '</div>'
+    + '</div>'
+    + '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">TOP OCENJENI</div>' + topHtml + '</div>';
+}
+
+function renderAllFilms() { renderWatchingFilms(); renderFilmQueue(); renderWatchedFilms(); updateFilmCounts(); }
+
+function updateFilmCounts() {
+  const w = document.getElementById('cnt-watchingf');
+  const q = document.getElementById('cnt-filmqueue');
+  const d = document.getElementById('cnt-watchedf');
+  const badge = document.getElementById('film-status-badge');
+  if(w) w.textContent = films.filter(f=>f.status==='watchingf').length;
+  if(q) q.textContent = films.filter(f=>f.status==='filmqueue').length;
+  if(d) d.textContent = films.filter(f=>f.status==='watchedf').length;
+  if(badge) { const n=films.filter(f=>f.status==='filmqueue').length; badge.textContent = n>0 ? n+' V REDU' : ''; }
+}
+
+function switchFilmTab(el, tab) {
+  document.querySelectorAll('[data-filmtab]').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['watchingf','filmqueue','watchedf','filmanalytics'].forEach(t=>{
+    const el2=document.getElementById('tab-'+t);
+    if(el2) el2.style.display = t===tab ? '' : 'none';
+  });
+  if (tab==='filmanalytics') renderFilmAnalytics();
+}
+
+function openAddFilm() {
+  window._newFilmCoverDataUrl = null;
+  document.getElementById('film-add-title').value = '';
+  document.getElementById('film-add-genre').value = 'Triler';
+  document.getElementById('film-add-note').value = '';
+  document.querySelector('input[name="film-platform"][value="netflix"]').checked = true;
+  document.querySelector('input[name="film-status"][value="filmqueue"]').checked = true;
+  resetFilmCoverZone();
+  document.getElementById('modal-add-film').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('film-add-title').focus(),100);
+}
+
+function resetFilmCoverZone() {
+  window._newFilmCoverDataUrl = null;
+  const img=document.getElementById('film-cover-preview');
+  const hint=document.getElementById('film-cover-hint');
+  const clr=document.getElementById('film-cover-clear');
+  const zone=document.getElementById('film-cover-zone');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+  if(zone)zone.style.borderColor='';
+}
+
+function clearFilmCover(e) { e.stopPropagation(); resetFilmCoverZone(); }
+
+function handleFilmCoverFile(file) {
+  if(!file||!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    window._newFilmCoverDataUrl = ev.target.result;
+    const img=document.getElementById('film-cover-preview');
+    const hint=document.getElementById('film-cover-hint');
+    const clr=document.getElementById('film-cover-clear');
+    const zone=document.getElementById('film-cover-zone');
+    if(img){img.src=ev.target.result;img.style.display='';}
+    if(hint)hint.style.display='none';
+    if(clr)clr.style.display='';
+    if(zone)zone.style.borderColor='var(--orange)';
+  };
+  r.readAsDataURL(file);
+}
+
+function resetFilmCoverZoneU() {
+  window._newFilmCoverDataUrlU = null;
+  const img=document.getElementById('film-cover-preview-u');
+  const hint=document.getElementById('film-cover-hint-u');
+  const clr=document.getElementById('film-cover-clear-u');
+  if(img){img.src='';img.style.display='none';}
+  if(hint)hint.style.display='';
+  if(clr)clr.style.display='none';
+}
+
+function clearFilmCoverU(e) { e.stopPropagation(); resetFilmCoverZoneU(); }
+
+function handleFilmCoverFileU(file) {
+  if(!file||!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    window._newFilmCoverDataUrlU = ev.target.result;
+    const img=document.getElementById('film-cover-preview-u');
+    const hint=document.getElementById('film-cover-hint-u');
+    const clr=document.getElementById('film-cover-clear-u');
+    if(img){img.src=ev.target.result;img.style.display='';}
+    if(hint)hint.style.display='none';
+    if(clr)clr.style.display='';
+  };
+  r.readAsDataURL(file);
+}
+
+function openUpdateFilm(id) {
+  const f = films.find(x=>x.id===id);
+  if (!f) return;
+  editingFilmId = id;
+  currentFilmRating = f.rating||0;
+  resetFilmCoverZoneU();
+  document.getElementById('update-film-title-header').textContent = f.title;
+  document.getElementById('update-film-info').textContent = (FILM_PLATFORM_ICONS[f.platform]||'') + ' ' + (FILM_PLATFORM_LABELS[f.platform]||f.platform) + ' \u00B7 ' + (f.genre||'Film');
+  document.getElementById('upd-film-note').value = f.note||'';
+  document.querySelectorAll('[data-filmrating]').forEach(b=>{
+    b.style.opacity = parseInt(b.dataset.filmrating) <= currentFilmRating ? '1' : '0.4';
+  });
+  if (f.posterUrl && !f.posterUrl.startsWith('data:image/svg')) {
+    const img=document.getElementById('film-cover-preview-u');
+    const hint=document.getElementById('film-cover-hint-u');
+    if(img){img.src=f.posterUrl;img.style.display='';}
+    if(hint)hint.style.display='none';
+  }
+  document.getElementById('modal-update-film').classList.remove('hidden');
+}
+
+function setFilmRating(n) {
+  currentFilmRating = n;
+  document.querySelectorAll('[data-filmrating]').forEach(b=>{
+    b.style.opacity = parseInt(b.dataset.filmrating) <= n ? '1' : '0.4';
+  });
+}
+
+function saveFilm() {
+  const title = document.getElementById('film-add-title').value.trim();
+  if (!title) { alert('Vpi\u0161i naslov filma!'); return; }
+  const platform = document.querySelector('input[name="film-platform"]:checked')?.value || 'netflix';
+  const status = document.querySelector('input[name="film-status"]:checked')?.value || 'filmqueue';
+  const genre = document.getElementById('film-add-genre').value;
+  const note = document.getElementById('film-add-note').value.trim();
+  const posterUrl = window._newFilmCoverDataUrl || generateFilmSvg(title);
+  const id = 'film' + Date.now();
+  const now = new Date();
+  const dateStr = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+  const watchedDate = status === 'watchedf' ? dateStr : null;
+  films.push({ id, title, platform, genre, status, posterUrl, note, rating: 0, addedDate: dateStr, watchedDate });
+  saveFilms(); renderAllFilms();
+  closeModal('modal-add-film');
+}
+
+function saveFilmUpdate() {
+  const f = films.find(x=>x.id===editingFilmId);
+  if (!f) return;
+  f.note = document.getElementById('upd-film-note').value.trim();
+  f.rating = currentFilmRating;
+  if (window._newFilmCoverDataUrlU) f.posterUrl = window._newFilmCoverDataUrlU;
+  saveFilms(); renderAllFilms();
+  closeModal('modal-update-film');
+}
+
+function moveFilm(status) {
+  const f = films.find(x=>x.id===editingFilmId);
+  if (!f) return;
+  f.status = status;
+  if (status === 'watchedf') {
+    const now = new Date();
+    f.watchedDate = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+    f.rating = currentFilmRating;
+  }
+  saveFilms(); renderAllFilms();
+  closeModal('modal-update-film');
+}
+
+function deleteFilm() {
+  if (!confirm('Izbri\u0161i film?')) return;
+  films = films.filter(x=>x.id!==editingFilmId);
+  saveFilms(); renderAllFilms();
+  closeModal('modal-update-film');
+}
+
+// Paste za filmske plakate
+document.addEventListener('paste', function(e) {
+  const addOpen = !document.getElementById('modal-add-film').classList.contains('hidden');
+  const updOpen = !document.getElementById('modal-update-film').classList.contains('hidden');
+  if (!addOpen && !updOpen) return;
+  // Preverimo da serija modali niso odprti (izognemo se konfliktu)
+  const showAddOpen = !document.getElementById('modal-add-show').classList.contains('hidden');
+  const showUpdOpen = !document.getElementById('modal-update-show').classList.contains('hidden');
+  if (showAddOpen || showUpdOpen) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (addOpen) handleFilmCoverFile(file);
+      else handleFilmCoverFileU(file);
+      break;
+    }
+  }
+}, true);
+
+fetchFilmsFirebase().then(() => { renderAllFilms(); });
 
 initEV();
 // EV auto-refresh vsako uro
