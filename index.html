@@ -7164,7 +7164,8 @@ function hfCountDone() {
   let done = 0, total = 0;
   hfHabits.forEach(h => {
     if (!hfIsActiveToday(h)) return;
-    (h.dayParts || []).forEach(dp => { total++; if (hfIsDone(h.id, dp)) done++; });
+    const parts2 = Array.isArray(h.dayParts) ? h.dayParts : Object.values(h.dayParts || {});
+    parts2.forEach(dp => { total++; if (hfIsDone(h.id, dp)) done++; });
   });
   return { done, total };
 }
@@ -7193,7 +7194,9 @@ function hfRender() {
 
   hfHabits.forEach(h => {
     if (!hfIsActiveToday(h)) return;
-    (h.dayParts || []).forEach(dp => {
+    // Firestore lahko vrne array ali object {0:"morning",...} - normaliziramo
+    const parts = Array.isArray(h.dayParts) ? h.dayParts : Object.values(h.dayParts || {});
+    parts.forEach(dp => {
       if (groups[dp]) groups[dp].push(h);
     });
   });
