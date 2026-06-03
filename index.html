@@ -6674,19 +6674,27 @@ function renderStavnica() {
     ? allHist.filter(h => h.datum && h.datum.slice(0,10) >= od)
     : allHist;
 
-  // Kartici — vedno prikazujeta zadnji vnos iz CELOTNE zgodovine
-  const zadnji   = allHist.length > 0 ? allHist[allHist.length - 1].znesek : null;
-  const prejsnji = allHist.length > 1 ? allHist[allHist.length - 2].znesek : null;
+  // Kartici — trenutno stanje iz CELOTNE zgodovine, sprememba glede na izbrano obdobje
+  const zadnji = allHist.length > 0 ? allHist[allHist.length - 1].znesek : null;
+  const prvi   = hist.length > 0 ? hist[0].znesek : null;
 
   const bigEl = document.getElementById('fin-stav-big');
-  if (bigEl) bigEl.textContent = zadnji != null ? fmt(zadnji) : '—';
+  if (bigEl) bigEl.textContent = zadnji != null ? fmt(zadnji) : '\u2014';
 
   const chgBigEl = document.getElementById('fin-stav-chg-big');
-  if (chgBigEl && zadnji != null && prejsnji != null) {
-    const diff = zadnji - prejsnji;
+  const chgSubEl = document.getElementById('fin-stav-chg-sub');
+  if (chgBigEl && zadnji != null && prvi != null && hist.length > 1) {
+    const diff = zadnji - prvi;
+    const pct  = prvi !== 0 ? (diff / Math.abs(prvi) * 100).toFixed(1) : null;
     chgBigEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
     chgBigEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
-  } else if (chgBigEl) { chgBigEl.textContent = '—'; chgBigEl.style.color = 'var(--text3)'; }
+    const naslovi = { '7d':'7 dni', '14d':'14 dni', '30d':'30 dni', 'vse':'vso zgodovino' };
+    if (chgSubEl) chgSubEl.textContent = (pct ? pct + '% \u00B7 ' : '') + 'v ' + (naslovi[stavCasOkno] || stavCasOkno);
+  } else if (chgBigEl) {
+    chgBigEl.textContent = '\u2014';
+    chgBigEl.style.color = 'var(--text3)';
+    if (chgSubEl) chgSubEl.textContent = 'od zadnjega vnosa';
+  }
 
   const vnosiEl = document.getElementById('fin-stav-vnosi');
   if (vnosiEl) {
