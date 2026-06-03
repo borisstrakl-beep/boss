@@ -2363,6 +2363,74 @@
   }
 
   /* MODAL */
+  /* ── HELP MODAL ───────────────────────────────────────── */
+  .help-modal { max-width: 700px; }
+  .help-section {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  .help-section:last-child { border-bottom: none; }
+  .help-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    color: var(--orange);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .help-section-num { color: var(--text3); font-size: 9px; }
+  .help-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 4px 12px;
+    margin-bottom: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .help-row-label {
+    color: var(--text3);
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding-top: 1px;
+  }
+  .help-row-val { color: var(--text); }
+  .help-tag {
+    display: inline-block;
+    font-size: 8px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    margin-right: 2px;
+  }
+  .help-tag-auto   { background: rgba(255,126,0,.15); color: var(--orange); border: 1px solid rgba(255,126,0,.3); }
+  .help-tag-manual { background: rgba(100,200,100,.1); color: var(--green);  border: 1px solid rgba(100,200,100,.3); }
+  .help-tag-pending{ background: rgba(150,150,150,.1); color: var(--text3);  border: 1px solid var(--border2); }
+
+  /* HELP gumb v headerju */
+  .help-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all .2s;
+    margin-right: 12px;
+  }
+  .help-btn:hover { border-color: var(--orange); color: var(--orange); }
+
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -3059,6 +3127,7 @@
     <div class="topbar-greeting">Dober dan, <strong>Boris</strong>. Fokus: Building an empire.</div>
   </div>
   <div class="topbar-right">
+    <button class="help-btn" onclick="document.getElementById('help-modal-overlay').classList.remove('hidden')">? POMOČ</button>
     <div id="gcal-auth-btn" style="margin-right:12px">
       <button onclick="gcalSignIn()" style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:4px 10px;background:var(--bg3);border:1px solid var(--bg3);border-radius:4px;color:var(--text3);cursor:pointer;text-transform:uppercase">● PRIJAVA GCAL</button>
     </div>
@@ -5979,7 +6048,10 @@ function gcalCloseModal(event) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { const m = document.getElementById('gcal-modal'); if(m) m.style.display='none'; }
+  if (e.key === 'Escape') {
+    const gcalM = document.getElementById('gcal-modal'); if(gcalM) gcalM.style.display='none';
+    const helpM = document.getElementById('help-modal-overlay'); if(helpM) helpM.classList.add('hidden');
+  }
 });
 
 // ── Badge & kompatibilnost ─────────────────────────────────────────────
@@ -9837,5 +9909,204 @@ if (typeof google !== 'undefined') {
 }
 
 </script>
+
+<!-- POMOČ MODAL -->
+<div class="modal-overlay hidden" id="help-modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal help-modal">
+    <div class="modal-header">
+      <div class="modal-title">📖 BORIS OS — NAVODILA ZA UPORABO</div>
+      <button class="modal-close" onclick="document.getElementById('help-modal-overlay').classList.add('hidden')">×</button>
+    </div>
+    <div class="modal-body">
+
+      <p style="font-family:var(--mono);font-size:10px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+        BORIS OS je tvoj osebni command center. Spodaj je razloženo, kaj vsak zavihek počne, od kod dobiva podatke in kaj moraš ročno vnašati.
+        <br><br>
+        <span class="help-tag help-tag-auto">● AUTO</span> podatki se nalagajo samodejno &nbsp;
+        <span class="help-tag help-tag-manual">● ROČNO</span> zahteva tvoj vnos &nbsp;
+        <span class="help-tag help-tag-pending">● ČAKA</span> v razvoju
+      </p>
+
+      <!-- 01 VREME -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">01 //</span> VREME
+          <span class="help-tag help-tag-auto">● AUTO</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Hiter pregled vremena za vse lokacije ki so ti relevantne — Trbovlje, Žiri, Ljubljana, Novigrad, G. Radgona, Dunaj, Rogla in trenutna lokacija.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Open-Meteo API (brezplačen, brez registracije, brez CORS omejitev).</div></div>
+        <div class="help-row"><div class="help-row-label">Kako deluje</div><div class="help-row-val">Lazy init — podatki se naložijo ob kliku na zavihek. Prikazuje danes / jutri / pojutrišnjem + 7-dnevna napoved. Vremenski zajček (SVG) se obleče glede na vreme.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Nič — vse samodejno.</div></div>
+      </div>
+
+      <!-- 02 FINANCE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">02 //</span> FINANCE
+          <span class="help-tag help-tag-auto">● AUTO</span>
+          <span class="help-tag help-tag-manual">● ROČNO (stavnica)</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Pregled portfelja, stavnice in finančnih gibanj na enem mestu.</div></div>
+        <div class="help-row"><div class="help-row-label">Portfelj</div><div class="help-row-val">Živé cene delnic (Alphabet, Tesla, Netflix, Apple, Amazon, Microsoft, MSCI World) in kripto prek Finnhub API → Google Apps Script proxy. Prikazuje vrednost, P&L in % spremembo.</div></div>
+        <div class="help-row"><div class="help-row-label">Stavnica</div><div class="help-row-val">Ročni vnosi zneska (+ opcijsko datum za retroaktivni vnos). Shranjeno v Firebase. Kartica SPREMEMBA prikazuje diff prvega→zadnjega vnosa v izbranem obdobju (7D / 14D / 30D / VSE) z %.</div></div>
+        <div class="help-row"><div class="help-row-label">Banka</div><div class="help-row-val">Samodejno iz Firebase (placila-ebbba) — isto bazo uporablja tvoja finance aplikacija. Stanje računa, kreditna kartica, mesečni povzetek, top kategorije, graf gibanja in zadnje transakcije.</div></div>
+        <div class="help-row"><div class="help-row-label">Trgovina</div><div class="help-row-val">Samodejno iz Firebase — top kategorije nakupov iz finance aplikacije.</div></div>
+      </div>
+
+      <!-- 03 CILJI -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">03 //</span> CILJI
+          <span class="help-tag help-tag-manual">● ROČNO</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Vizualni tracker letnih ciljev — napredek na en pogled.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Statično — cilji in napredek so vneseni neposredno v kodo dashboarda.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Za spremembo cilja ali vrednosti napredka je potrebna editacija HTML kode (enkrat na spremembo cilja).</div></div>
+      </div>
+
+      <!-- 04 TODOIST -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">04 //</span> TODOIST NALOGE
+          <span class="help-tag help-tag-auto">● AUTO</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Prikaz nalog iz Todoist — kar je danes in kar je zamudilo.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Todoist MCP konektor — živi podatki direktno iz tvojega Todoist računa.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Naloge upravljaš v Todoist (app ali splet) — dashboard jih samo prikazuje. Nič vnosa v dashboardu.</div></div>
+      </div>
+
+      <!-- 05 GOOGLE KOLEDAR -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">05 //</span> GOOGLE KOLEDAR
+          <span class="help-tag help-tag-auto">● AUTO</span>
+          <span class="help-tag help-tag-manual">● ROČNO (enkratna prijava)</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Pregled vseh Google Koledarjev v treh pogledih: dan, teden, mesec.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Google Calendar API prek OAuth 2.0. 8 koledarjev: Boris Strakl, Družinski, Rojstni dnevi, Treningi, Prazniki, Todoist, M Sora, Spielplan.</div></div>
+        <div class="help-row"><div class="help-row-label">Prijava</div><div class="help-row-val">Enkratna prijava z gumbom "PRIJAVA GCAL" v headerju. Token se shrani v localStorage — naslednjič se prijavi samodejno.</div></div>
+        <div class="help-row"><div class="help-row-label">Trening</div><div class="help-row-val">Dogodki iz "Treningi" koledarja se prikažejo v zavihku 08 kot "NAČRTOVANI TRENING". Opis treninga: TIP / KM / TEMPO / NAVODILA / KOMENTAR.</div></div>
+        <div class="help-row"><div class="help-row-label">Filtriranje</div><div class="help-row-val">Vsak koledar se vklopi/izklopi s klikom na barvni gumb filtrov.</div></div>
+      </div>
+
+      <!-- 06 NAVADE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">06 //</span> NAVADE
+          <span class="help-tag help-tag-pending">● ČAKA Firebase</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Dnevno sledenje navad, organiziranih po časovnih blokih (Jutro / Dopoldan / Popoldan / Večer / Noč).</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Firebase (habitflow projekt) — konfiguracija v teku.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Vsak dan obkljukaš opravljene navade v ustreznem časovnem bloku. Dnevni reset ob polnoči.</div></div>
+      </div>
+
+      <!-- 07 FIZIČNO STANJE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">07 //</span> FIZIČNO STANJE
+          <span class="help-tag help-tag-manual">● ROČNO</span>
+          <span class="help-tag help-tag-auto">● AI kalorije</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Celostni pregled fizičnega stanja na telesu — prehrana, spanec, utrip, teža, koraki prikazani na holografski figuri.</div></div>
+        <div class="help-row"><div class="help-row-label">Obroki</div><div class="help-row-val">Vneseš opisni obrok v naravnem jeziku (npr. "2 jajci, toast, kava z mlekom") → Anthropic AI izračuna kalorije. Tipi: Zajtrk / Kosilo / Večerja / Prigrizek / Pijača.</div></div>
+        <div class="help-row"><div class="help-row-label">Voda</div><div class="help-row-val">Klik na + za vsak kozarec (2,5 dl). Dnevni cilj nastavljiv (privzeto 25 dl).</div></div>
+        <div class="help-row"><div class="help-row-label">Spanec</div><div class="help-row-val">Ročni vnos ure vstajanja in ure spanja — točka prikazana na figuri (vijolična).</div></div>
+        <div class="help-row"><div class="help-row-label">Utrip</div><div class="help-row-val">Ročni vnos srčnega utripa (BPM) — točka na figuri (rdeča).</div></div>
+        <div class="help-row"><div class="help-row-label">Teža</div><div class="help-row-val">Ročni vnos teže zjutraj — točka na figuri (modra). Cilj: 82 kg.</div></div>
+        <div class="help-row"><div class="help-row-label">Koraki</div><div class="help-row-val">Ročni vnos korakov — točka na figuri (zelena).</div></div>
+        <div class="help-row"><div class="help-row-label">Shranjevanje</div><div class="help-row-val">Vse shranjeno v localStorage. Dnevni reset ob polnoči — obroki in voda se pobrišejo, cilji ostanejo.</div></div>
+      </div>
+
+      <!-- 08 ŠPORT GIBANJE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">08 //</span> ŠPORT · GIBANJE
+          <span class="help-tag help-tag-manual">● ROČNO (vaje)</span>
+          <span class="help-tag help-tag-pending">● Strava čaka MCP</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Pregled tekaških aktivnosti, načrtovanega treninga in dnevnih telesnih vaj na enem mestu.</div></div>
+        <div class="help-row"><div class="help-row-label">Načrt. trening</div><div class="help-row-val">Samodejno iz Google Koledarja (Treningi) — prikaže današnji trening z vsemi podrobnostmi (tip, km, tempo, navodila, komentar).</div></div>
+        <div class="help-row"><div class="help-row-label">Zadnji tek</div><div class="help-row-val">Trenutno hard-coded placeholder. Čaka Strava MCP — konektor je povezan, Strava pa postopoma odpira dostop (eligible: false). Ko bo aktiven, bo prikazoval žive podatke.</div></div>
+        <div class="help-row"><div class="help-row-label">Mesečni km</div><div class="help-row-val">Placeholder — prišlo bo iz Strava MCP.</div></div>
+        <div class="help-row"><div class="help-row-label">Telesne vaje</div><div class="help-row-val">Ročni vnos serij: izbereš vajo (🧘 Plank / 🏋️ Počepi / 💪 Sklece), vneseš vrednost, klikneš +. Serije se seštevajo čez dan. Dnevni reset ob polnoči. Shranjeno v localStorage.</div></div>
+      </div>
+
+      <!-- 10 ŠPORTNE PRIREDITVE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">10 //</span> ŠPORTNE PRIREDITVE
+          <span class="help-tag help-tag-manual">● ROČNO (v kodi)</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Countdown in sledenje pripravi na tekaške prireditve — koliko tednov do starта, tedenski trening plan.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Statično — prireditve so vnesene neposredno v kodo dashboarda.</div></div>
+        <div class="help-row"><div class="help-row-label">Trenutno</div><div class="help-row-val">Maraton treh src (Radenci), 13. september 2026 — polmaraton, ciljni čas 2:00:00.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Za dodajanje ali spremembo prireditve je potrebna editacija HTML kode.</div></div>
+      </div>
+
+      <!-- 11 KNJIŽNICA -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">11 //</span> KNJIŽNICA
+          <span class="help-tag help-tag-manual">● ROČNO</span>
+          <span class="help-tag help-tag-auto">● Firebase sync</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Sledenje knjigam — kaj bereš, čakalna vrsta, prebrano in analitika po jeziku/viru/žanru.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Firebase (placila-ebbba / books.json) — sinhronizirano med vsemi napravami.</div></div>
+        <div class="help-row"><div class="help-row-label">Dodajanje</div><div class="help-row-val">Klik "+ DODAJ KNJIGO" → vneseš avtorja, naslov, jezik (SLO / DE / EN), vir (Knjižnica Trbovlje / Kindle / Še ni jasno), napredek.</div></div>
+        <div class="help-row"><div class="help-row-label">Naslovnice</div><div class="help-row-val">Prilepiš sliko iz odložišča (Ctrl+V) ali naloži datoteko. Shrani se kot base64 v Firebase.</div></div>
+        <div class="help-row"><div class="help-row-label">Napredek</div><div class="help-row-val">Fizična knjiga → strani (prikazano v %). Kindle → % direktno.</div></div>
+        <div class="help-row"><div class="help-row-label">Zavihki</div><div class="help-row-val">BEREM · ČAKALNA VRSTA (razvrščeno po jezikih) · PREBRANO · ANALITIKA (grafi po jeziku, viru, žanru).</div></div>
+      </div>
+
+      <!-- 12 TV SERIJE -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">12 //</span> TV SERIJE
+          <span class="help-tag help-tag-manual">● ROČNO</span>
+          <span class="help-tag help-tag-auto">● Firebase sync</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Sledenje TV serij — kaj gledaš, seznam po platformah, gledano in analitika.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Firebase (placila-ebbba / shows.json) — sinhronizirano med napravami.</div></div>
+        <div class="help-row"><div class="help-row-label">Dodajanje</div><div class="help-row-val">Klik "+ DODAJ SERIJO" → platforma, žanr, sezona/epizoda, skupaj sezon/epizod. Plakat: prilepi (Ctrl+V) ali naloži.</div></div>
+        <div class="help-row"><div class="help-row-label">Napredek</div><div class="help-row-val">Progress bar S01E05 z %. Hitri gumb "✔ ZAKLJUČI SEZONO" skoči na naslednjo S+1 E01. "🏁 ZAKLJUČI SERIJO" premakne v GLEDANO.</div></div>
+        <div class="help-row"><div class="help-row-label">Zavihki</div><div class="help-row-val">GLEDAM · SEZNAM (po platformah: Netflix, HBO Max, Prime, Apple TV+, Disney+, Voyo, EON…) · GLEDANO · ANALITIKA.</div></div>
+      </div>
+
+      <!-- 13 FILMI -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">13 //</span> FILMI
+          <span class="help-tag help-tag-manual">● ROČNO</span>
+          <span class="help-tag help-tag-auto">● Firebase sync</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Sledenje filmov — kaj gledaš, seznam po virih, gledano in analitika.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Firebase (placila-ebbba / films.json) — sinhronizirano med napravami.</div></div>
+        <div class="help-row"><div class="help-row-label">Dodajanje</div><div class="help-row-val">Klik "+ DODAJ FILM" → vir (vse platforme + 🎬 Kino + 📺 TV), žanr, status. Plakat: prilepi (Ctrl+V) ali naloži.</div></div>
+        <div class="help-row"><div class="help-row-label">Razlika od serij</div><div class="help-row-val">Ni sledenja sezon/epizod. Ob dodajanju je možen direkten status "Že gledano".</div></div>
+        <div class="help-row"><div class="help-row-label">Zavihki</div><div class="help-row-val">GLEDAM · SEZNAM (po virih) · GLEDANO · ANALITIKA (po platformah, žanrih, ocenah).</div></div>
+      </div>
+
+      <!-- 14 EV -->
+      <div class="help-section">
+        <div class="help-section-title">
+          <span class="help-section-num">14 //</span> EV — ŠKODA ENYAQ
+          <span class="help-tag help-tag-auto">● Google Sheets</span>
+        </div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Statistike porabe energije, polnjenj in dosega za Škoda Enyaq iV 60.</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Dve Google Sheets preglednici prek Google Apps Script: km sledenje + polnjenja. Obe morata biti nastavljeni na "Kdorkoli s povezavo → Ogledovalec".</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Vnose delaš v Google Sheets (km stanje, datum/kWh/lokacija polnjenja) — dashboard podatke samo prikazuje.</div></div>
+        <div class="help-row"><div class="help-row-label">Zavihki</div><div class="help-row-val">PREGLED (skupaj km, kWh/100km, ocenjeni doseg, baterija bar) · POLNJENJA (seznam po mesecih, brezplačne/plačane seje z barvnimi tagami) · STATISTIKA.</div></div>
+        <div class="help-row"><div class="help-row-label">Baterija</div><div class="help-row-val">55,1 kWh dejanska kapaciteta (58 kWh neto, 95% SOH). Brezplačni % se računa po kWh (ne po sejah).</div></div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.7">
+        BORIS OS · GitHub Pages: <span style="color:var(--orange)">borisstrakl-beep.github.io/boss</span><br>
+        Tipka <kbd style="background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:0 4px">Esc</kbd> zapre ta meni.
+      </div>
+
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
