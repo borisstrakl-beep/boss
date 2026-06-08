@@ -6874,39 +6874,65 @@ async function fetchPortfelj() {
 async function fetchPortfeljHistory() {
   finData.portfeljHistory = {};
 
-  // Preveri cache (velja 6 ur)
+  // Naloži zgodovino iz Firebase
   try {
-    const cached = localStorage.getItem('portfelj_history');
-    if (cached) {
-      const c = JSON.parse(cached);
-      if (c.ts && (Date.now() - c.ts) < 6 * 3600 * 1000) {
-        finData.portfeljHistory = c.data;
-        return;
-      }
+    const r = await fetch(FIREBASE_URL + '/portfelj_history.json');
+    const raw = await r.json();
+    if (raw && typeof raw === 'object') {
+      // Struktura: { GOOGL: { "2026-06-01": 170.5, ... }, IQQW_DE: {...}, ... }
+      Object.keys(raw).forEach(symKey => {
+        const sym = symKey.replace('_DE', '.DE'); // Obnovi pike iz podčrtajev
+        const entries = raw[symKey];
+        if (entries && typeof entries === 'object') {
+          finData.portfeljHistory[sym] = Object.entries(entries)
+            .map(([datum, cena]) => ({ datum, cena: parseFloat(cena) }))
+            .filter(x => !isNaN(x.cena) && x.cena > 0)
+            .sort((a, b) => a.datum.localeCompare(b.datum));
+        }
+      });
     }
-  } catch(e) {}
+  } catch(e) { console.warn('portfelj_history Firebase err:', e); }
 
-  // Fetch prek Apps Script → Finnhub candles (90 dni)
-  // IQQW.DE preskoči — Finnhub ne podpira EU borz
-  for (const p of PORTFELJ) {
-    if (p.staticEur) continue;
-    try {
-      const r = await fetch(BITP + '?endpoint=finnhub-candles&symbol=' + p.sym);
-      const d = await r.json();
-      if (d.s !== 'ok' || !d.t) continue;
-      finData.portfeljHistory[p.sym] = d.t.map((t, i) => ({
-        datum: new Date(t * 1000).toISOString().split('T')[0],
-        cena: d.c[i]
-      })).filter(x => x.cena != null && x.cena > 0);
-      await new Promise(r => setTimeout(r, 200));
-    } catch(e) { console.warn('History err', p.sym, e); }
+  // Shrani današnje cene v Firebase (samodejno gradimo zgodovino)
+  await portfeljSaveToday();
+}
+
+async function portfeljSaveToday() {
+  const danes = new Date().toISOString().split('T')[0];
+  const updates = {};
+  for (const p of finData.portfelj) {
+    if (!p.sym || !p.cena || p.cena <= 0) continue;
+    // Za IQQW shrani EUR ceno, za ostale USD ceno
+    const kljuc = p.sym.replace('.', '_'); // Firebase ne dovoli pike v ključih
+    updates[kljuc + '/' + danes] = p.cena;
+    // Tudi posodobi finData.portfeljHistory za takoj
+    if (!finData.portfeljHistory[p.sym]) finData.portfeljHistory[p.sym] = [];
+    const obstojeciIdx = finData.portfeljHistory[p.sym].findIndex(x => x.datum === danes);
+    if (obstojeciIdx >= 0) {
+      finData.portfeljHistory[p.sym][obstojeciIdx].cena = p.cena;
+    } else {
+      finData.portfeljHistory[p.sym].push({ datum: danes, cena: p.cena });
+      finData.portfeljHistory[p.sym].sort((a,b) => a.datum.localeCompare(b.datum));
+    }
   }
-
+  if (Object.keys(updates).length === 0) return;
+  // Shrani vsak simbol posebej z PATCH (Firebase ne dovoli "/" v PATCH ključih na root)
   try {
-    localStorage.setItem('portfelj_history', JSON.stringify({
-      ts: Date.now(), data: finData.portfeljHistory
-    }));
-  } catch(e) {}
+    const symUpdates = {};
+    Object.entries(updates).forEach(([key, cena]) => {
+      const [sym, datum] = key.split('/');
+      if (!symUpdates[sym]) symUpdates[sym] = {};
+      symUpdates[sym][datum] = cena;
+    });
+    for (const [sym, datumi] of Object.entries(symUpdates)) {
+      await fetch(FIREBASE_URL + '/portfelj_history/' + sym + '.json', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datumi)
+      });
+    }
+    console.log('[PORTFELJ] Danes shranjeno v Firebase:', danes);
+  } catch(e) { console.warn('portfelj save err:', e); }
 }
 
 function renderPortfelj() {
