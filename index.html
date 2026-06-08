@@ -3371,14 +3371,55 @@
             <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px" id="fin-port-chg-eur">—</div>
           </div>
         </div>
-        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">SKUPNA VREDNOST — 3 MESECI</div>
-        <div style="position:relative;height:110px">
-          <canvas id="fin-port-chart"></canvas>
+        <!-- Graf + kontrole -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:4px">
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase" id="fin-port-chart-label">GIBANJE VREDNOSTI</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap">
+            <button onclick="portGrafCas(this,'7d')"  class="fin-flt-btn">7D</button>
+            <button onclick="portGrafCas(this,'14d')" class="fin-flt-btn">14D</button>
+            <button onclick="portGrafCas(this,'1m')"  class="fin-flt-btn active">1M</button>
+            <button onclick="portGrafCas(this,'3m')"  class="fin-flt-btn">3M</button>
+            <button onclick="portGrafCas(this,'1l')"  class="fin-flt-btn">1L</button>
+          </div>
+        </div>
+        <!-- Selector pozicije -->
+        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px" id="fin-port-sym-btns">
+          <button onclick="portGrafSym(this,'skupaj')" class="fin-flt-btn active" style="font-size:8px">SKUPAJ</button>
+          <button onclick="portGrafSym(this,'GOOGL')"  class="fin-flt-btn" style="font-size:8px">GOOGL</button>
+          <button onclick="portGrafSym(this,'TSLA')"   class="fin-flt-btn" style="font-size:8px">TSLA</button>
+          <button onclick="portGrafSym(this,'NFLX')"   class="fin-flt-btn" style="font-size:8px">NFLX</button>
+          <button onclick="portGrafSym(this,'AAPL')"   class="fin-flt-btn" style="font-size:8px">AAPL</button>
+          <button onclick="portGrafSym(this,'AMZN')"   class="fin-flt-btn" style="font-size:8px">AMZN</button>
+          <button onclick="portGrafSym(this,'MSFT')"   class="fin-flt-btn" style="font-size:8px">MSFT</button>
+          <button onclick="portGrafSym(this,'IQQW')"   class="fin-flt-btn" style="font-size:8px">IQQW</button>
+        </div>
+        <div style="position:relative;height:120px;overflow:hidden">
+          <canvas id="fin-port-chart" style="max-height:120px"></canvas>
         </div>
         <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin:10px 0 6px">POSAMEZNE POZICIJE</div>
         <div id="fin-port-items">
           <div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam cene...</div>
         </div>
+        <!-- Vnos ročne cene -->
+        <div class="o-divider" style="margin:10px 0 8px"></div>
+        <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px">ROČNI VNOS CENE</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <select id="port-vnos-sym" style="flex:1;min-width:90px;font-family:var(--mono);font-size:11px;padding:5px 8px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+            <option value="GOOGL">GOOGL</option>
+            <option value="TSLA">TSLA</option>
+            <option value="NFLX">NFLX</option>
+            <option value="AAPL">AAPL</option>
+            <option value="AMZN">AMZN</option>
+            <option value="MSFT">MSFT</option>
+            <option value="IQQW.DE">IQQW (ETF)</option>
+          </select>
+          <input type="number" id="port-vnos-cena" placeholder="Cena (USD/EUR)..." step="0.01"
+            style="flex:2;min-width:100px;font-family:var(--mono);font-size:11px;padding:5px 8px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text)">
+          <input type="date" id="port-vnos-datum"
+            style="flex:1;min-width:110px;font-family:var(--mono);font-size:11px;padding:5px 8px;background:var(--bg2);border:1px solid var(--bg3);border-radius:4px;color:var(--text2);colorscheme:dark">
+          <button onclick="portVnosiCeno()" class="add-btn" style="white-space:nowrap">+ DODAJ</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--text3)" id="port-vnos-status">—</div>
         <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:8px">
           <div id="fin-eurusd">—</div>
           <div id="fin-port-cas">—</div>
@@ -6916,44 +6957,150 @@ function renderPortfelj() {
   if (casEl) casEl.textContent = 'Posodobljeno ' + new Date().toLocaleTimeString('sl-SI', { hour:'2-digit', minute:'2-digit' });
 }
 
-function renderPortfeljChart() {
-  // Zberi vse datume
-  const dateSet = new Set();
-  PORTFELJ.forEach(p => {
-    const h = finData.portfeljHistory[p.sym] || [];
-    h.forEach(x => dateSet.add(x.datum));
-  });
-  const dates = Array.from(dateSet).sort();
-  if (dates.length < 2) return;
+let portGrafSymbol = 'skupaj';
+let portGrafOkno = '1m';
 
-  // Za vsak datum seštej vrednosti vseh pozicij
-  const skupajData = dates.map(datum => {
-    let vsota = 0;
-    PORTFELJ.forEach(p => {
-      const h = finData.portfeljHistory[p.sym] || [];
-      const pt = h.find(x => x.datum === datum);
-      if (pt) {
-        const cenaEur = p.sym === 'IQQW.DE' ? pt.cena : pt.cena / finData.eurusd;
-        vsota += cenaEur * p.kol;
-      }
-    });
-    return vsota > 0 ? vsota : null;
-  });
+function portGrafCas(btn, okno) {
+  portGrafOkno = okno;
+  // Odstrani active samo iz gumbov časovnega filtra (sosednji div)
+  btn.parentElement.querySelectorAll('.fin-flt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPortfeljChart();
+}
 
-  const labels = dates.map((d, i) => {
-    if (i === 0 || i === dates.length - 1 || i % 15 === 0) {
-      const dt = new Date(d);
-      return (dt.getDate()) + '.' + (dt.getMonth()+1) + '.';
+function portGrafSym(btn, sym) {
+  portGrafSymbol = sym === 'IQQW' ? 'IQQW.DE' : sym;
+  document.querySelectorAll('#fin-port-sym-btns .fin-flt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPortfeljChart();
+}
+
+function portVnosiCeno() {
+  const sym = document.getElementById('port-vnos-sym').value;
+  const cenaStr = document.getElementById('port-vnos-cena').value;
+  const datumStr = document.getElementById('port-vnos-datum').value;
+  const statusEl = document.getElementById('port-vnos-status');
+  if (!cenaStr || isNaN(parseFloat(cenaStr))) {
+    if (statusEl) statusEl.textContent = '⚠ Vnesi veljavno ceno.';
+    return;
+  }
+  const cena = parseFloat(cenaStr);
+  const datum = datumStr || new Date().toISOString().split('T')[0];
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('portfelj_manual_history') || '[]'); } catch(e) {}
+  // Odstrani morebitni obstoječi vnos za isti sim+datum
+  hist = hist.filter(x => !(x.sym === sym && x.datum === datum));
+  hist.push({ sym, datum, cena });
+  hist.sort((a,b) => a.datum.localeCompare(b.datum));
+  localStorage.setItem('portfelj_manual_history', JSON.stringify(hist));
+  // Posodobi staticEur za IQQW.DE v finData
+  if (sym === 'IQQW.DE') {
+    const idx = finData.portfelj.findIndex(p => p.sym === 'IQQW.DE');
+    if (idx >= 0) {
+      finData.portfelj[idx] = { ...finData.portfelj[idx], cenaEur: cena, vrednost: cena * finData.portfelj[idx].kol, staticCena: true };
     }
-    return '';
-  });
+    renderPortfelj();
+  }
+  const p = PORTFELJ.find(x => x.sym === sym);
+  const ime = p ? p.ime : sym;
+  if (statusEl) statusEl.textContent = '✓ Dodano: ' + ime + ' — ' + cena.toFixed(2) + ' ' + (sym === 'IQQW.DE' ? 'EUR' : 'USD') + ' · ' + datum;
+  document.getElementById('port-vnos-cena').value = '';
+  renderPortfeljChart();
+}
 
-  const minV = Math.min(...skupajData.filter(v => v != null)) * 0.97;
-  const maxV = Math.max(...skupajData.filter(v => v != null)) * 1.03;
+function portGetMergedHistory(sym) {
+  // Združi Finnhub history + ročno vnesene vnose za ta simbol
+  const finnhubH = finData.portfeljHistory[sym] || [];
+  let manualH = [];
+  try { manualH = JSON.parse(localStorage.getItem('portfelj_manual_history') || '[]'); } catch(e) {}
+  const symManual = manualH.filter(x => x.sym === sym).map(x => ({ datum: x.datum, cena: x.cena }));
+  // Združi: ročni vnosi prepišejo Finnhub za isti datum
+  const map = {};
+  finnhubH.forEach(x => { map[x.datum] = x.cena; });
+  symManual.forEach(x => { map[x.datum] = x.cena; });
+  return Object.entries(map).map(([datum, cena]) => ({ datum, cena })).sort((a,b) => a.datum.localeCompare(b.datum));
+}
 
-  makeChart('fin-port-chart', labels,
-    [lineDataset(skupajData, 'rgb(249,115,22)', 'Skupna vrednost')],
-    { xTicks:4, yMin: minV, yMax: maxV });
+function portFilterByOkno(data) {
+  if (!data.length) return data;
+  const days = { '7d':7, '14d':14, '1m':30, '3m':91, '1l':365 }[portGrafOkno] || 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  return data.filter(x => x.datum >= cutoffStr);
+}
+
+function renderPortfeljChart() {
+  const sym = portGrafSymbol;
+  const labelEl = document.getElementById('fin-port-chart-label');
+
+  if (sym === 'skupaj') {
+    // Zberi vse datume iz vseh simbolov (Finnhub + ročno)
+    const dateSet = new Set();
+    PORTFELJ.forEach(p => {
+      portGetMergedHistory(p.sym).forEach(x => dateSet.add(x.datum));
+    });
+    let dates = Array.from(dateSet).sort();
+    dates = portFilterByOkno(dates.map(d => ({ datum: d }))).map(x => x.datum);
+    if (dates.length < 2) { if (labelEl) labelEl.textContent = 'GIBANJE — SKUPAJ (premalo podatkov)'; return; }
+    if (labelEl) labelEl.textContent = 'GIBANJE — SKUPAJ PORTFELJ';
+
+    const skupajData = dates.map(datum => {
+      let vsota = 0, steviloPoz = 0;
+      PORTFELJ.forEach(p => {
+        const h = portGetMergedHistory(p.sym);
+        // Poišči zadnji znani vnos na ta datum ali pred njim
+        const pts = h.filter(x => x.datum <= datum);
+        if (pts.length) {
+          const pt = pts[pts.length - 1];
+          const cenaEur = p.sym === 'IQQW.DE' ? pt.cena : pt.cena / finData.eurusd;
+          vsota += cenaEur * p.kol;
+          steviloPoz++;
+        }
+      });
+      return steviloPoz > 0 ? vsota : null;
+    });
+
+    const validData = skupajData.filter(v => v != null);
+    if (!validData.length) return;
+    const minV = Math.min(...validData) * 0.97;
+    const maxV = Math.max(...validData) * 1.03;
+    const labels = dates.map((d, i) => {
+      if (i === 0 || i === dates.length - 1 || i % Math.max(1, Math.floor(dates.length / 5)) === 0) {
+        const dt = new Date(d + 'T12:00:00');
+        return dt.getDate() + '.' + (dt.getMonth()+1) + '.';
+      }
+      return '';
+    });
+    makeChart('fin-port-chart', labels,
+      [lineDataset(skupajData, 'rgb(249,115,22)', 'Skupna vrednost')],
+      { xTicks:5, yMin: minV, yMax: maxV });
+
+  } else {
+    // Posamezni simbol
+    const p = PORTFELJ.find(x => x.sym === sym);
+    if (!p) return;
+    let h = portGetMergedHistory(sym);
+    h = portFilterByOkno(h);
+    if (h.length < 2) { if (labelEl) labelEl.textContent = 'GIBANJE — ' + sym.replace('.DE','') + ' (premalo podatkov)'; return; }
+    if (labelEl) labelEl.textContent = 'GIBANJE — ' + sym.replace('.DE','') + ' (' + (sym === 'IQQW.DE' ? 'EUR' : 'USD') + ')';
+
+    const cene = h.map(x => x.cena);
+    const minV = Math.min(...cene) * 0.97;
+    const maxV = Math.max(...cene) * 1.03;
+    const labels = h.map((x, i) => {
+      if (i === 0 || i === h.length - 1 || i % Math.max(1, Math.floor(h.length / 5)) === 0) {
+        const dt = new Date(x.datum + 'T12:00:00');
+        return dt.getDate() + '.' + (dt.getMonth()+1) + '.';
+      }
+      return '';
+    });
+    const barva = { 'GOOGL':'rgb(66,133,244)', 'TSLA':'rgb(204,0,0)', 'NFLX':'rgb(229,9,20)',
+      'AAPL':'rgb(160,160,160)', 'AMZN':'rgb(255,153,0)', 'MSFT':'rgb(0,120,212)', 'IQQW.DE':'rgb(34,197,94)' }[sym] || 'rgb(249,115,22)';
+    makeChart('fin-port-chart', labels,
+      [lineDataset(cene, barva, p.ime)],
+      { xTicks:5, yMin: minV, yMax: maxV });
+  }
 }
 
 // ---- STAVNICA ----
