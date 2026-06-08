@@ -7037,6 +7037,12 @@ function portFilterByOkno(data) {
 function renderPortfeljChart() {
   const sym = portGrafSymbol;
   const labelEl = document.getElementById('fin-port-chart-label');
+  const canvasEl = document.getElementById('fin-port-chart');
+  console.log('[PORTCHART] sym='+sym+' okno='+portGrafOkno+' canvas='+!!canvasEl+' eurusd='+finData.eurusd);
+  PORTFELJ.forEach(p => {
+    const h = portGetMergedHistory(p.sym);
+    console.log('[PORTCHART] history '+p.sym+': '+h.length+' točk');
+  });
 
   if (sym === 'skupaj') {
     // Zberi vse datume iz vseh simbolov (Finnhub + ročno)
@@ -7046,6 +7052,7 @@ function renderPortfeljChart() {
     });
     let dates = Array.from(dateSet).sort();
     dates = portFilterByOkno(dates.map(d => ({ datum: d }))).map(x => x.datum);
+    console.log('[PORTCHART] skupaj dates after filter: '+dates.length);
     if (dates.length < 2) { if (labelEl) labelEl.textContent = 'GIBANJE — SKUPAJ (premalo podatkov)'; return; }
     if (labelEl) labelEl.textContent = 'GIBANJE — SKUPAJ PORTFELJ';
 
