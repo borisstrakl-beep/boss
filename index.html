@@ -17,9 +17,9 @@
     --orange-dim: #c2550f;
     --orange-glow: rgba(249,115,22,0.12);
     --orange-glow2: rgba(249,115,22,0.06);
-    --text: #e8e8e8;
-    --text2: #999;
-    --text3: #555;
+    --text: #ffffff;
+    --text2: #cccccc;
+    --text3: #aaaaaa;
     --green: #22c55e;
     --green-dim: rgba(34,197,94,0.15);
     --red: #ef4444;
@@ -3806,8 +3806,8 @@
       </div>
       <div class="bm-kpi" id="bkpi-teza" onclick="bmSel('teza')">
         <div class="bm-kpi-lbl"><span class="bm-kpi-dot" style="background:#3b82f6"></span>TEŽA</div>
-        <div><span class="bm-kpi-val">82.4</span><span class="bm-kpi-unit">kg</span></div>
-        <div class="bm-kpi-sub">BMI 24.1 · −4.7 kg</div>
+        <div><span class="bm-kpi-val" id="bm-teza-val">—</span><span class="bm-kpi-unit">kg</span></div>
+        <div class="bm-kpi-sub" id="bm-teza-sub">nalagam...</div>
       </div>
       <div class="bm-kpi" id="bkpi-spanec" onclick="bmSel('spanec')">
         <div class="bm-kpi-lbl"><span class="bm-kpi-dot" style="background:#a855f7"></span>SPANEC</div>
@@ -3907,7 +3907,7 @@
 (function(){
   const BM = {
     utrip:{color:'#ef4444',title:'SRČNI UTRIP — DANES',html:`<div class="bm-mini"><div class="bm-ms"><div class="bm-ms-v" style="color:#ef4444">52</div><div class="bm-ms-l">MIN bpm</div></div><div class="bm-ms"><div class="bm-ms-v">68</div><div class="bm-ms-l">POVP.</div></div><div class="bm-ms"><div class="bm-ms-v" style="color:#ef4444">142</div><div class="bm-ms-l">MAX bpm</div></div></div><div style="font-family:var(--cond);font-size:11px;color:var(--text3);margin-top:7px;line-height:1.5">Povp. 30 dni: 66 bpm &nbsp;·&nbsp; Trend stabilen</div>`},
-    teza:{color:'#3b82f6',title:'TEŽA — ZADNJA MERITEV',html:`<div class="bm-mini"><div class="bm-ms"><div class="bm-ms-v">82.4</div><div class="bm-ms-l">kg</div></div><div class="bm-ms"><div class="bm-ms-v">24.1</div><div class="bm-ms-l">BMI</div></div><div class="bm-ms"><div class="bm-ms-v" style="color:#ef4444">19.2%</div><div class="bm-ms-l">maščoba</div></div></div><div style="font-family:var(--cond);font-size:11px;color:var(--text3);margin-top:7px;line-height:1.5">Start jun 2025: 87.1 kg &nbsp;·&nbsp; Skupaj: −4.7 kg</div>`},
+    teza:{color:'#3b82f6',title:'TEŽA — ZADNJA MERITEV',html:`<div class="bm-mini" id="bm-teza-detail"><div class="bm-ms"><div class="bm-ms-v" id="bm-td-teza">—</div><div class="bm-ms-l">kg</div></div><div class="bm-ms"><div class="bm-ms-v" id="bm-td-bmi">—</div><div class="bm-ms-l">BMI</div></div><div class="bm-ms"><div class="bm-ms-v" id="bm-td-mascoba" style="color:#ef4444">—</div><div class="bm-ms-l">maščoba</div></div></div><div style="font-family:var(--cond);font-size:11px;color:var(--text3);margin-top:7px;line-height:1.5" id="bm-td-info">Nalagam iz Renpho...</div>`},
     spanec:{color:'#a855f7',title:'SPANEC — PREJŠNJA NOČ',html:`<div class="bm-mini-4"><div class="bm-ms"><div class="bm-ms-v">7.2h</div><div class="bm-ms-l">SKUPAJ</div></div><div class="bm-ms"><div class="bm-ms-v" style="color:#a855f7">1.8h</div><div class="bm-ms-l">REM</div></div><div class="bm-ms"><div class="bm-ms-v" style="color:#3b82f6">1.4h</div><div class="bm-ms-l">GLOBOK</div></div><div class="bm-ms"><div class="bm-ms-v">4.0h</div><div class="bm-ms-l">LAHEK</div></div></div><div style="font-family:var(--cond);font-size:11px;color:var(--text3);margin-top:7px;line-height:1.5">22:48 → 06:02 &nbsp;·&nbsp; Povp. 30 dni: 7.0h</div>`},
     koraki:{color:'#22c55e',title:'KORAKI — DANES',html:`<div class="bm-mini"><div class="bm-ms"><div class="bm-ms-v" style="color:#22c55e">8.427</div><div class="bm-ms-l">KORAKI</div></div><div class="bm-ms"><div class="bm-ms-v">5.9 km</div><div class="bm-ms-l">RAZDALJA</div></div><div class="bm-ms"><div class="bm-ms-v">312</div><div class="bm-ms-l">KCAL</div></div></div><div style="margin-top:7px"><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:3px"><span>NAPREDEK</span><span>8.427 / 10.000</span></div><div class="bm-bar-bg"><div class="bm-bar" style="background:#22c55e;width:84%"></div></div></div>`},
     prehrana:{color:'#f97316',title:'PREHRANA — DANES',html:`<div style="font-family:var(--cond);font-size:11px;color:var(--text3)">Vnesi obroke v spodnjem panelu.</div>`}
@@ -3930,6 +3930,679 @@
     document.getElementById('bm-prehrana-vnos').style.display=(k==='prehrana')?'block':'none';
   };
   bmSel('utrip');
+})();
+</script>
+
+<!-- ========== RENPHO TELESNE MERITVE ========== -->
+<div style="margin-top:10px;padding:0 10px 10px 10px">
+
+<style>
+/* ---- Renpho section ---- */
+.rn-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rn-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.15em;color:#c8c8c8}
+.rn-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.rn-tab{font-family:var(--mono);font-size:9px;padding:3px 7px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;color:#b0b0b0;background:var(--bg3);transition:all .15s}
+.rn-tab.active{background:var(--orange);color:#000;border-color:var(--orange)}
+.rn-period{display:flex;gap:3px;margin-bottom:8px}
+.rn-pbtn{font-family:var(--mono);font-size:9px;padding:3px 6px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;color:#b0b0b0;background:var(--bg3);transition:all .15s}
+.rn-pbtn.active{background:var(--orange-dim);color:var(--orange);border-color:var(--orange)}
+.rn-chart-wrap{position:relative;height:160px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;margin-bottom:8px}
+.rn-chart-wrap canvas{position:absolute;top:0;left:0}
+.rn-latest{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
+.rn-lbl{font-family:var(--cond);font-size:9px;color:#a0a0a0;letter-spacing:.05em;margin-bottom:1px}
+.rn-val{font-family:var(--mono);font-size:16px;font-weight:700;color:#f0f0f0}
+.rn-unit{font-family:var(--cond);font-size:10px;color:#a0a0a0;margin-left:2px}
+.rn-card{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:6px 8px}
+.rn-form{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:10px;margin-bottom:8px}
+.rn-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.rn-input-group label{font-family:var(--mono);font-size:8px;color:#999;display:block;margin-bottom:2px;letter-spacing:.08em}
+.rn-input-group input{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:2px;padding:4px 6px;font-family:var(--mono);font-size:10px;color:var(--text);outline:none}
+.rn-input-group input:focus{border-color:var(--orange)}
+.rn-trend-up{color:#22c55e}
+.rn-trend-dn{color:#ef4444}
+.rn-trend-eq{color:var(--text3)}
+</style>
+
+<div class="rn-header">
+  <div class="rn-title">⚖ TELESNE MERITVE · RENPHO</div>
+  <button class="btn btn-secondary" style="padding:3px 8px;font-size:8px" onclick="rnToggleForm()">+ VNOS</button>
+</div>
+
+<!-- Forma za vnos -->
+<div id="rn-form-wrap" style="display:none">
+  <div class="rn-form">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--orange);letter-spacing:.1em;margin-bottom:8px">NOVA MERITEV</div>
+    <div class="rn-form-grid">
+      <div class="rn-input-group">
+        <label>DATUM</label>
+        <input type="date" id="rn-inp-datum" />
+      </div>
+      <div class="rn-input-group">
+        <label>TEŽA (kg)</label>
+        <input type="number" id="rn-inp-teza" step="0.1" placeholder="117.0" />
+      </div>
+      <div class="rn-input-group">
+        <label>BMI</label>
+        <input type="number" id="rn-inp-bmi" step="0.1" placeholder="35.7" />
+      </div>
+      <div class="rn-input-group">
+        <label>MAŠČOBA (%)</label>
+        <input type="number" id="rn-inp-mascoba" step="0.1" placeholder="36.2" />
+      </div>
+      <div class="rn-input-group">
+        <label>BREZ-MAŠČ. (kg)</label>
+        <input type="number" id="rn-inp-brezm" step="0.1" placeholder="74.7" />
+      </div>
+      <div class="rn-input-group">
+        <label>PODKOŽNA M. (%)</label>
+        <input type="number" id="rn-inp-podkozna" step="0.1" placeholder="30.9" />
+      </div>
+      <div class="rn-input-group">
+        <label>VISCERALNA M.</label>
+        <input type="number" id="rn-inp-visceralna" step="1" placeholder="18" />
+      </div>
+      <div class="rn-input-group">
+        <label>VODA (%)</label>
+        <input type="number" id="rn-inp-voda" step="0.1" placeholder="46.1" />
+      </div>
+      <div class="rn-input-group">
+        <label>SKELET. MIŠICE (%)</label>
+        <input type="number" id="rn-inp-skelm" step="0.1" placeholder="41.2" />
+      </div>
+      <div class="rn-input-group">
+        <label>MIŠIČNA MASA (kg)</label>
+        <input type="number" id="rn-inp-misice" step="0.1" placeholder="71.0" />
+      </div>
+      <div class="rn-input-group">
+        <label>KOSTI (kg)</label>
+        <input type="number" id="rn-inp-kosti" step="0.01" placeholder="3.74" />
+      </div>
+      <div class="rn-input-group">
+        <label>PROTEIN (%)</label>
+        <input type="number" id="rn-inp-protein" step="0.1" placeholder="14.6" />
+      </div>
+      <div class="rn-input-group">
+        <label>BMR (kcal)</label>
+        <input type="number" id="rn-inp-bmr" step="1" placeholder="1983" />
+      </div>
+      <div class="rn-input-group">
+        <label>MET. STAROST</label>
+        <input type="number" id="rn-inp-metaage" step="1" placeholder="52" />
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-primary" style="padding:5px 12px;font-size:9px;flex:1" onclick="rnSaveMeritev()">💾 SHRANI</button>
+      <button class="btn btn-secondary" style="padding:5px 10px;font-size:9px" onclick="rnToggleForm()">PREKLIČI</button>
+    </div>
+  </div>
+</div>
+
+<!-- Izbira metrike -->
+<div class="rn-tabs" id="rn-tabs">
+  <div class="rn-tab active" data-metric="teza" onclick="rnSelMetric(this)">TEŽA</div>
+  <div class="rn-tab" data-metric="bmi" onclick="rnSelMetric(this)">BMI</div>
+  <div class="rn-tab" data-metric="mascoba" onclick="rnSelMetric(this)">MAŠČOBA%</div>
+  <div class="rn-tab" data-metric="brezm" onclick="rnSelMetric(this)">BREZ-MAŠČ.</div>
+  <div class="rn-tab" data-metric="podkozna" onclick="rnSelMetric(this)">PODKOŽNA%</div>
+  <div class="rn-tab" data-metric="visceralna" onclick="rnSelMetric(this)">VISCERALNA</div>
+  <div class="rn-tab" data-metric="voda" onclick="rnSelMetric(this)">VODA%</div>
+  <div class="rn-tab" data-metric="skelm" onclick="rnSelMetric(this)">SKEL.MIŠICE%</div>
+  <div class="rn-tab" data-metric="misice" onclick="rnSelMetric(this)">MIŠICE kg</div>
+  <div class="rn-tab" data-metric="kosti" onclick="rnSelMetric(this)">KOSTI kg</div>
+  <div class="rn-tab" data-metric="protein" onclick="rnSelMetric(this)">PROTEIN%</div>
+  <div class="rn-tab" data-metric="bmr" onclick="rnSelMetric(this)">BMR</div>
+  <div class="rn-tab" data-metric="metaage" onclick="rnSelMetric(this)">MET.STAROST</div>
+</div>
+
+<!-- Izbira obdobja -->
+<div class="rn-period" id="rn-period">
+  <div class="rn-pbtn" data-days="7" onclick="rnSelPeriod(this)">7D</div>
+  <div class="rn-pbtn" data-days="14" onclick="rnSelPeriod(this)">14D</div>
+  <div class="rn-pbtn active" data-days="30" onclick="rnSelPeriod(this)">1M</div>
+  <div class="rn-pbtn" data-days="90" onclick="rnSelPeriod(this)">3M</div>
+  <div class="rn-pbtn" data-days="365" onclick="rnSelPeriod(this)">1L</div>
+  <div class="rn-pbtn" data-days="9999" onclick="rnSelPeriod(this)">VSE</div>
+</div>
+
+<!-- Graf -->
+<div class="rn-chart-wrap" id="rn-chart-wrap" style="position:relative">
+  <canvas id="rn-chart"></canvas>
+  <div id="rn-tooltip" style="display:none;position:absolute;pointer-events:none;background:rgba(10,10,10,0.92);border:1px solid var(--orange);border-radius:3px;padding:5px 9px;font-family:var(--mono);font-size:10px;color:#fff;white-space:nowrap;z-index:10"></div>
+</div>
+
+<!-- Zadnje vrednosti (latest 4 metrike) -->
+<div class="rn-latest" id="rn-latest-grid">
+  <div class="rn-card">
+    <div class="rn-lbl">TEŽA</div>
+    <div><span class="rn-val" id="rn-last-teza">—</span><span class="rn-unit">kg</span></div>
+    <div class="rn-lbl" id="rn-trend-teza" style="margin-top:2px"></div>
+  </div>
+  <div class="rn-card">
+    <div class="rn-lbl">MAŠČOBA</div>
+    <div><span class="rn-val" id="rn-last-mascoba">—</span><span class="rn-unit">%</span></div>
+    <div class="rn-lbl" id="rn-trend-mascoba" style="margin-top:2px"></div>
+  </div>
+  <div class="rn-card">
+    <div class="rn-lbl">MIŠICE</div>
+    <div><span class="rn-val" id="rn-last-misice">—</span><span class="rn-unit">kg</span></div>
+    <div class="rn-lbl" id="rn-trend-misice" style="margin-top:2px"></div>
+  </div>
+  <div class="rn-card">
+    <div class="rn-lbl">BMR</div>
+    <div><span class="rn-val" id="rn-last-bmr">—</span><span class="rn-unit">kcal</span></div>
+    <div class="rn-lbl" id="rn-trend-bmr" style="margin-top:2px"></div>
+  </div>
+</div>
+
+</div><!-- end renpho section -->
+
+<script>
+(function(){
+// ===== RENPHO DATA =====
+// CSV podatki uvoženi kot začetni set
+const RENPHO_CSV_DATA = [
+["06/09/2026","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","52"],
+["06/08/2026","118","36.0","36.4","75","31.1","18","45.9","41.1","71.3","3.75","14.5","1991","52"],
+["06/07/2026","116.8","35.7","36.2","74.5","31.0","18","46.1","41.2","70.8","3.73","14.6","1979","52"],
+["05/30/2026","115.5","35.3","35.9","74","30.8","18","46.3","41.4","70.3","3.7","14.6","1969","52"],
+["05/27/2026","114.5","35.0","35.7","73.6","30.6","17","46.4","41.5","69.9","3.68","14.7","1960","52"],
+["05/25/2026","116.7","35.6","36.2","74.5","31.0","18","46.1","41.2","70.7","3.73","14.5","1978","52"],
+["05/20/2026","115.8","35.3","36.0","74.2","30.8","18","46.3","41.4","70.4","3.71","14.5","1970","52"],
+["05/19/2026","116.5","35.6","36.1","74.4","30.9","18","46.1","41.3","70.7","3.72","14.6","1977","52"],
+["05/18/2026","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","52"],
+["05/17/2026","114.9","35.1","35.8","73.8","30.7","17","46.4","41.5","70.1","3.69","14.6","1963","52"],
+["05/08/2026","113.4","34.6","35.4","73.2","30.4","17","46.6","41.7","69.6","3.66","14.8","1952","52"],
+["05/07/2026","113.8","34.7","35.5","73.4","30.5","17","46.6","41.7","69.7","3.67","14.7","1955","52"],
+["05/06/2026","114.9","35.1","35.8","73.8","30.7","17","46.4","41.5","70.1","3.69","14.6","1963","52"],
+["05/04/2026","116.5","35.6","36.1","74.4","30.9","18","46.1","41.3","70.7","3.72","14.6","1977","52"],
+["04/17/2026","116.4","35.5","36.1","74.4","30.9","18","46.1","41.3","70.7","3.72","14.6","1976","52"],
+["04/16/2026","115.8","35.3","36.0","74.2","30.8","18","46.3","41.4","70.4","3.71","14.5","1970","52"],
+["04/15/2026","115.8","35.3","36.0","74.2","30.8","18","46.3","41.4","70.4","3.71","14.5","1970","52"],
+["04/14/2026","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","52"],
+["04/13/2026","117.2","35.8","36.3","74.7","31.0","18","46.0","41.2","70.9","3.74","14.5","1982","52"],
+["04/12/2026","116.2","35.5","36.1","74.3","30.9","17","46.2","41.3","70.5","3.72","14.5","1973","52"],
+["04/07/2026","117.6","35.9","36.3","74.9","31.0","18","46.0","41.1","71.2","3.75","14.5","1988","51"],
+["03/22/2026","116.8","35.7","36.1","74.6","30.9","18","46.1","41.3","70.9","3.73","14.6","1982","51"],
+["03/16/2026","116.8","35.7","36.1","74.6","30.9","18","46.1","41.3","70.9","3.73","14.6","1982","51"],
+["03/11/2026","116.6","35.6","36.1","74.5","30.9","18","46.1","41.3","70.8","3.73","14.6","1979","51"],
+["03/02/2026","116.6","35.6","36.1","74.5","30.9","18","46.1","41.3","70.8","3.73","14.6","1979","51"],
+["02/26/2026","116.5","35.6","36.1","74.5","30.9","18","46.2","41.3","70.7","3.73","14.5","1977","51"],
+["02/25/2026","115.7","35.3","35.9","74.2","30.7","18","46.3","41.4","70.5","3.71","14.6","1971","51"],
+["02/24/2026","118.2","36.1","36.4","75.2","31.1","18","45.9","41.1","71.4","3.76","14.5","1993","51"],
+["02/23/2026","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["02/20/2026","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["02/19/2026","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["02/16/2026","115","35.1","35.7","73.9","30.6","18","46.4","41.5","70.3","3.7","14.7","1967","51"],
+["02/14/2026","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["02/12/2026","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["02/10/2026","116.1","35.4","36.0","74.3","30.8","18","46.2","41.3","70.6","3.72","14.6","1974","51"],
+["02/06/2026","117.4","35.8","36.2","74.8","30.9","18","46.0","41.2","71.2","3.74","14.6","1987","51"],
+["02/01/2026","117.5","35.9","36.3","74.9","31.0","18","46.0","41.2","71.1","3.75","14.5","1986","51"],
+["01/27/2026","116.3","35.5","36.0","74.4","30.8","18","46.2","41.3","70.7","3.72","14.6","1977","51"],
+["01/26/2026","118.2","36.1","36.4","75.2","31.1","18","45.9","41.1","71.4","3.76","14.5","1993","51"],
+["01/25/2026","115.9","35.4","35.9","74.3","30.7","18","46.3","41.4","70.6","3.72","14.6","1974","51"],
+["01/24/2026","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["01/23/2026","117.6","35.9","36.3","74.9","31.0","18","46.0","41.1","71.2","3.75","14.5","1988","51"],
+["01/22/2026","118.9","36.3","36.6","75.4","31.2","19","45.8","41.0","71.6","3.77","14.4","1998","51"],
+["01/21/2026","117.2","35.8","36.2","74.8","30.9","18","46.1","41.2","71","3.74","14.5","1985","51"],
+["01/16/2026","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","51"],
+["01/12/2026","117.5","35.9","36.3","74.9","31.0","18","46.0","41.2","71.1","3.75","14.5","1986","51"],
+["01/10/2026","116.2","35.5","36.0","74.4","30.8","18","46.2","41.4","70.6","3.72","14.6","1976","51"],
+["01/09/2026","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","51"],
+["01/08/2026","118","36.0","36.4","75.1","31.1","18","46.0","41.1","71.3","3.76","14.5","1991","51"],
+["01/07/2026","118","36.0","36.4","75.1","31.1","18","46.0","41.1","71.3","3.76","14.5","1991","51"],
+["01/06/2026","119.4","36.4","36.7","75.6","31.3","19","45.7","40.9","71.8","3.78","14.4","2002","51"],
+["01/04/2026","118.7","36.2","36.5","75.4","31.1","19","45.9","41.0","71.6","3.77","14.5","1998","51"],
+["01/03/2026","118.5","36.2","36.5","75.3","31.2","18","45.9","41.0","71.5","3.77","14.4","1995","51"],
+["01/02/2026","117.6","35.9","36.3","74.9","31.0","18","46.0","41.1","71.2","3.75","14.5","1988","51"],
+["01/01/2026","118.9","36.3","36.6","75.4","31.2","19","45.8","41.0","71.6","3.77","14.4","1998","51"],
+["12/29/2025","116.9","35.7","36.1","74.7","30.9","18","46.1","41.3","71","3.74","14.6","1983","51"],
+["12/23/2025","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","51"],
+["12/22/2025","117.5","35.9","36.3","74.9","31.0","18","46.0","41.2","71.1","3.75","14.5","1986","51"],
+["12/15/2025","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["12/03/2025","116.6","35.6","36.1","74.5","30.9","18","46.1","41.3","70.8","3.73","14.6","1979","51"],
+["11/27/2025","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["11/26/2025","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["11/25/2025","116.8","35.7","36.1","74.6","30.9","18","46.1","41.3","70.9","3.73","14.6","1982","51"],
+["11/14/2025","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["11/12/2025","116","35.4","36.0","74.3","30.8","18","46.2","41.4","70.5","3.72","14.6","1973","51"],
+["11/11/2025","116.7","35.6","36.1","74.6","30.9","18","46.2","41.3","70.8","3.73","14.6","1980","51"],
+["11/07/2025","117.4","35.8","36.2","74.9","30.9","18","46.1","41.2","71.2","3.75","14.5","1987","51"],
+["11/06/2025","118.9","36.3","36.6","75.4","31.2","19","45.8","41.0","71.6","3.77","14.4","1998","51"],
+["11/05/2025","117.3","35.8","36.2","74.8","30.9","18","46.0","41.2","71.1","3.74","14.6","1986","51"],
+["11/04/2025","117.7","35.9","36.3","75","31.0","18","46.0","41.2","71.2","3.75","14.5","1989","51"],
+["11/03/2025","118.6","36.2","36.5","75.3","31.1","19","45.8","41.0","71.5","3.77","14.5","1996","51"],
+["11/01/2025","118.1","36.0","36.4","75.1","31.1","18","45.9","41.1","71.4","3.76","14.5","1992","51"],
+["10/30/2025","117.9","36.0","36.3","75","31.0","18","45.9","41.1","71.4","3.75","14.6","1992","51"],
+["10/27/2025","118.4","36.1","36.5","75.2","31.2","18","45.9","41.0","71.4","3.76","14.5","1993","51"],
+["10/25/2025","117.6","35.9","36.3","74.9","31.0","18","46.0","41.1","71.2","3.75","14.5","1988","51"],
+["10/20/2025","116.8","35.7","36.1","74.6","30.9","18","46.1","41.3","70.9","3.73","14.6","1982","51"],
+["10/15/2025","116.2","35.5","36.0","74.4","30.8","18","46.2","41.4","70.6","3.72","14.6","1976","51"],
+["10/13/2025","118.4","36.1","36.5","75.2","31.2","18","45.9","41.0","71.4","3.76","14.5","1993","51"],
+["10/12/2025","117.5","35.9","36.3","74.9","31.0","18","46.0","41.2","71.1","3.75","14.5","1986","51"],
+["10/11/2025","117.4","35.8","36.2","74.8","30.9","18","46.0","41.2","71.2","3.74","14.6","1987","51"],
+["10/10/2025","117","35.7","36.2","74.7","31.0","18","46.1","41.2","70.9","3.74","14.5","1982","51"],
+["10/09/2025","116.2","35.5","36.0","74.4","30.8","18","46.2","41.4","70.6","3.72","14.6","1976","51"],
+["10/08/2025","117.1","35.7","36.2","74.7","30.9","18","46.1","41.2","71","3.74","14.6","1983","51"],
+["10/07/2025","117.4","35.8","36.2","74.8","30.9","18","46.0","41.2","71.2","3.74","14.6","1987","51"],
+["10/06/2025","118.8","36.3","36.5","75.4","31.1","19","45.8","41.0","71.7","3.77","14.5","1999","51"],
+["10/02/2025","117.8","36.0","36.3","75","31.0","18","46.0","41.1","71.3","3.75","14.5","1990","51"],
+["10/01/2025","117.7","35.9","36.3","75","31.0","18","46.0","41.2","71.2","3.75","14.5","1989","51"],
+["09/30/2025","119.1","36.4","36.6","75.5","31.2","19","45.8","41.0","71.7","3.78","14.5","2001","51"],
+["09/29/2025","119.9","36.6","36.8","75.8","31.4","19","45.6","40.8","72","3.79","14.4","2006","51"],
+["09/26/2025","118.6","36.2","36.5","75.3","31.1","19","45.8","41.0","71.5","3.77","14.5","1996","51"],
+["09/24/2025","119.7","36.5","36.8","75.7","31.4","19","45.6","40.8","71.9","3.79","14.4","2005","51"],
+["09/23/2025","120.9","36.9","37.0","76.2","31.6","19","45.5","40.7","72.4","3.80","14.3","2013","51"],
+["09/20/2025","119.7","36.5","36.8","75.7","31.4","19","45.6","40.8","71.9","3.79","14.4","2005","51"],
+["09/14/2025","119.8","36.6","36.8","75.7","31.4","19","45.6","40.8","71.9","3.79","14.4","2006","51"],
+["09/13/2025","119.9","36.6","36.8","75.8","31.4","19","45.6","40.8","72","3.79","14.4","2006","51"],
+["09/12/2025","119.9","36.6","36.8","75.8","31.4","19","45.6","40.8","72","3.79","14.4","2006","51"],
+["09/11/2025","121.4","37.1","37.1","76.4","31.7","19","45.4","40.6","72.5","3.81","14.3","2016","51"],
+["09/09/2025","121.8","37.2","37.1","76.6","31.7","20","45.3","40.6","72.8","3.82","14.3","2019","51"],
+["09/07/2025","121.5","37.1","37.1","76.4","31.7","19","45.4","40.6","72.6","3.81","14.3","2016","51"],
+["09/05/2025","121.7","37.2","37.1","76.5","31.7","20","45.3","40.6","72.7","3.81","14.3","2018","51"],
+["09/04/2025","122.1","37.3","37.2","76.7","31.8","20","45.3","40.5","72.8","3.82","14.2","2020","51"],
+["09/03/2025","121.3","37.0","37.1","76.3","31.7","19","45.4","40.6","72.5","3.81","14.3","2015","51"],
+["09/01/2025","122.3","37.3","37.2","76.8","31.8","20","45.2","40.5","72.9","3.82","14.2","2021","51"]
+];
+
+// Mapping: CSV stolpci → objekt
+function csvRowToObj(row){
+  // row[0] = "MM/DD/YYYY", pretvorimo v "YYYY-MM-DD"
+  const d=row[0].split('/');
+  const iso=`${d[2]}-${d[0].padStart(2,'0')}-${d[1].padStart(2,'0')}`;
+  const v=(x)=>x===undefined||x==='--'||x===''?null:parseFloat(x);
+  return {
+    datum:iso,
+    teza:v(row[1]),bmi:v(row[2]),mascoba:v(row[3]),brezm:v(row[4]),
+    podkozna:v(row[5]),visceralna:v(row[6]),voda:v(row[7]),
+    skelm:v(row[8]),misice:v(row[9]),kosti:v(row[10]),
+    protein:v(row[11]),bmr:v(row[12]),metaage:v(row[13])
+  };
+}
+
+// Nalaganje podatkov iz localStorage ali CSV
+function rnLoadData(){
+  let stored=localStorage.getItem('renpho_meritve');
+  if(stored){
+    try{return JSON.parse(stored);}catch(e){}
+  }
+  // Privzeto: uvoz CSV
+  const data=RENPHO_CSV_DATA.map(csvRowToObj);
+  // Dedupliciraj in razvrsti
+  data.sort((a,b)=>a.datum.localeCompare(b.datum));
+  localStorage.setItem('renpho_meritve',JSON.stringify(data));
+  return data;
+}
+
+function rnSaveData(data){
+  localStorage.setItem('renpho_meritve',JSON.stringify(data));
+}
+
+// Metrike konfiguracija
+const RN_METRICS={
+  teza:{label:'Teža',unit:'kg',color:'#3b82f6',decimals:1},
+  bmi:{label:'BMI',unit:'',color:'#a855f7',decimals:1},
+  mascoba:{label:'Maščoba',unit:'%',color:'#ef4444',decimals:1},
+  brezm:{label:'Brez-maščobna',unit:'kg',color:'#06b6d4',decimals:1},
+  podkozna:{label:'Podkožna m.',unit:'%',color:'#f59e0b',decimals:1},
+  visceralna:{label:'Visceralna',unit:'',color:'#dc2626',decimals:0},
+  voda:{label:'Voda',unit:'%',color:'#22d3ee',decimals:1},
+  skelm:{label:'Skelet. mišice',unit:'%',color:'#22c55e',decimals:1},
+  misice:{label:'Mišična masa',unit:'kg',color:'#10b981',decimals:1},
+  kosti:{label:'Kosti',unit:'kg',color:'#6b7280',decimals:2},
+  protein:{label:'Protein',unit:'%',color:'#f97316',decimals:1},
+  bmr:{label:'BMR',unit:'kcal',color:'#eab308',decimals:0},
+  metaage:{label:'Met. starost',unit:'',color:'#8b5cf6',decimals:0}
+};
+
+let rnData=rnLoadData();
+let rnMetric='teza';
+let rnDays=30;
+let rnChart=null;
+
+function rnFilterData(){
+  if(rnDays>=9999) return rnData;
+  const cutoff=new Date();
+  cutoff.setDate(cutoff.getDate()-rnDays);
+  const cutStr=cutoff.toISOString().split('T')[0];
+  return rnData.filter(r=>r.datum>=cutStr);
+}
+
+// Shrani točke za hover
+let rnChartPoints=[];
+let rnChartPad={L:44,R:8,T:12,B:24};
+
+function rnRenderChart(){
+  const filtered=rnFilterData();
+  const metric=RN_METRICS[rnMetric];
+  const valid=filtered.filter(r=>r[rnMetric]!==null&&r[rnMetric]!==undefined);
+  
+  const wrap=document.getElementById('rn-chart-wrap');
+  const canvas=document.getElementById('rn-chart');
+  if(!canvas||!wrap) return;
+  const ww=wrap.getBoundingClientRect().width||wrap.offsetWidth||400;
+  canvas.width=Math.max(ww,200);
+  canvas.height=160;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  if(!valid.length){
+    ctx.fillStyle='#aaaaaa';
+    ctx.font='11px monospace';
+    ctx.fillText('Ni podatkov za izbrano obdobje',20,80);
+    rnChartPoints=[];
+    return;
+  }
+  
+  const vals=valid.map(r=>r[rnMetric]);
+  const labels=valid.map(r=>r.datum.slice(5));
+  const minV=Math.min(...vals)*0.998;
+  const maxV=Math.max(...vals)*1.002;
+  const range=maxV-minV||1;
+  
+  const W=canvas.width, H=canvas.height;
+  const padL=44,padR=8,padT=12,padB=24;
+  const gW=W-padL-padR, gH=H-padT-padB;
+  rnChartPad={L:padL,R:padR,T:padT,B:padB};
+  
+  // Shrani koordinate vseh točk za hover
+  rnChartPoints=valid.map((r,i)=>({
+    x: padL+gW*i/(valid.length-1||1),
+    y: padT+gH*(1-(r[rnMetric]-minV)/range),
+    datum: r.datum,
+    val: r[rnMetric],
+    metric: rnMetric
+  }));
+  
+  // Grid
+  ctx.strokeStyle='#333333';
+  ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){
+    const y=padT+gH*(1-i/4);
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+    const v=minV+range*i/4;
+    ctx.fillStyle='#aaaaaa';
+    ctx.font='8px monospace';
+    ctx.textAlign='right';
+    ctx.fillText(v.toFixed(metric.decimals),padL-3,y+3);
+  }
+  
+  // Linija
+  ctx.strokeStyle=metric.color;
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  valid.forEach((r,i)=>{
+    const x=padL+gW*i/(valid.length-1||1);
+    const y=padT+gH*(1-(r[rnMetric]-minV)/range);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  
+  // Točke (samo zadnja in prva)
+  [0,valid.length-1].forEach(i=>{
+    const r=valid[i];
+    const x=padL+gW*i/(valid.length-1||1);
+    const y=padT+gH*(1-(r[rnMetric]-minV)/range);
+    ctx.fillStyle=metric.color;
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ddd';
+    ctx.font='8px monospace';
+    ctx.textAlign=i===0?'left':'right';
+    ctx.fillText(r[rnMetric].toFixed(metric.decimals),x+(i===0?4:-4),y-4);
+  });
+  
+  // X oznake (max 6)
+  const step=Math.max(1,Math.floor(valid.length/6));
+  ctx.fillStyle='#aaaaaa';
+  ctx.font='7px monospace';
+  ctx.textAlign='center';
+  valid.forEach((r,i)=>{
+    if(i%step===0||i===valid.length-1){
+      const x=padL+gW*i/(valid.length-1||1);
+      ctx.fillText(labels[i],x,H-padB+12);
+    }
+  });
+  
+  // Naslov
+  ctx.fillStyle=metric.color;
+  ctx.font='bold 9px monospace';
+  ctx.textAlign='left';
+  ctx.fillText(`${metric.label} ${metric.unit}`,padL,padT-1);
+}
+
+// Hover tooltip logika - inicializira se enkrat
+function rnInitTooltip(){
+  const canvas=document.getElementById('rn-chart');
+  const tooltip=document.getElementById('rn-tooltip');
+  const wrap=document.getElementById('rn-chart-wrap');
+  if(!canvas||!tooltip||!wrap) return;
+  if(canvas._rnTooltipBound) return; // prepreči dvojno vezavo
+  canvas._rnTooltipBound=true;
+  
+  canvas.addEventListener('mousemove',function(e){
+    if(!rnChartPoints.length){tooltip.style.display='none';return;}
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+    
+    // Najdi najbližjo točko (po X razdalji)
+    let best=null, bestDx=Infinity;
+    rnChartPoints.forEach(p=>{
+      const dx=Math.abs(p.x-mx);
+      if(dx<bestDx){bestDx=dx;best=p;}
+    });
+    
+    if(!best||bestDx>30){tooltip.style.display='none';return;}
+    
+    const metric=RN_METRICS[best.metric];
+    tooltip.innerHTML=`<span style="color:#aaa;font-size:9px">${best.datum}</span><br><span style="color:${metric.color};font-size:13px;font-weight:700">${best.val.toFixed(metric.decimals)}</span><span style="color:#aaa;font-size:9px"> ${metric.unit}</span>`;
+    
+    // Pozicija tooltipa - nad točko, ne izven canvasa
+    let tx=best.x+8;
+    let ty=best.y-44;
+    if(ty<0) ty=best.y+8;
+    if(tx+120>canvas.width) tx=best.x-130;
+    tooltip.style.left=tx+'px';
+    tooltip.style.top=ty+'px';
+    tooltip.style.display='block';
+    
+    // Označi točko s crosshair linijo
+    const ctx=canvas.getContext('2d');
+    // Re-render + dodaj označevalec
+    rnRenderChartWithHover(best);
+  });
+  
+  canvas.addEventListener('mouseleave',function(){
+    tooltip.style.display='none';
+    rnRenderChart(); // obnovi čisti graf
+  });
+}
+
+function rnRenderChartWithHover(hoverPt){
+  // Samo doda crosshair + highlight točko na obstoječi graf
+  const canvas=document.getElementById('rn-chart');
+  if(!canvas) return;
+  // Najprej re-render osnove
+  // (preprečimo rekurzijo - klicamo interni render brez hover)
+  const ctx=canvas.getContext('2d');
+  const metric=RN_METRICS[hoverPt.metric];
+  const H=canvas.height;
+  const padT=rnChartPad.T, padB=rnChartPad.B;
+  
+  // Vertical crosshair
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,0.15)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.moveTo(hoverPt.x,padT);
+  ctx.lineTo(hoverPt.x,H-padB);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  
+  // Highlight točka
+  ctx.save();
+  ctx.fillStyle=metric.color;
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.arc(hoverPt.x,hoverPt.y,5,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function rnUpdateLatest(){
+  const latest=rnData.length?rnData[rnData.length-1]:null;
+  const prev=rnData.length>1?rnData[rnData.length-2]:null;
+  
+  ['teza','mascoba','misice','bmr'].forEach(k=>{
+    const v=latest?latest[k]:null;
+    const vp=prev?prev[k]:null;
+    const m=RN_METRICS[k];
+    const el=document.getElementById(`rn-last-${k}`);
+    const tel=document.getElementById(`rn-trend-${k}`);
+    if(el) el.textContent=v!==null?v.toFixed(m.decimals):'—';
+    if(tel&&v!==null&&vp!==null){
+      const diff=v-vp;
+      const sign=diff>0?'▲':diff<0?'▼':'=';
+      const cls=diff>0?(k==='misice'?'rn-trend-up':'rn-trend-dn'):(diff<0?(k==='misice'?'rn-trend-dn':'rn-trend-up'):'rn-trend-eq');
+      tel.innerHTML=`<span class="${cls}">${sign} ${Math.abs(diff).toFixed(m.decimals)}</span>`;
+    } else if(tel) tel.textContent='';
+  });
+}
+
+function rnSelMetric(el){
+  document.querySelectorAll('.rn-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  rnMetric=el.dataset.metric;
+  rnRenderChart();
+}
+window.rnSelMetric=rnSelMetric;
+
+function rnSelPeriod(el){
+  document.querySelectorAll('.rn-pbtn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  rnDays=parseInt(el.dataset.days)||9999;
+  rnRenderChart();
+}
+window.rnSelPeriod=rnSelPeriod;
+
+function rnToggleForm(){
+  const fw=document.getElementById('rn-form-wrap');
+  const vis=fw.style.display==='none';
+  fw.style.display=vis?'block':'none';
+  if(vis){
+    // Nastavi danes kot privzeti datum
+    document.getElementById('rn-inp-datum').value=new Date().toISOString().split('T')[0];
+  }
+}
+
+function rnSaveMeritev(){
+  const get=(id)=>{
+    const v=document.getElementById(id)?.value;
+    return v===undefined||v===''?null:parseFloat(v);
+  };
+  const datum=document.getElementById('rn-inp-datum').value;
+  if(!datum){alert('Prosim vnesite datum!');return;}
+  const m={
+    datum,
+    teza:get('rn-inp-teza'),bmi:get('rn-inp-bmi'),
+    mascoba:get('rn-inp-mascoba'),brezm:get('rn-inp-brezm'),
+    podkozna:get('rn-inp-podkozna'),visceralna:get('rn-inp-visceralna'),
+    voda:get('rn-inp-voda'),skelm:get('rn-inp-skelm'),
+    misice:get('rn-inp-misice'),kosti:get('rn-inp-kosti'),
+    protein:get('rn-inp-protein'),bmr:get('rn-inp-bmr'),
+    metaage:get('rn-inp-metaage')
+  };
+  // Dodaj ali posodobi (isti datum → zamenjaj)
+  const idx=rnData.findIndex(r=>r.datum===datum);
+  if(idx>=0) rnData[idx]=m;
+  else rnData.push(m);
+  rnData.sort((a,b)=>a.datum.localeCompare(b.datum));
+  rnSaveData(rnData);
+  rnUpdateLatest();
+  setTimeout(rnRenderChart,30);
+  rnToggleForm();
+}
+
+// Posodobi Fizično stanje - TEŽA KPI iz Renpho podatkov
+function rnUpdateBMTeza(){
+  const latest=rnData.length?rnData[rnData.length-1]:null;
+  if(!latest) return;
+  
+  // KPI kartica
+  const vEl=document.getElementById('bm-teza-val');
+  const sEl=document.getElementById('bm-teza-sub');
+  if(vEl&&latest.teza!==null) vEl.textContent=latest.teza.toFixed(1);
+  if(sEl){
+    const bmi=latest.bmi!==null?` · BMI ${latest.bmi.toFixed(1)}`:'';
+    const datum=latest.datum.slice(0,10);
+    sEl.textContent=`${datum}${bmi}`;
+  }
+  
+  // Detail panel (ko je aktiven)
+  const td=document.getElementById('bm-td-teza');
+  const tb=document.getElementById('bm-td-bmi');
+  const tm=document.getElementById('bm-td-mascoba');
+  const ti=document.getElementById('bm-td-info');
+  if(td&&latest.teza!==null) td.textContent=latest.teza.toFixed(1);
+  if(tb&&latest.bmi!==null) tb.textContent=latest.bmi.toFixed(1);
+  if(tm&&latest.mascoba!==null) tm.textContent=latest.mascoba.toFixed(1)+'%';
+  if(ti){
+    // Izračunaj spremembo od najstarejše meritve
+    const oldest=rnData[0];
+    if(oldest&&oldest.teza&&latest.teza){
+      const diff=(latest.teza-oldest.teza).toFixed(1);
+      const sign=diff>0?'+':'';
+      ti.textContent=`${oldest.datum} → danes: ${sign}${diff} kg`;
+    }
+  }
+  
+  // Posodobi tudi BM objekt (title)
+  if(window.BM&&window.BM.teza&&latest.teza!==null){
+    window.BM.teza.title=`TEŽA — ${latest.datum}`;
+  }
+}
+
+// Izpostavi vse onclick funkcije globalno
+window.rnToggleForm=rnToggleForm;
+window.rnSaveMeritev=rnSaveMeritev;
+window.rnSelMetric=rnSelMetric;
+window.rnSelPeriod=rnSelPeriod;
+
+// Init
+rnUpdateLatest();
+rnUpdateBMTeza();
+setTimeout(rnUpdateBMTeza,200);
+
+// Graf se izriše takoj ko je canvas viden
+function rnInitChart(){
+  const canvas=document.getElementById('rn-chart');
+  if(!canvas) return;
+  rnRenderChart();
+  rnInitTooltip();
+}
+// Poskusi takoj in po zamiku
+setTimeout(rnInitChart,100);
+setTimeout(rnInitChart,600);
+setTimeout(rnInitChart,1500);
+
+// Re-render ob resize
+window.addEventListener('resize',()=>{setTimeout(rnRenderChart,80);});
+
+// Re-render ko tab postane viden (MutationObserver na tab-body)
+(function(){
+  const tb=document.getElementById('tab-fizinostanje');
+  if(!tb) return;
+  const obs=new MutationObserver(()=>{
+    if(tb.classList.contains('open')){setTimeout(rnRenderChart,80);}
+  });
+  obs.observe(tb,{attributes:true,attributeFilter:['class']});
+})();
+
 })();
 </script>
 
