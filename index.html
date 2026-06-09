@@ -3540,13 +3540,13 @@
         <div id="cilj-teza-status" style="font-family:var(--cond);font-size:10px;margin-top:4px;padding:3px 6px;border-radius:2px;display:none"></div>
       </div>
       <div class="o-divider"></div>
-      <div class="goal-item">
+      <div class="goal-item" id="cilj-tek-item">
         <div class="goal-header">
-          <div class="goal-name">🏃 Tek — mesečni km</div>
-          <div class="goal-val">47 / 80 km</div>
+          <div class="goal-name">🏃 Tek — tedenski km</div>
+          <div class="goal-val" id="cilj-tek-val">Nalagam...</div>
         </div>
-        <div class="goal-bar"><div class="goal-fill" style="width:59%"></div></div>
-        <div class="goal-sub">Preostalo 7 dni · 33 km do cilja</div>
+        <div class="goal-bar"><div id="cilj-tek-bar" class="goal-fill" style="width:0%;background:linear-gradient(90deg,#1a6b2a,#2ecc71)"></div></div>
+        <div class="goal-sub" id="cilj-tek-sub">Nalagam podatke iz Treningi...</div>
       </div>
       <div class="o-divider"></div>
       <div class="goal-item">
@@ -4648,11 +4648,120 @@ function updateCiljiTeza(){
 }
 window.updateCiljiTeza = updateCiljiTeza;
 
+// ===== CILJI — Tedenski km tek iz GCal Treningi =====
+const TRENINGI_CAL_ID = 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com';
+const GCAL_API_KEY    = 'AIzaSyC6Ol0BjPOLJ6hhnAg6iP-TxqHHXrK2qDU';
+
+// Linearni cilj: 15 km/teden zdaj → 30 km/teden sredi novembra 2026
+// Trenutni teden = teden, ko si zdaj; sredi novembra = 16.11.2026
+function getWeeklyKmCilj(datum) {
+  const start = new Date('2026-06-09'); // začetni datum (danes)
+  const end   = new Date('2026-11-16'); // ciljni datum
+  const totalDays = (end - start) / 86400000;
+  const elapsed   = Math.max(0, (datum - start) / 86400000);
+  const t = Math.min(1, elapsed / totalDays);
+  return Math.round((15 + t * 15) * 10) / 10; // 15 → 30 km, 1 decimalna
+}
+
+// Poberi ponedeljek tega tedna
+function getMondayOf(d) {
+  const day = new Date(d);
+  const dow = day.getDay(); // 0=ned, 1=pon
+  const diff = (dow === 0) ? -6 : 1 - dow;
+  day.setDate(day.getDate() + diff);
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+function parseRazdaljaFromDesc(desc) {
+  if (!desc) return null;
+  // Podpira: "Razdalja: 5,40 km" ali "Razdalja: 5.40 km" ali "Razdalja: 5 km"
+  const m = desc.match(/Razdalja\s*:\s*([\d][0-9]*[.,]?[0-9]*)\s*km/i);
+  if (!m) return null;
+  const val = parseFloat(m[1].replace(',', '.'));
+  return isNaN(val) ? null : val;
+}
+
+async function updateCiljiTek() {
+  const valEl = document.getElementById('cilj-tek-val');
+  const barEl = document.getElementById('cilj-tek-bar');
+  const subEl = document.getElementById('cilj-tek-sub');
+  if (!valEl) return;
+
+  const now     = new Date();
+  const monday  = getMondayOf(now);
+  const sunday  = new Date(monday); sunday.setDate(monday.getDate() + 7);
+
+  const cilj = getWeeklyKmCilj(now);
+
+  // Če ni GCal tokena, prikaži samo cilj brez dejanskih km
+  const token = localStorage.getItem('gcal_token');
+  if (!token) {
+    valEl.textContent = `— / ${cilj} km`;
+    barEl.style.width = '0%';
+    subEl.textContent = `Cilj ta teden: ${cilj} km · Prijavi se v GCal za dejanske km`;
+    return;
+  }
+
+  try {
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(TRENINGI_CAL_ID)}/events`
+      + `?key=${GCAL_API_KEY}`
+      + `&timeMin=${monday.toISOString()}`
+      + `&timeMax=${sunday.toISOString()}`
+      + `&singleEvents=true`
+      + `&maxResults=20`
+      + `&access_token=${token}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('GCal API error ' + resp.status);
+    const data = await resp.json();
+
+    let dejansko = 0;
+    let steviloTekov = 0;
+    (data.items || []).forEach(ev => {
+      const km = parseRazdaljaFromDesc(ev.description);
+      if (km !== null) { dejansko += km; steviloTekov++; }
+    });
+    dejansko = Math.round(dejansko * 100) / 100;
+
+    const pct = Math.min(100, Math.round(dejansko / cilj * 100));
+
+    // Format datuma tedna
+    const opts = { day:'numeric', month:'numeric' };
+    const monStr = monday.toLocaleDateString('sl-SI', opts);
+    const sunStr = new Date(sunday.getTime()-86400000).toLocaleDateString('sl-SI', opts);
+
+    valEl.textContent = `${dejansko.toFixed(1).replace('.',',')} / ${cilj.toFixed(1).replace('.',',')} km`;
+    barEl.style.width  = pct + '%';
+
+    const preostalo = Math.max(0, cilj - dejansko);
+    const dniLeft   = 7 - Math.floor((now - monday) / 86400000);
+    subEl.textContent = steviloTekov > 0
+      ? `Teden ${monStr}–${sunStr} · ${pct}% cilja · še ${preostalo.toFixed(1).replace('.',',')} km`
+      : `Teden ${monStr}–${sunStr} · Cilj: ${cilj.toFixed(1).replace('.',',')} km · še ni teka ta teden`;
+
+    // Barva: zelena normalno; rumena če je malo časa in še daleč; rdeča če konec tedna in premalo
+    if (pct >= 100) {
+      barEl.style.background = 'linear-gradient(90deg,rgba(34,197,94,.4),#22c55e)';
+    } else if (dniLeft <= 2 && pct < 70) {
+      barEl.style.background = 'linear-gradient(90deg,rgba(239,68,68,.4),#ef4444)';
+    } else if (dniLeft <= 3 && pct < 50) {
+      barEl.style.background = 'linear-gradient(90deg,rgba(234,179,8,.4),#eab308)';
+    } else {
+      barEl.style.background = 'linear-gradient(90deg,#1a6b2a,#2ecc71)';
+    }
+  } catch(e) {
+    valEl.textContent = `— / ${cilj} km`;
+    subEl.textContent = 'Napaka pri branju GCal · ' + e.message;
+  }
+}
+window.updateCiljiTek = updateCiljiTek;
+
 // Init
 rnUpdateLatest();
 rnUpdateBMTeza();
 setTimeout(rnUpdateBMTeza,200);
 setTimeout(updateCiljiTeza,250);
+setTimeout(updateCiljiTek,300);
 
 // Graf se izriše takoj ko je canvas viden
 function rnInitChart(){
@@ -9530,6 +9639,9 @@ function toggleTab(head, bodyId) {
   const isOpen = head.classList.contains('open');
   head.classList.toggle('open', !isOpen);
   body.classList.toggle('open', !isOpen);
+  if (!isOpen && bodyId === 'tab-cilji') {
+    setTimeout(() => { if (window.updateCiljiTek) window.updateCiljiTek(); }, 80);
+  }
 }
 
 // ===== EV KONFIGURACIJA =====
