@@ -4695,22 +4695,28 @@ async function updateCiljiTek() {
   const cilj = getWeeklyKmCilj(now);
 
   // Če ni GCal tokena, prikaži samo cilj brez dejanskih km
-  const token = localStorage.getItem('gcal_token');
-  if (!token) {
-    valEl.textContent = `— / ${cilj} km`;
+  const tokenRaw = localStorage.getItem('gcal_token');
+  let accessToken = null;
+  if (tokenRaw) {
+    try {
+      const t = JSON.parse(tokenRaw);
+      if (t.expires > Date.now()) accessToken = t.access_token;
+    } catch(e) {}
+  }
+  if (!accessToken) {
+    valEl.textContent = `— / ${cilj.toFixed(1).replace('.',',')} km`;
     barEl.style.width = '0%';
-    subEl.textContent = `Cilj ta teden: ${cilj} km · Prijavi se v GCal za dejanske km`;
+    subEl.textContent = `Cilj ta teden: ${cilj.toFixed(1).replace('.',',')} km · Prijavi se v GCal za dejanske km`;
     return;
   }
 
   try {
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(TRENINGI_CAL_ID)}/events`
-      + `?key=${GCAL_API_KEY}`
-      + `&timeMin=${monday.toISOString()}`
+      + `?timeMin=${monday.toISOString()}`
       + `&timeMax=${sunday.toISOString()}`
       + `&singleEvents=true`
       + `&maxResults=20`
-      + `&access_token=${token}`;
+      + `&access_token=${accessToken}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('GCal API error ' + resp.status);
     const data = await resp.json();
