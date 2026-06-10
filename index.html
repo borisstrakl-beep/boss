@@ -1180,6 +1180,24 @@
     color: var(--orange);
     background: var(--orange-glow2);
   }
+  .cilji-period-btn {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text3);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .cilji-period-btn:hover, .cilji-period-btn.active {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: rgba(249,115,22,0.08);
+  }
 
   .task-item {
     display: flex;
@@ -3095,6 +3113,127 @@
     }
 
 }
+
+  /* ============================================
+     MODERN SKIN 2026 — vizualne nadgradnje
+     Čisti CSS overrides, brez vpliva na JS/podatke.
+     Za odstranitev: pobriši ta blok.
+     ============================================ */
+
+  :root {
+    --r-sm: 5px;
+    --r-md: 9px;
+    --r-lg: 13px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.22);
+    --border-soft: rgba(255,255,255,0.07);
+  }
+
+  /* 7 — Tabular nums povsod: številke se ne premikajo ob spremembah */
+  body { font-variant-numeric: tabular-nums; }
+
+  /* 1+2 — Kartice: enoten radius, mehka senca, soft border */
+  .card {
+    border-radius: var(--r-md);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* 1 — Modali */
+  .modal { border-radius: var(--r-lg); }
+
+  /* 1 — Gumbi in mali elementi */
+  .btn,
+  .fin-flt-btn,
+  .cilji-period-btn,
+  .gcal-filter-btn,
+  .gcal-nav-btn,
+  .help-btn,
+  .add-btn { border-radius: var(--r-sm); }
+
+  /* 3 — Topbar: glassmorphism (z -webkit prefiksom za iOS Safari) */
+  .topbar {
+    background: rgba(10,10,10,0.78);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    backdrop-filter: blur(14px) saturate(1.3);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  /* 4 — Hover lift na karticah — SAMO na napravah s pravim hoverjem
+     (mobilni touch ne sproži "sticky hover" efekta) */
+  @media (hover: hover) and (pointer: fine) {
+    .card {
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(249,115,22,0.25);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.28);
+    }
+  }
+
+  /* Spoštuj sistemsko nastavitev za manj animacij */
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card:hover { transition: none; transform: none; }
+  }
+
+  /* 5 — Gradient akcenti: logo in tab številke */
+  .logo,
+  .tab-num {
+    background: linear-gradient(135deg, #f97316, #fb923c 70%, #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: var(--text3);
+  }
+
+  /* 5 — Progress bari: gradient (kjer JS ne nastavi svojega) */
+  .goal-fill {
+    background: linear-gradient(90deg, var(--orange-dim), var(--orange), #fbbf24);
+  }
+  .goal-bar { height: 4px; border-radius: 2px; }
+
+  /* 6 — Odprt zavihek: oranžna črta na levi (inset shadow = brez layout shifta) */
+  .tab-head.open {
+    box-shadow: inset 2px 0 0 var(--orange);
+  }
+  .tab-head {
+    transition: background .18s, box-shadow .18s;
+  }
+
+  /* 8 — Scrollbar: zaobljen oranžen thumb */
+  .tab-content::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: rgba(249,115,22,0.3);
+  }
+  .tab-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(249,115,22,0.5);
+  }
+  .tab-content {
+    scrollbar-color: rgba(249,115,22,0.3) transparent;
+  }
+
+  /* Mobilna optimizacija modern skina */
+  @media (max-width: 640px) {
+    /* Blur na mobilnih rahlo manjši = manj GPU obremenitve na šibkih telefonih */
+    .topbar {
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+    /* Rahlo manjši radius — na malih zaslonih veliki radiusi pojedo prostor */
+    .card { border-radius: 7px; }
+    .modal { border-radius: 10px; }
+  }
+
+  /* Fallback: če brskalnik ne podpira backdrop-filter, polna podlaga */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .topbar { background: var(--bg2); }
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3538,15 +3677,26 @@
         <div class="goal-bar"><div class="goal-fill" id="cilj-teza-bar" style="width:0%"></div></div>
         <div class="goal-sub" id="cilj-teza-sub">Nalagam...</div>
         <div id="cilj-teza-status" style="font-family:var(--cond);font-size:10px;margin-top:4px;padding:3px 6px;border-radius:2px;display:none"></div>
+        <div style="display:flex;gap:4px;margin-top:10px;flex-wrap:wrap;">
+          <button onclick="ciljiTezaPeriod(7,this)"   class="cilji-period-btn">7D</button>
+          <button onclick="ciljiTezaPeriod(14,this)"  class="cilji-period-btn">14D</button>
+          <button onclick="ciljiTezaPeriod(30,this)"  class="cilji-period-btn active">1M</button>
+          <button onclick="ciljiTezaPeriod(90,this)"  class="cilji-period-btn">3M</button>
+          <button onclick="ciljiTezaPeriod(9999,this)" class="cilji-period-btn">VSE</button>
+        </div>
+        <div style="position:relative;margin-top:6px;">
+          <canvas id="cilj-teza-canvas" style="width:100%;display:block;" height="110"></canvas>
+          <div id="cilj-teza-tooltip" style="display:none;position:absolute;pointer-events:none;background:rgba(10,10,10,0.92);border:1px solid var(--orange);border-radius:3px;padding:4px 8px;font-family:var(--mono);font-size:10px;color:#fff;white-space:nowrap;z-index:10"></div>
+        </div>
       </div>
       <div class="o-divider"></div>
-      <div class="goal-item" id="cilj-tek-item">
+      <div class="goal-item">
         <div class="goal-header">
-          <div class="goal-name">🏃 Tek — tedenski km</div>
-          <div class="goal-val" id="cilj-tek-val">Nalagam...</div>
+          <div class="goal-name">🏃 Tek — mesečni km</div>
+          <div class="goal-val">47 / 80 km</div>
         </div>
-        <div class="goal-bar"><div id="cilj-tek-bar" class="goal-fill" style="width:0%;background:linear-gradient(90deg,#1a6b2a,#2ecc71)"></div></div>
-        <div class="goal-sub" id="cilj-tek-sub">Nalagam podatke iz Treningi...</div>
+        <div class="goal-bar"><div class="goal-fill" style="width:59%"></div></div>
+        <div class="goal-sub">Preostalo 7 dni · 33 km do cilja</div>
       </div>
       <div class="o-divider"></div>
       <div class="goal-item">
@@ -4576,6 +4726,16 @@ window.rnSelMetric=rnSelMetric;
 window.rnSelPeriod=rnSelPeriod;
 
 // CILJI — Teža dinamičen update
+let ciljiTezaDays = 30;
+
+function ciljiTezaPeriod(days, btn){
+  ciljiTezaDays = days;
+  document.querySelectorAll('.cilji-period-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  updateCiljiTeza();
+}
+window.ciljiTezaPeriod = ciljiTezaPeriod;
+
 function updateCiljiTeza(){
   const valEl  = document.getElementById('cilj-teza-val');
   const barEl  = document.getElementById('cilj-teza-bar');
@@ -4645,129 +4805,230 @@ function updateCiljiTeza(){
   if(delta <= 0.5)      barEl.style.background = 'linear-gradient(90deg,rgba(34,197,94,.4),#22c55e)';
   else if(delta <= 2.0) barEl.style.background = 'linear-gradient(90deg,rgba(234,179,8,.4),#eab308)';
   else                  barEl.style.background = 'linear-gradient(90deg,rgba(239,68,68,.4),#ef4444)';
+
+  // --- Graf teže ---
+  const canvas = document.getElementById('cilj-teza-canvas');
+  const tooltip = document.getElementById('cilj-teza-tooltip');
+  if(!canvas) return;
+
+  const wrap = canvas.parentElement;
+  const ww = wrap.getBoundingClientRect().width || wrap.offsetWidth || 400;
+  canvas.width = Math.max(ww, 200);
+  canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const W = canvas.width, H = canvas.height;
+  const pL=44, pR=12, pT=10, pB=22;
+  const gW = W-pL-pR, gH = H-pT-pB;
+
+  // Časovno okno glede na izbrano obdobje
+  const GOAL_END = new Date('2027-06-01');
+  let viewStart, viewEnd;
+  if(ciljiTezaDays >= 9999){
+    viewStart = new Date('2026-06-09');
+    viewEnd   = GOAL_END;
+  } else {
+    viewEnd   = new Date(TODAY);
+    viewEnd.setDate(viewEnd.getDate() + Math.round(ciljiTezaDays * 0.15)); // malo prostora desno
+    viewStart = new Date(TODAY);
+    viewStart.setDate(viewStart.getDate() - ciljiTezaDays);
+  }
+  const totalMs = viewEnd - viewStart;
+
+  const minW = 75, maxW = 120;
+  const wRange = maxW - minW;
+
+  function xOf(d){ return pL + gW * (d - viewStart) / totalMs; }
+  function yOf(w){ return pT + gH * (1 - (w - minW) / wRange); }
+
+  // Grid vodoravne črte
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 0.5;
+  [80, 90, 100, 110].forEach(w => {
+    const y = yOf(w);
+    ctx.beginPath(); ctx.moveTo(pL, y); ctx.lineTo(W-pR, y); ctx.stroke();
+    ctx.fillStyle = '#555';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(w + ' kg', pL-3, y+3);
+  });
+
+  // Osi
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pL, pT); ctx.lineTo(pL, H-pB); ctx.lineTo(W-pR, H-pB); ctx.stroke();
+
+  // X os oznake — prilagojene glede na obdobje
+  ctx.fillStyle = '#444';
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'center';
+  const spanDays = (viewEnd - viewStart) / 86400000;
+  if(spanDays <= 14){
+    // Dnevne oznake
+    const cur = new Date(viewStart);
+    while(cur <= viewEnd){
+      const x = xOf(new Date(cur));
+      if(x >= pL && x <= W-pR){
+        ctx.fillText(cur.getDate()+'.'+(cur.getMonth()+1)+'.', x, H-pB+10);
+        ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
+        ctx.beginPath(); ctx.moveTo(x,H-pB); ctx.lineTo(x,H-pB+3); ctx.stroke();
+      }
+      cur.setDate(cur.getDate()+2);
+    }
+  } else if(spanDays <= 100){
+    // Tedenske oznake
+    const cur = new Date(viewStart);
+    cur.setDate(cur.getDate() + (1 - cur.getDay() + 7) % 7); // naslednji ponedeljek
+    while(cur <= viewEnd){
+      const x = xOf(new Date(cur));
+      if(x >= pL && x <= W-pR){
+        ctx.fillText(cur.getDate()+'.'+(cur.getMonth()+1)+'.', x, H-pB+10);
+        ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
+        ctx.beginPath(); ctx.moveTo(x,H-pB); ctx.lineTo(x,H-pB+3); ctx.stroke();
+      }
+      cur.setDate(cur.getDate()+7);
+    }
+  } else {
+    // Mesečne oznake
+    const meseci = ['JAN','FEB','MAR','APR','MAJ','JUN','JUL','AVG','SEP','OKT','NOV','DEC'];
+    for(let y=2026; y<=2027; y++){
+      for(let m=0; m<12; m++){
+        const d = new Date(y, m, 1);
+        if(d >= viewStart && d <= viewEnd){
+          const x = xOf(d);
+          ctx.fillText(meseci[m], x, H-pB+10);
+          ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
+          ctx.beginPath(); ctx.moveTo(x,H-pB); ctx.lineTo(x,H-pB+3); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Ciljna vrednost - črtkana siva linija (79 kg)
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,4]);
+  const yGoal = yOf(79);
+  ctx.beginPath(); ctx.moveTo(pL, yGoal); ctx.lineTo(W-pR, yGoal); ctx.stroke();
+  ctx.fillStyle = '#555';
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('79', pL-3, yGoal+3);
+  ctx.setLineDash([]);
+
+  // Idealna linija (plan) — svetlo siva prekinjena
+  const planStart = new Date('2026-06-09');
+  const planEnd   = new Date('2027-06-01');
+  const ps = new Date(Math.max(planStart, viewStart));
+  const pe = new Date(Math.min(planEnd, viewEnd));
+  const totalPlanMs = planEnd - planStart;
+  function planW(d){ return 117.1 - (38.1 * (d - planStart) / totalPlanMs); }
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.moveTo(xOf(ps), yOf(planW(ps)));
+  ctx.lineTo(xOf(pe), yOf(planW(pe)));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dejanske meritve — filtrirane na vidno okno
+  const meritve = data
+    .filter(r => r.teza !== null && r.teza !== undefined)
+    .filter(r => {
+      const d = new Date(r.datum);
+      return d >= viewStart && d <= viewEnd;
+    });
+
+  let chartPts = [];
+  if(meritve.length > 0){
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, pT, 0, H-pB);
+    grad.addColorStop(0, 'rgba(249,115,22,0.18)');
+    grad.addColorStop(1, 'rgba(249,115,22,0)');
+    ctx.beginPath();
+    meritve.forEach((r, i) => {
+      const x = xOf(new Date(r.datum)), y = yOf(r.teza);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    const lastD = new Date(meritve[meritve.length-1].datum);
+    ctx.lineTo(xOf(lastD), H-pB);
+    ctx.lineTo(xOf(new Date(meritve[0].datum)), H-pB);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Linija
+    ctx.strokeStyle = '#f97316';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    meritve.forEach((r, i) => {
+      const x = xOf(new Date(r.datum)), y = yOf(r.teza);
+      chartPts.push({x, y, datum: r.datum, teza: r.teza});
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // Zadnja točka
+    const last = meritve[meritve.length-1];
+    const lx = xOf(new Date(last.datum)), ly = yOf(last.teza);
+    ctx.fillStyle = delta <= 0.5 ? '#22c55e' : delta <= 2.0 ? '#eab308' : '#ef4444';
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI*2); ctx.stroke();
+  }
+
+  // Danes — bela vertikalna črta
+  const todayX = xOf(TODAY);
+  if(todayX >= pL && todayX <= W-pR){
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(todayX, pT); ctx.lineTo(todayX, H-pB); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Tooltip hover
+  if(tooltip && chartPts.length){
+    canvas._ciljiPts = chartPts;
+    if(!canvas._ciljiHover){
+      canvas._ciljiHover = true;
+      canvas.addEventListener('mousemove', function(e){
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        let best = null, bestDist = 999;
+        (canvas._ciljiPts||[]).forEach(p => {
+          const d = Math.abs(p.x - mx);
+          if(d < bestDist){ bestDist=d; best=p; }
+        });
+        if(best && bestDist < 30){
+          tooltip.textContent = best.datum + '  ' + best.teza.toFixed(1) + ' kg';
+          tooltip.style.display = 'block';
+          const tx = (best.x / canvas.width) * rect.width;
+          const ty = (best.y / canvas.height) * rect.height;
+          tooltip.style.left = Math.min(tx+8, rect.width-120) + 'px';
+          tooltip.style.top  = Math.max(ty-28, 0) + 'px';
+        } else {
+          tooltip.style.display = 'none';
+        }
+      });
+      canvas.addEventListener('mouseleave', function(){
+        tooltip.style.display = 'none';
+      });
+    } else {
+      // Posodobi točke ob ponovnem klicu (nova meritev ali period)
+      canvas._ciljiPts = chartPts;
+    }
+  }
 }
 window.updateCiljiTeza = updateCiljiTeza;
-
-// ===== CILJI — Tedenski km tek iz GCal Treningi =====
-const TRENINGI_CAL_ID = 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com';
-const GCAL_API_KEY    = 'AIzaSyC6Ol0BjPOLJ6hhnAg6iP-TxqHHXrK2qDU';
-
-// Linearni cilj: 15 km/teden zdaj → 30 km/teden sredi novembra 2026
-// Trenutni teden = teden, ko si zdaj; sredi novembra = 16.11.2026
-function getWeeklyKmCilj(datum) {
-  const start = new Date('2026-06-09'); // začetni datum (danes)
-  const end   = new Date('2026-11-16'); // ciljni datum
-  const totalDays = (end - start) / 86400000;
-  const elapsed   = Math.max(0, (datum - start) / 86400000);
-  const t = Math.min(1, elapsed / totalDays);
-  return Math.round((15 + t * 15) * 10) / 10; // 15 → 30 km, 1 decimalna
-}
-
-// Poberi ponedeljek tega tedna
-function getMondayOf(d) {
-  const day = new Date(d);
-  const dow = day.getDay(); // 0=ned, 1=pon
-  const diff = (dow === 0) ? -6 : 1 - dow;
-  day.setDate(day.getDate() + diff);
-  day.setHours(0,0,0,0);
-  return day;
-}
-
-function parseRazdaljaFromDesc(desc) {
-  if (!desc) return null;
-  // Podpira: "Razdalja: 5,40 km" ali "Razdalja: 5.40 km" ali "Razdalja: 5 km"
-  const m = desc.match(/Razdalja\s*:\s*([\d][0-9]*[.,]?[0-9]*)\s*km/i);
-  if (!m) return null;
-  const val = parseFloat(m[1].replace(',', '.'));
-  return isNaN(val) ? null : val;
-}
-
-async function updateCiljiTek() {
-  const valEl = document.getElementById('cilj-tek-val');
-  const barEl = document.getElementById('cilj-tek-bar');
-  const subEl = document.getElementById('cilj-tek-sub');
-  if (!valEl) return;
-
-  const now     = new Date();
-  const monday  = getMondayOf(now);
-  const sunday  = new Date(monday); sunday.setDate(monday.getDate() + 7);
-
-  const cilj = getWeeklyKmCilj(now);
-
-  // Če ni GCal tokena, prikaži samo cilj brez dejanskih km
-  const tokenRaw = localStorage.getItem('gcal_token');
-  let accessToken = null;
-  if (tokenRaw) {
-    try {
-      const t = JSON.parse(tokenRaw);
-      if (t.expires > Date.now()) accessToken = t.access_token;
-    } catch(e) {}
-  }
-  if (!accessToken) {
-    valEl.textContent = `— / ${cilj.toFixed(1).replace('.',',')} km`;
-    barEl.style.width = '0%';
-    subEl.textContent = `Cilj ta teden: ${cilj.toFixed(1).replace('.',',')} km · Prijavi se v GCal za dejanske km`;
-    return;
-  }
-
-  try {
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(TRENINGI_CAL_ID)}/events`
-      + `?timeMin=${monday.toISOString()}`
-      + `&timeMax=${sunday.toISOString()}`
-      + `&singleEvents=true`
-      + `&maxResults=20`
-      + `&access_token=${accessToken}`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('GCal API error ' + resp.status);
-    const data = await resp.json();
-
-    let dejansko = 0;
-    let steviloTekov = 0;
-    (data.items || []).forEach(ev => {
-      const km = parseRazdaljaFromDesc(ev.description);
-      if (km !== null) { dejansko += km; steviloTekov++; }
-    });
-    dejansko = Math.round(dejansko * 100) / 100;
-
-    const pct = Math.min(100, Math.round(dejansko / cilj * 100));
-
-    // Format datuma tedna
-    const opts = { day:'numeric', month:'numeric' };
-    const monStr = monday.toLocaleDateString('sl-SI', opts);
-    const sunStr = new Date(sunday.getTime()-86400000).toLocaleDateString('sl-SI', opts);
-
-    valEl.textContent = `${dejansko.toFixed(1).replace('.',',')} / ${cilj.toFixed(1).replace('.',',')} km`;
-    barEl.style.width  = pct + '%';
-
-    const preostalo = Math.max(0, cilj - dejansko);
-    const dniLeft   = 7 - Math.floor((now - monday) / 86400000);
-    subEl.textContent = steviloTekov > 0
-      ? `Teden ${monStr}–${sunStr} · ${pct}% cilja · še ${preostalo.toFixed(1).replace('.',',')} km`
-      : `Teden ${monStr}–${sunStr} · Cilj: ${cilj.toFixed(1).replace('.',',')} km · še ni teka ta teden`;
-
-    // Barva: zelena normalno; rumena če je malo časa in še daleč; rdeča če konec tedna in premalo
-    if (pct >= 100) {
-      barEl.style.background = 'linear-gradient(90deg,rgba(34,197,94,.4),#22c55e)';
-    } else if (dniLeft <= 2 && pct < 70) {
-      barEl.style.background = 'linear-gradient(90deg,rgba(239,68,68,.4),#ef4444)';
-    } else if (dniLeft <= 3 && pct < 50) {
-      barEl.style.background = 'linear-gradient(90deg,rgba(234,179,8,.4),#eab308)';
-    } else {
-      barEl.style.background = 'linear-gradient(90deg,#1a6b2a,#2ecc71)';
-    }
-  } catch(e) {
-    valEl.textContent = `— / ${cilj} km`;
-    subEl.textContent = 'Napaka pri branju GCal · ' + e.message;
-  }
-}
-window.updateCiljiTek = updateCiljiTek;
 
 // Init
 rnUpdateLatest();
 rnUpdateBMTeza();
 setTimeout(rnUpdateBMTeza,200);
 setTimeout(updateCiljiTeza,250);
-setTimeout(updateCiljiTek,300);
 
 // Graf se izriše takoj ko je canvas viden
 function rnInitChart(){
@@ -9645,9 +9906,6 @@ function toggleTab(head, bodyId) {
   const isOpen = head.classList.contains('open');
   head.classList.toggle('open', !isOpen);
   body.classList.toggle('open', !isOpen);
-  if (!isOpen && bodyId === 'tab-cilji') {
-    setTimeout(() => { if (window.updateCiljiTek) window.updateCiljiTek(); }, 80);
-  }
 }
 
 // ===== EV KONFIGURACIJA =====
