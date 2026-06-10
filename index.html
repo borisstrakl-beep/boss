@@ -3690,13 +3690,14 @@
         </div>
       </div>
       <div class="o-divider"></div>
-      <div class="goal-item">
+      <div class="goal-item" id="cilj-tek-item">
         <div class="goal-header">
-          <div class="goal-name">🏃 Tek — mesečni km</div>
-          <div class="goal-val">47 / 80 km</div>
+          <div class="goal-name">🏃 Tek — tedenski km</div>
+          <div class="goal-val" id="cilj-tek-val">— / — km</div>
         </div>
-        <div class="goal-bar"><div class="goal-fill" style="width:59%"></div></div>
-        <div class="goal-sub">Preostalo 7 dni · 33 km do cilja</div>
+        <div class="goal-bar"><div class="goal-fill" id="cilj-tek-bar" style="width:0%"></div></div>
+        <div class="goal-sub" id="cilj-tek-sub">Nalagam GCal...</div>
+        <div id="cilj-tek-status" style="font-family:var(--cond);font-size:10px;margin-top:4px;padding:3px 6px;border-radius:2px;display:none"></div>
       </div>
       <div class="o-divider"></div>
       <div class="goal-item">
@@ -5023,6 +5024,134 @@ function updateCiljiTeza(){
   }
 }
 window.updateCiljiTeza = updateCiljiTeza;
+
+// CILJI — Tek: tedenski km iz GCal Treningi
+function updateCiljiTek() {
+  const valEl = document.getElementById('cilj-tek-val');
+  const barEl = document.getElementById('cilj-tek-bar');
+  const subEl = document.getElementById('cilj-tek-sub');
+  const stEl  = document.getElementById('cilj-tek-status');
+  if (!valEl || !barEl || !subEl) return;
+
+  // Preveri GCal token
+  const saved = localStorage.getItem('gcal_token');
+  if (!saved) {
+    subEl.textContent = 'Prijava GCal potrebna za podatke o teku.';
+    valEl.textContent = '— / — km';
+    if (stEl) stEl.style.display = 'none';
+    return;
+  }
+  const t = JSON.parse(saved);
+  if (!t.expires || t.expires <= Date.now()) {
+    subEl.textContent = 'GCal seja potekla — prijavi se znova.';
+    valEl.textContent = '— / — km';
+    if (stEl) stEl.style.display = 'none';
+    return;
+  }
+
+  // Tedenski cilj: linearna interpolacija 15→30 km/teden
+  // Start: 9. junij 2026, End: 17. november 2026 (sredina novembra)
+  const PLAN_START   = new Date('2026-06-09');
+  const PLAN_END     = new Date('2026-11-17');
+  const KM_START     = 15;
+  const KM_END       = 30;
+  const today        = new Date();
+  const totalMs      = PLAN_END - PLAN_START;
+  const elapsedMs    = Math.max(0, Math.min(today - PLAN_START, totalMs));
+  const weeklyGoal   = Math.round((KM_START + (KM_END - KM_START) * (elapsedMs / totalMs)) * 10) / 10;
+
+  // Trenutni teden: Pon–Ned
+  const dow = today.getDay(); // 0=ned
+  const diffToMon = (dow === 0) ? -6 : 1 - dow;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + diffToMon);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  // Seštej km iz gcalState.events.treningi (če so naloženi)
+  const events = (typeof gcalState !== 'undefined' && gcalState.events && gcalState.events['treningi']) || [];
+  let totalKm = 0;
+  let sestevek = [];
+
+  events.forEach(e => {
+    const eDate = e.start.dateTime ? new Date(e.start.dateTime) : new Date(e.start.date);
+    if (eDate < weekStart || eDate > weekEnd) return;
+    // Išče "Razdalja: X,XX km" ali "Razdalja: X.XX km" v opisu
+    const m = (e.description || '').match(/Razdalja:\s*([\d.,]+)\s*km/i);
+    if (m) {
+      const km = parseFloat(m[1].replace(',', '.'));
+      if (!isNaN(km)) {
+        totalKm += km;
+        sestevek.push({ datum: eDate, km });
+      }
+    }
+  });
+
+  totalKm = Math.round(totalKm * 10) / 10;
+  const pct = Math.min(100, Math.round((totalKm / weeklyGoal) * 100));
+  const delta = totalKm - weeklyGoal;
+
+  // Koliko dni v tednu je že preteklo (za kontekst)
+  const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay(); // 1=pon, 7=ned
+  const dniOstane = 7 - dayOfWeek;
+
+  valEl.textContent = totalKm.toFixed(1) + ' / ' + weeklyGoal.toFixed(1) + ' km';
+  barEl.style.width  = pct + '%';
+
+  // Sub tekst
+  const formatDate = d => d.getDate() + '.' + (d.getMonth()+1) + '.';
+  const tedStr = formatDate(weekStart) + '–' + formatDate(weekEnd);
+  if (events.length === 0) {
+    subEl.textContent = 'GCal se nalaga... (' + tedStr + ')';
+  } else if (sestevek.length === 0) {
+    subEl.textContent = 'Ta teden še ni tekov · Cilj: ' + weeklyGoal.toFixed(1) + ' km (' + tedStr + ')';
+  } else {
+    const preostalo = Math.max(0, weeklyGoal - totalKm).toFixed(1);
+    subEl.textContent = sestevek.length + (sestevek.length === 1 ? ' tek' : ' teki') +
+      ' · ' + (dniOstane > 0 ? dniOstane + ' dni ostane' : 'zadnji dan') +
+      ' · ' + preostalo + ' km do cilja (' + tedStr + ')';
+  }
+
+  // Status badge
+  if (stEl) {
+    let sTxt, sBg, sColor;
+    if (events.length === 0) {
+      stEl.style.display = 'none';
+      return;
+    }
+    // Pričakovani dnevni napredek: km_cilj * (dan_v_tednu / 7)
+    const pricakovano = weeklyGoal * (dayOfWeek / 7);
+    const diff = totalKm - pricakovano;
+    if (diff >= 0) {
+      sTxt   = '▲ PRED PLANOM +' + diff.toFixed(1) + ' km';
+      sBg    = 'rgba(34,197,94,0.12)';
+      sColor = '#22c55e';
+      barEl.style.background = 'linear-gradient(90deg,rgba(34,197,94,.4),#22c55e)';
+    } else if (diff >= -3) {
+      sTxt   = '✓ V PLANU';
+      sBg    = 'rgba(34,197,94,0.12)';
+      sColor = '#22c55e';
+      barEl.style.background = 'linear-gradient(90deg,rgba(34,197,94,.4),#22c55e)';
+    } else if (diff >= -6) {
+      sTxt   = '⚠ RAHLO ZA PLANOM ' + diff.toFixed(1) + ' km';
+      sBg    = 'rgba(234,179,8,0.15)';
+      sColor = '#eab308';
+      barEl.style.background = 'linear-gradient(90deg,rgba(234,179,8,.4),#eab308)';
+    } else {
+      sTxt   = '✗ ZA PLANOM ' + diff.toFixed(1) + ' km';
+      sBg    = 'rgba(239,68,68,0.15)';
+      sColor = '#ef4444';
+      barEl.style.background = 'linear-gradient(90deg,rgba(239,68,68,.4),#ef4444)';
+    }
+    stEl.textContent        = sTxt;
+    stEl.style.background   = sBg;
+    stEl.style.color        = sColor;
+    stEl.style.display      = 'inline-block';
+  }
+}
+window.updateCiljiTek = updateCiljiTek;
 
 // Init
 rnUpdateLatest();
@@ -6991,6 +7120,8 @@ async function gcalFetchAll() {
   gcalUpdateBadge();
   // Posodobi trening widget (kompatibilnost)
   renderTodayTraining && renderTodayTraining();
+  // Posodobi cilj Tek v zavihku 03
+  typeof updateCiljiTek === 'function' && updateCiljiTek();
 }
 
 // Kompatibilnost s starim klicem
