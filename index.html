@@ -5127,6 +5127,8 @@ async function updateCiljiTek() {
   const tedStr = formatDate(weekStart) + '–' + formatDate(weekEnd);
 
   valEl.textContent = totalKm.toFixed(1) + ' / ' + weeklyGoal.toFixed(1) + ' km';
+  // Posodobi mesečni km v Tab 08
+  if (typeof sportSyncMesecniKm === 'function') sportSyncMesecniKm();
   barEl.style.width = pct + '%';
 
   if (sestevek.length === 0) {
@@ -5304,29 +5306,26 @@ window.addEventListener('resize',()=>{setTimeout(rnRenderChart,80);});
     <div class="tab-content">
 <div class="card-body">
 
-      <!-- DANAŠNJI TRENING iz Google Koledarja -->
-      <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">NAČRTOVANI TRENING</div>
-      <div id="training-today" style="min-height:32px;margin-bottom:10px">
+      <!-- NAČRTOVANI TRENINGI — danes + 7 dni -->
+      <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">NAČRTOVANI TRENINGI</div>
+      <div id="training-week" style="margin-bottom:10px">
         <div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam...</div>
       </div>
 
       <div class="o-divider"></div>
 
-      <!-- ZADNJI TEK -->
-      <div class="strava-run">
-        <div class="strava-run-name">🏃 Jutranji tek — Trbovlje</div>
-        <div class="strava-run-date" id="strava-run-date">Četrtek, 23. maj 2026 · 06:42</div>
-        <div class="strava-stats">
-          <div class="strava-stat"><div class="strava-stat-val">6,2 km</div><div class="strava-stat-label">RAZDALJA</div></div>
-          <div class="strava-stat"><div class="strava-stat-val">5:48</div><div class="strava-stat-label">TEMPO /km</div></div>
-          <div class="strava-stat"><div class="strava-stat-val">36 min</div><div class="strava-stat-label">ČAS</div></div>
-        </div>
+      <!-- ZADNJI TEK iz GCal -->
+      <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:8px">ZADNJI TEK</div>
+      <div id="zadnji-tek-container">
+        <div style="color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam...</div>
       </div>
-      <div class="finance-row">
-        <div class="finance-row-label">Maj — skupaj km</div>
-        <div class="finance-row-val orange">47,3 / 80 km</div>
+
+      <!-- MESEČNI KM — iz Tab 03 -->
+      <div class="finance-row" style="margin-top:10px">
+        <div class="finance-row-label" id="sport-mesec-label">— — skupaj km</div>
+        <div class="finance-row-val orange" id="sport-mesec-val">— / — km</div>
       </div>
-      <div class="goal-bar" style="margin:4px 0 10px"><div class="goal-fill" style="width:59%"></div></div>
+      <div class="goal-bar" style="margin:4px 0 10px"><div class="goal-fill" id="sport-mesec-bar" style="width:0%"></div></div>
 
       <!-- VAJE -->
       <div class="o-divider"></div>
@@ -9741,63 +9740,100 @@ const EXERCISE_DEFS = {
   pushup: { label: 'SKLECE',  icon: '💪', unit: 'rep', unitLabel: 'rep', color: '#f97316' },
 };
 
-function getTodayKey() {
+const FIREBASE_VAJE_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebasedatabase.app/vaje';
+
+function exTodayStr() {
   const d = new Date();
-  return `exercises_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`;
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-function loadExercises() {
-  return JSON.parse(localStorage.getItem(getTodayKey()) || '{"plank":[],"squat":[],"pushup":[]}');
+// Lokalni cache za tekoče seje (pred Firebase shranjevanjem)
+let exLocalData = { plank: [], squat: [], pushup: [] };
+let exSaving = false;
+
+async function exLoad() {
+  const ds = exTodayStr();
+  try {
+    const res = await fetch(FIREBASE_VAJE_URL + '/' + ds + '.json');
+    if (res.ok) {
+      const data = await res.json();
+      if (data) {
+        exLocalData = {
+          plank:  Array.isArray(data.plank)  ? data.plank  : [],
+          squat:  Array.isArray(data.squat)  ? data.squat  : [],
+          pushup: Array.isArray(data.pushup) ? data.pushup : [],
+        };
+      } else {
+        exLocalData = { plank: [], squat: [], pushup: [] };
+      }
+    }
+  } catch(e) {
+    console.warn('Vaje Firebase load napaka:', e);
+  }
+  renderExercises();
 }
 
-function saveExercises(data) {
-  localStorage.setItem(getTodayKey(), JSON.stringify(data));
+async function exSave() {
+  if (exSaving) return;
+  exSaving = true;
+  const ds = exTodayStr();
+  try {
+    await fetch(FIREBASE_VAJE_URL + '/' + ds + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(exLocalData),
+    });
+  } catch(e) {
+    console.warn('Vaje Firebase save napaka:', e);
+  }
+  exSaving = false;
 }
 
 function getTotal(sets, type) {
-  if (!sets.length) return 0;
-  return sets.reduce((s, x) => s + x.val, 0);
+  if (!sets || !sets.length) return 0;
+  return sets.reduce((s, x) => s + (x.val || 0), 0);
 }
 
 function formatTotal(type, total) {
-  const def = EXERCISE_DEFS[type];
   if (type === 'plank') {
-    if (total >= 60) return `${Math.floor(total/60)}m ${total%60}s`;
-    return `${total}s`;
+    if (total >= 60) return Math.floor(total/60) + 'm ' + (total%60) + 's';
+    return total + 's';
   }
-  return `${total} rep`;
+  return total + ' rep';
 }
 
 function renderExercises() {
-  const data = loadExercises();
+  const data = exLocalData;
   const grid = document.getElementById('exercise-grid');
   if (!grid) return;
-
-  grid.innerHTML = Object.entries(EXERCISE_DEFS).map(([type, def]) => {
+  let html = '';
+  for (const type of Object.keys(EXERCISE_DEFS)) {
+    const def = EXERCISE_DEFS[type];
     const sets = data[type] || [];
     const total = getTotal(sets, type);
     const totalStr = total > 0 ? formatTotal(type, total) : '—';
-
-    const setsHtml = sets.length
-      ? sets.map((s, i) => `
-        <div class="exercise-set-item">
-          <span class="exercise-set-num">${i+1}.</span>
-          <span class="exercise-set-val">${s.val}${def.unitLabel}</span>
-          <button class="exercise-set-del" onclick="deleteExSet('${type}',${i})" title="Izbriši">✕</button>
-        </div>`).join('')
-      : `<div class="exercise-empty">—</div>`;
-
-    return `
-    <div class="exercise-col">
-      <div class="exercise-col-header">
-        <span class="exercise-col-name">${def.icon} ${def.label}</span>
-        <span class="exercise-col-total" style="color:${def.color}">${totalStr}</span>
-      </div>
-      <div class="exercise-sets">${setsHtml}</div>
-    </div>`;
-  }).join('');
-
-  // Update unit selector when type changes
+    let setsHtml = '';
+    if (sets.length) {
+      for (let i = 0; i < sets.length; i++) {
+        const s = sets[i];
+        setsHtml += '<div class="exercise-set-item">'
+          + '<span class="exercise-set-num">' + (i+1) + '.</span>'
+          + '<span class="exercise-set-val">' + s.val + def.unitLabel + '</span>'
+          + '<button class="exercise-set-del" onclick="deleteExSet(\'' + type + '\',' + i + ')" title="Izbriši">✕</button>'
+          + '</div>';
+      }
+    } else {
+      setsHtml = '<div class="exercise-empty">—</div>';
+    }
+    html += '<div class="exercise-col">'
+      + '<div class="exercise-col-header">'
+      + '<span class="exercise-col-name">' + def.icon + ' ' + def.label + '</span>'
+      + '<span class="exercise-col-total" style="color:' + def.color + '">' + totalStr + '</span>'
+      + '</div>'
+      + '<div class="exercise-sets">' + setsHtml + '</div>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
   syncExUnit();
 }
 
@@ -9820,34 +9856,285 @@ function addExerciseSet() {
   const val = parseInt(document.getElementById('ex-val').value);
   if (!val || val < 1) { document.getElementById('ex-val').focus(); return; }
 
-  const data = loadExercises();
-  if (!data[type]) data[type] = [];
-  data[type].push({ val, ts: Date.now() });
-  saveExercises(data);
+  if (!exLocalData[type]) exLocalData[type] = [];
+  exLocalData[type].push({ val: val, ts: Date.now() });
   document.getElementById('ex-val').value = '';
   document.getElementById('ex-val').focus();
   renderExercises();
+  exSave();
 }
 
 function deleteExSet(type, idx) {
-  const data = loadExercises();
-  data[type].splice(idx, 1);
-  saveExercises(data);
+  if (exLocalData[type]) exLocalData[type].splice(idx, 1);
   renderExercises();
+  exSave();
 }
 
 // Wire up type change to sync unit
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
   const typeEl = document.getElementById('ex-type');
   if (typeEl) typeEl.addEventListener('change', syncExUnit);
-  // Enter key on val input
   const valEl = document.getElementById('ex-val');
-  if (valEl) valEl.addEventListener('keydown', e => { if(e.key==='Enter') addExerciseSet(); });
-  // Strava datum placeholder — bo nadomeščen z Strava API klicem
-  // #strava-run-date vsebuje zadnji datum teka (iz API response)
+  if (valEl) valEl.addEventListener('keydown', function(e) { if(e.key==='Enter') addExerciseSet(); });
 });
 
-renderExercises();
+// Naloži vaje iz Firebase ob zagonu
+exLoad();
+
+// ===== TAB 08: NAČRTOVANI TRENINGI (danes + 7 dni) iz GCal =====
+
+const CAL_DAY_SL_LONG = ['nedelja','ponedeljek','torek','sreda','četrtek','petek','sobota'];
+const CAL_DAY_SL_SHORT2 = ['Ned','Pon','Tor','Sre','Čet','Pet','Sob'];
+const CAL_MESECI_SL = ['januar','februar','marec','april','maj','junij','julij','avgust','september','oktober','november','december'];
+
+function sportDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function sportFormatDate(d) {
+  return CAL_DAY_SL_SHORT2[d.getDay()] + ', ' + d.getDate() + '. ' + (d.getMonth()+1) + '.';
+}
+
+function sportParseDesc(desc) {
+  if (!desc) return {};
+  const clean = desc.replace(/<[^>]+>/g, '').trim();
+  const result = {};
+  function exField(label) {
+    const idx = clean.toLowerCase().indexOf(label.toLowerCase() + ':');
+    if (idx < 0) return null;
+    const after = clean.substring(idx + label.length + 1).trimStart();
+    const nlIdx = after.search(/[\r\n]/);
+    return nlIdx >= 0 ? after.substring(0, nlIdx).trim() : after.trim();
+  }
+  result.tip      = exField('Tip');
+  result.razdalja = exField('Razdalja');
+  result.tempo    = exField('Tempo');
+  result.cas      = exField('Čas') || exField('Cas');
+  result.navodila = exField('Navodila');
+  result.komentar = exField('Komentar');
+  const kmMatch = clean.match(/Razdalja:\s*([\d.,]+)\s*km/i);
+  if (kmMatch) result.km = parseFloat(kmMatch[1].replace(',', '.'));
+  if (result.cas) result.casRaw = result.cas;
+  return result;
+}
+
+function sportRenderTrainingCard(ev, isToday) {
+  const d = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date);
+  const parsed = sportParseDesc(ev.description || '');
+  const dayLabel = isToday
+    ? '<span style="color:var(--orange);font-weight:700">DANES</span>'
+    : sportFormatDate(d);
+
+  let detailsHtml = '';
+  if (parsed.tip)      detailsHtml += '<span style="color:var(--text2)">' + parsed.tip + '</span> · ';
+  if (parsed.razdalja) detailsHtml += '<span style="color:#3b82f6">' + parsed.razdalja + '</span>';
+  if (parsed.tempo)    detailsHtml += ' · <span style="color:var(--text3)">tempo ' + parsed.tempo + '</span>';
+  if (parsed.navodila) detailsHtml += '<div style="color:var(--text3);margin-top:2px;font-size:9px">' + parsed.navodila + '</div>';
+
+  const borderColor = isToday ? 'var(--orange)' : '#3b82f6';
+  return '<div style="border-left:2px solid ' + borderColor + ';padding:5px 8px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:0 3px 3px 0">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">'
+    + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em">' + dayLabel + '</span>'
+    + '<span style="font-family:var(--mono);font-size:9px;color:var(--text3)">' + (ev.summary || '') + '</span>'
+    + '</div>'
+    + (detailsHtml ? '<div style="font-family:var(--mono);font-size:10px">' + detailsHtml + '</div>' : '')
+    + '</div>';
+}
+
+async function sportLoadTrainingWeek() {
+  const container = document.getElementById('training-week');
+  if (!container) return;
+
+  const saved = localStorage.getItem('gcal_token');
+  if (!saved) {
+    container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">GCal prijava potrebna.</div>';
+    sportLoadZadnjiTek(null);
+    return;
+  }
+  const t = JSON.parse(saved);
+  if (!t.expires || t.expires <= Date.now()) {
+    container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">GCal seja potekla.</div>';
+    sportLoadZadnjiTek(null);
+    return;
+  }
+
+  const CAL_ID = 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const from = today.toISOString();
+  const to = new Date(today); to.setDate(today.getDate() + 8); // 8 dni naprej (danes + 7)
+
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(CAL_ID) + '/events'
+      + '?timeMin=' + from + '&timeMax=' + to.toISOString()
+      + '&singleEvents=true&orderBy=startTime&maxResults=20',
+      { headers: { Authorization: 'Bearer ' + t.access_token } }
+    );
+    if (res.status === 401) {
+      container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">GCal seja potekla.</div>';
+      return;
+    }
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (items.length === 0) {
+      container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni načrtovanih treningov za naslednje dni.</div>';
+    } else {
+      const todayStr = sportDateStr(today);
+      container.innerHTML = items.map(function(ev) {
+        const ds = (ev.start.dateTime || ev.start.date || '').substring(0, 10);
+        return sportRenderTrainingCard(ev, ds === todayStr);
+      }).join('');
+    }
+
+    // Posodobi badge
+    const badge = document.getElementById('sport-today-badge');
+    if (badge) {
+      const todayStr2 = sportDateStr(today);
+      const todayEv = items.find(function(ev) {
+        return (ev.start.dateTime || ev.start.date || '').substring(0,10) === todayStr2;
+      });
+      if (todayEv) {
+        const p = sportParseDesc(todayEv.description || '');
+        badge.textContent = p.razdalja ? p.razdalja : 'TRENING DANES';
+      } else {
+        badge.textContent = 'DANES';
+      }
+    }
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju treningov.</div>';
+    console.warn('sportLoadTrainingWeek napaka:', e);
+  }
+
+  // Naloži zadnji tek (pretekli dogodki)
+  sportLoadZadnjiTek(t.access_token);
+  // Posodobi mesečni km iz Tab 03
+  sportSyncMesecniKm();
+}
+
+async function sportLoadZadnjiTek(token) {
+  const container = document.getElementById('zadnji-tek-container');
+  if (!container) return;
+
+  if (!token) {
+    container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">GCal prijava potrebna.</div>';
+    return;
+  }
+
+  const CAL_ID = 'be9dc330144fd6583972d9a7fc1af063db8390b5f8ee942c8ffc5a9fbda0dfbc@group.calendar.google.com';
+  const now = new Date();
+  const from = new Date(now); from.setMonth(now.getMonth() - 3); // zadnje 3 mesece
+
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(CAL_ID) + '/events'
+      + '?timeMin=' + from.toISOString() + '&timeMax=' + now.toISOString()
+      + '&singleEvents=true&orderBy=startTime&maxResults=100',
+      { headers: { Authorization: 'Bearer ' + token } }
+    );
+    if (!res.ok) {
+      container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju.</div>';
+      return;
+    }
+    const data = await res.json();
+    const items = (data.items || []).reverse(); // najnovejši najprej
+
+    // Poišči zadnji tek s km in časom v opisu
+    let zadnji = null;
+    for (const ev of items) {
+      const desc = ev.description ? ev.description.replace(/<[^>]+>/g,'').trim() : '';
+      const kmMatch = desc.match(/Razdalja:\s*([\d.,]+)\s*km/i);
+      const casMatch = desc.match(/(?:Čas|Cas):\s*([\d:hm\s]+)/i);
+      if (kmMatch) {
+        zadnji = {
+          ev: ev,
+          km: parseFloat(kmMatch[1].replace(',','.')),
+          casStr: casMatch ? casMatch[1].trim() : null,
+          desc: desc,
+        };
+        break;
+      }
+    }
+
+    if (!zadnji) {
+      container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Ni preteklih tekov z zapisanimi podatki.</div>';
+      return;
+    }
+
+    const d = zadnji.ev.start.dateTime ? new Date(zadnji.ev.start.dateTime) : new Date(zadnji.ev.start.date);
+    const dayLong = CAL_DAY_SL_LONG[d.getDay()];
+    const dateLabel = dayLong.charAt(0).toUpperCase() + dayLong.slice(1) + ', '
+      + d.getDate() + '. ' + CAL_MESECI_SL[d.getMonth()] + ' ' + d.getFullYear();
+
+    // Tempo izračun ali iz opisa
+    const parsed = sportParseDesc(zadnji.ev.description || '');
+    let tempoStr = parsed.tempo || '—';
+    // Poskusi izračunati tempo iz km in časa, če ni v opisu
+    if (!parsed.tempo && zadnji.casStr) {
+      // Parsira čas kot mm:ss ali h:mm:ss
+      const parts = zadnji.casStr.split(':').map(Number);
+      let totalMin = 0;
+      if (parts.length === 2) totalMin = parts[0] + parts[1]/60;
+      if (parts.length === 3) totalMin = parts[0]*60 + parts[1] + parts[2]/60;
+      if (totalMin > 0 && zadnji.km > 0) {
+        const tMin = Math.floor(totalMin / zadnji.km);
+        const tSec = Math.round((totalMin / zadnji.km - tMin) * 60);
+        tempoStr = tMin + ':' + String(tSec).padStart(2,'0');
+      }
+    }
+
+    // Komentar iz opisa
+    const komentarMatch = sportParseDesc(zadnji.ev.description || '');
+    const komentar = komentarMatch ? (komentarMatch.komentar || '') : '';
+
+    container.innerHTML = '<div class="strava-run">'
+      + '<div class="strava-run-name">🏃 ' + (zadnji.ev.summary || 'Tek') + '</div>'
+      + '<div class="strava-run-date">' + dateLabel + '</div>'
+      + '<div class="strava-stats">'
+      + '<div class="strava-stat"><div class="strava-stat-val">' + zadnji.km.toFixed(1).replace('.',',') + ' km</div><div class="strava-stat-label">RAZDALJA</div></div>'
+      + (tempoStr !== '—' ? '<div class="strava-stat"><div class="strava-stat-val">' + tempoStr + '</div><div class="strava-stat-label">TEMPO /km</div></div>' : '')
+      + (zadnji.casStr ? '<div class="strava-stat"><div class="strava-stat-val">' + zadnji.casStr + '</div><div class="strava-stat-label">ČAS</div></div>' : '')
+      + '</div>'
+      + (komentar ? '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:5px;font-style:italic">"' + komentar + '"</div>' : '')
+      + '</div>';
+
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:10px">Napaka pri nalaganju zadnjega teka.</div>';
+    console.warn('sportLoadZadnjiTek napaka:', e);
+  }
+}
+
+function sportSyncMesecniKm() {
+  // Prebere vrednosti iz Tab 03 CILJI — Tek bloka
+  const valEl  = document.getElementById('cilj-tek-val');
+  const labelEl = document.getElementById('sport-mesec-label');
+  const valOut  = document.getElementById('sport-mesec-val');
+  const barOut  = document.getElementById('sport-mesec-bar');
+  if (!valOut) return;
+
+  // Mesec iz trenutnega datuma
+  const mes = CAL_MESECI_SL[new Date().getMonth()];
+  if (labelEl) labelEl.textContent = mes.charAt(0).toUpperCase() + mes.slice(1) + ' — skupaj km';
+
+  if (valEl && valEl.textContent && valEl.textContent !== '— / — km') {
+    if (valOut) valOut.textContent = valEl.textContent;
+    // Iz "X.X / Y.Y km" izračunaj %
+    const m = valEl.textContent.match(/([\d.,]+)\s*\/\s*([\d.,]+)/);
+    if (m && barOut) {
+      const done = parseFloat(m[1].replace(',','.'));
+      const goal = parseFloat(m[2].replace(',','.'));
+      barOut.style.width = (goal > 0 ? Math.min(100, Math.round(done/goal*100)) : 0) + '%';
+    }
+  } else {
+    if (valOut) valOut.textContent = 'Nalagam...';
+  }
+}
+
+// Pokliči ob zagonu (po inicializaciji GCal)
+function renderTodayTraining() {
+  sportLoadTrainingWeek();
+}
+window.renderTodayTraining = renderTodayTraining;
 
 // ===== ŠPORTNE PRIREDITVE =====
 let events = JSON.parse(localStorage.getItem('borisEvents') || '[]');
