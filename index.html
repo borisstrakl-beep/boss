@@ -3700,13 +3700,26 @@
         <div id="cilj-tek-status" style="font-family:var(--cond);font-size:10px;margin-top:4px;padding:3px 6px;border-radius:2px;display:none"></div>
       </div>
       <div class="o-divider"></div>
-      <div class="goal-item">
+      <div class="goal-item" id="cilj-nav-item">
         <div class="goal-header">
-          <div class="goal-name">🎯 Navade streak</div>
-          <div class="goal-val">12 dni</div>
+          <div class="goal-name">🎯 Navade — zadnjih 7 dni</div>
+          <div class="goal-val" id="cilj-nav-val">Nalagam...</div>
         </div>
-        <div class="goal-bar"><div class="goal-fill" style="width:80%"></div></div>
-        <div class="goal-sub">Najboljši: 21 dni · HabitFlow Nivo 3</div>
+        <!-- 7-segmentni bar -->
+        <div id="cilj-nav-bar" style="display:flex;gap:3px;margin-top:6px;height:18px;">
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="0"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="1"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="2"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="3"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="4"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="5"></div>
+          <div style="flex:1;border-radius:2px;background:var(--border)" data-seg="6"></div>
+        </div>
+        <div id="cilj-nav-sub" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:5px;">
+          <span style="color:#ef4444">■</span> &lt;60% &nbsp;
+          <span style="color:#eab308">■</span> 60–80% &nbsp;
+          <span style="color:#22c55e">■</span> &gt;80%
+        </div>
       </div>
     </div>
   </div>
@@ -5154,6 +5167,87 @@ async function updateCiljiTek() {
   }
 }
 window.updateCiljiTek = updateCiljiTek;
+
+// CILJI — Navade: 7-segmentni bar iz Firestore hfLogs + hfHabits
+function updateCiljiNavade() {
+  const bar = document.getElementById('cilj-nav-bar');
+  const valEl = document.getElementById('cilj-nav-val');
+  if (!bar || !valEl) return;
+
+  // Preveri ali so hfHabits naloženi
+  if (typeof hfHabits === 'undefined' || hfHabits.length === 0) {
+    valEl.textContent = 'Čakam podatke...';
+    return;
+  }
+
+  const today = new Date();
+  // Pomožna: datum v obliki YYYY-MM-DD
+  function dateStr(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  // Dan v tednu: 0=ned, 1=pon... -> pretvori v 0=pon..6=ned za frequency
+  function dayOfWeek(d) { return (d.getDay() + 6) % 7; } // 0=pon, 5=sob, 6=ned
+
+  // Ali je navada aktivna ta dan?
+  function isActiveOnDay(habit, d) {
+    const dow = dayOfWeek(d);
+    if (habit.frequency === 'daily') return true;
+    if (habit.frequency === 'weekdays') return dow <= 4;
+    if (habit.frequency === 'weekends') return dow >= 5;
+    return true;
+  }
+
+  const segs = bar.querySelectorAll('[data-seg]');
+  let totalDone = 0, totalPossible = 0;
+  const results = [];
+
+  for (let i = 6; i >= 0; i--) {
+    // i=6 je 7 dni nazaj, i=0 je včeraj
+    const d = new Date(today);
+    d.setDate(today.getDate() - (7 - i));
+    const ds = dateStr(d);
+
+    let dayTotal = 0, dayDone = 0;
+    hfHabits.forEach(function(h) {
+      if (!isActiveOnDay(h, d)) return;
+      const parts = Array.isArray(h.dayParts) ? h.dayParts : Object.values(h.dayParts || {});
+      parts.forEach(function(dp) {
+        dayTotal++;
+        const key = h.id + '|' + dp;
+        if (hfLogs && hfLogs[key] && hfLogs[key][ds]) dayDone++;
+      });
+    });
+
+    totalDone += dayDone;
+    totalPossible += dayTotal;
+    const pct = dayTotal > 0 ? dayDone / dayTotal : 0;
+    results.push({ pct, dayDone, dayTotal, ds });
+
+    const seg = segs[i];
+    if (!seg) continue;
+    if (dayTotal === 0) {
+      seg.style.background = 'var(--border)';
+      seg.title = ds + ': ni podatkov';
+    } else if (pct >= 0.8) {
+      seg.style.background = '#22c55e';
+      seg.title = ds + ': ' + Math.round(pct*100) + '% (' + dayDone + '/' + dayTotal + ')';
+    } else if (pct >= 0.6) {
+      seg.style.background = '#eab308';
+      seg.title = ds + ': ' + Math.round(pct*100) + '% (' + dayDone + '/' + dayTotal + ')';
+    } else {
+      seg.style.background = '#ef4444';
+      seg.title = ds + ': ' + Math.round(pct*100) + '% (' + dayDone + '/' + dayTotal + ')';
+    }
+  }
+
+  // Skupni % za label
+  const skupni = totalPossible > 0 ? Math.round(totalDone / totalPossible * 100) : 0;
+  valEl.textContent = skupni + '% (7 dni)';
+}
+window.updateCiljiNavade = updateCiljiNavade;
 
 // Init
 rnUpdateLatest();
@@ -8750,6 +8844,7 @@ async function hfInit() {
     hfHabits = Array.isArray(data.habits) ? data.habits : [];
     hfLogs = data.logs || {};
     hfRender();
+    if (typeof updateCiljiNavade === 'function') updateCiljiNavade();
     if (syncEl) syncEl.textContent = '✓';
     setTimeout(() => { if (syncEl) syncEl.textContent = ''; }, 2000);
 
@@ -8760,6 +8855,7 @@ async function hfInit() {
         hfHabits = Array.isArray(d.habits) ? d.habits : [];
         hfLogs = d.logs || {};
         hfRender();
+        if (typeof updateCiljiNavade === 'function') updateCiljiNavade();
       }
     });
   } catch(e) {
