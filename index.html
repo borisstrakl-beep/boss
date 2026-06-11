@@ -10137,11 +10137,33 @@ function renderTodayTraining() {
 window.renderTodayTraining = renderTodayTraining;
 
 // ===== ŠPORTNE PRIREDITVE =====
-let events = JSON.parse(localStorage.getItem('borisEvents') || '[]');
+let events = [];
 let editingEventId = null;
 let resultEventId = null;
 
-function saveEvents() { localStorage.setItem('borisEvents', JSON.stringify(events)); }
+const EVENTS_FB_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebasedatabase.app/sportEvents.json';
+
+async function saveEvents() {
+  try {
+    await fetch(EVENTS_FB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(events)
+    });
+  } catch(e) { console.error('[EVENTS] Shranjevanje neuspešno:', e); }
+}
+
+async function loadEvents() {
+  try {
+    const res = await fetch(EVENTS_FB_URL);
+    const data = await res.json();
+    events = Array.isArray(data) ? data : [];
+  } catch(e) {
+    console.error('[EVENTS] Nalaganje neuspešno:', e);
+    events = [];
+  }
+  renderEvents();
+}
 
 const EVENT_TYPE_LABELS = { run:'🏃 Tek', trail:'🏔 Trail', bike:'🚴 Kolesarjenje', swim:'🏊 Plavanje', tri:'🏅 Triatlon', other:'🎯 Drugo' };
 const EVENT_TYPE_TAGS   = { run:'tag-run', trail:'tag-trail', bike:'tag-bike', swim:'tag-swim', tri:'tag-tri', other:'tag-other' };
@@ -10299,7 +10321,7 @@ function addMilestoneRow(text='', date='') {
   document.getElementById('milestones-form-list').appendChild(row);
 }
 
-function saveEvent() {
+async function saveEvent() {
   const name = document.getElementById('ev-name').value.trim();
   const date = document.getElementById('ev-date').value;
   if (!name || !date) { alert('Naziv in datum sta obvezna!'); return; }
@@ -10344,19 +10366,19 @@ function saveEvent() {
     });
   }
 
-  saveEvents(); renderEvents(); closeModal('modal-event');
+  await saveEvents(); renderEvents(); closeModal('modal-event');
 }
 
-function toggleMilestone(eventId, idx) {
+async function toggleMilestone(eventId, idx) {
   const ev = events.find(e => e.id === eventId); if (!ev) return;
   ev.milestones[idx].done = !ev.milestones[idx].done;
-  saveEvents(); renderEvents();
+  await saveEvents(); renderEvents();
 }
 
-function deleteEvent(id) {
+async function deleteEvent(id) {
   if (!confirm('Izbriši to prireditev?')) return;
   events = events.filter(e => e.id !== id);
-  saveEvents(); renderEvents();
+  await saveEvents(); renderEvents();
 }
 
 function openResultModal(id) {
@@ -10370,43 +10392,17 @@ function openResultModal(id) {
   openModal('modal-event-result');
 }
 
-function saveResult() {
+async function saveResult() {
   const ev = events.find(e => e.id === resultEventId); if (!ev) return;
   ev.result = {
     time: document.getElementById('result-time').value.trim(),
     place: document.getElementById('result-place').value.trim(),
     note: document.getElementById('result-note').value.trim()
   };
-  saveEvents(); renderEvents(); closeModal('modal-event-result');
+  await saveEvents(); renderEvents(); closeModal('modal-event-result');
 }
 
-// Seed — Maraton treh src kot primer
-function seedEvents() {
-  if (events.length > 0) return;
-  events = [{
-    id: 'e1',
-    name: 'Maraton treh src',
-    date: '2026-09-13',
-    location: 'Radenci',
-    type: 'run',
-    distance: '21,1 km',
-    goalTime: '2:00:00',
-    note: 'Polmaraton — prvi nastop v Radencih',
-    milestones: [
-      { text: 'Prva teka 10 km brez postanka', date: '2026-06-15', done: false },
-      { text: 'Dolga teka 15 km', date: '2026-07-06', done: false },
-      { text: 'Teka 18 km — testni čas', date: '2026-07-27', done: false },
-      { text: 'Zadnja dolga teka pred tapering', date: '2026-08-16', done: false },
-      { text: 'Tapering teden — lažje teke', date: '2026-09-06', done: false },
-      { text: 'Prevzem štartne številke', date: '2026-09-12', done: false },
-    ],
-    result: null
-  }];
-  saveEvents();
-}
-
-seedEvents();
-renderEvents();
+loadEvents();
 
 // ===== ACCORDION =====
 function toggleAccordion(header, bodyId) {
