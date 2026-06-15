@@ -1263,6 +1263,11 @@
   .p3 { background: var(--blue); }
   .p4 { background: var(--text3); }
 
+  .task-due-overdue { color: var(--red) !important; }
+  .task-due-today { color: var(--orange) !important; }
+  .task-due-future { color: var(--text3); }
+  .task-item.done-anim { opacity: 0.35; transition: opacity .3s; }
+
   /* ===== GOOGLE KOLEDAR — NOVI MODUL ===== */
 
   .gcal-filters {
@@ -3734,69 +3739,35 @@
       <span class="tab-title">TODOIST NALOGE</span>
     </div>
     <div class="tab-head-right">
-      <span class="tab-badge">8 PROJEKTOV · 5 DANES</span>
+      <span class="tab-badge" id="todoist-badge">—</span>
       <span class="tab-arrow">▼</span>
     </div>
   </div>
   <div class="tab-body open" id="tab-todoistnaloge">
     <div class="tab-content">
 <div class="card-body">
-      <div class="project-tabs">
-        <div class="proj-tab active" onclick="filterTasks(this,'all')">VSE</div>
-        <div class="proj-tab" onclick="filterTasks(this,'danes')">DANES</div>
-        <div class="proj-tab" onclick="filterTasks(this,'crm')">CRM</div>
-        <div class="proj-tab" onclick="filterTasks(this,'osebno')">OSEBNO</div>
-        <div class="proj-tab" onclick="filterTasks(this,'finance')">FINANCE</div>
-        <div class="proj-tab" onclick="filterTasks(this,'vsebina')">VSEBINA</div>
+      <div id="todoist-login" style="display:none;padding:6px 0 2px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.04em;line-height:1.7;margin-bottom:8px">
+          Poveži Todoist račun za prikaz nalog.<br>
+          Todoist → Nastavitve → Integracije → Developer → kopiraj API token.
+        </div>
+        <div style="display:flex;gap:6px">
+          <input type="password" id="todoist-token-input" class="form-input" placeholder="Todoist API token" style="font-size:11px;padding:7px 9px" onkeydown="if(event.key==='Enter')todoistSaveToken()">
+          <button onclick="todoistSaveToken()" class="fin-flt-btn active" style="white-space:nowrap;padding:7px 14px">POVEŽI</button>
+        </div>
+        <div id="todoist-login-err" style="font-family:var(--mono);font-size:9px;color:var(--red);margin-top:6px"></div>
       </div>
-      <div id="task-list">
-        <div class="task-item" data-proj="danes crm">
-          <div class="task-priority p1"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Priprava demo za CRM uvedbo</div>
-            <div class="task-meta"><span class="task-proj">CRM · DANES</span></div>
-          </div>
+      <div id="todoist-content" style="display:none">
+        <div class="project-tabs" id="todoist-tabs" style="max-height:64px;overflow-y:auto">
+          <div class="proj-tab active" data-pid="all" onclick="todoistFilter(this,'all')">VSE</div>
+          <div class="proj-tab" data-pid="danes" onclick="todoistFilter(this,'danes')">DANES</div>
         </div>
-        <div class="task-item" data-proj="danes finance">
-          <div class="task-priority p2"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Pregled mesečnih odhodkov — maj</div>
-            <div class="task-meta"><span class="task-proj">FINANCE · DANES</span></div>
-          </div>
+        <div id="task-list">
+          <div style="padding:16px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:10px">Nalagam naloge...</div>
         </div>
-        <div class="task-item" data-proj="danes osebno">
-          <div class="task-priority p3"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Naslednje poglavje knjige — pisanje 15 min</div>
-            <div class="task-meta"><span class="task-proj">OSEBNO · DANES</span></div>
-          </div>
-        </div>
-        <div class="task-item" data-proj="crm">
-          <div class="task-priority p2"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Dokumentacija procesov pred uvedbo CRM</div>
-            <div class="task-meta"><span class="task-proj">CRM</span></div>
-          </div>
-        </div>
-        <div class="task-item" data-proj="vsebina danes">
-          <div class="task-priority p3"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Objava LinkedIn — optimizacija procesov</div>
-            <div class="task-meta"><span class="task-proj">VSEBINA · DANES</span></div>
-          </div>
-        </div>
-        <div class="task-item" data-proj="osebno">
-          <div class="task-priority p4"></div>
-          <div class="task-check" onclick="toggleTask(this)"></div>
-          <div class="task-content">
-            <div class="task-name">Rezervacija izleta — junij</div>
-            <div class="task-meta"><span class="task-proj">OSEBNO</span></div>
-          </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span id="todoist-status" style="font-family:var(--mono);font-size:8px;color:var(--text3)">—</span>
+          <span onclick="todoistLogout()" style="font-family:var(--mono);font-size:8px;color:var(--text3);cursor:pointer;text-decoration:underline">odjava</span>
         </div>
       </div>
     </div>
@@ -8870,33 +8841,266 @@ function toggleHabit(el) {}
 function updateHabits() { hfUpdateScore(); }
 
 // ===== TODOIST NALOGE =====
-function toggleTask(el) {
-  el.classList.toggle('done');
-  const nameEl = el.nextElementSibling && el.nextElementSibling.querySelector('.task-name');
-  if (el.classList.contains('done')) {
-    el.innerHTML = '✓';
-    el.style.background = 'var(--orange)';
-    el.style.borderColor = 'var(--orange)';
-    el.style.color = '#000';
-    el.style.fontSize = '9px';
-    if (nameEl) { nameEl.style.textDecoration = 'line-through'; nameEl.style.color = 'var(--text3)'; }
-  } else {
-    el.innerHTML = '';
-    el.style.background = '';
-    el.style.borderColor = '';
-    el.style.color = '';
-    el.style.fontSize = '';
-    if (nameEl) { nameEl.style.textDecoration = ''; nameEl.style.color = ''; }
+const TODOIST_API = 'https://api.todoist.com/api/v1';
+let todoistProjects = {};   // id -> project object
+let todoistTasks = [];       // trenutno naloženo (danes | zapadlo, brez p4)
+let todoistActiveFilter = 'all';
+let todoistRefreshTimer = null;
+
+function todoistGetToken() {
+  return localStorage.getItem('todoist_token') || '';
+}
+
+function todoistSaveToken() {
+  const input = document.getElementById('todoist-token-input');
+  const val = (input && input.value || '').trim();
+  const errEl = document.getElementById('todoist-login-err');
+  if (!val) {
+    if (errEl) errEl.textContent = 'Vnesi API token.';
+    return;
+  }
+  localStorage.setItem('todoist_token', val);
+  if (errEl) errEl.textContent = '';
+  todoistInit();
+}
+
+function todoistLogout() {
+  localStorage.removeItem('todoist_token');
+  todoistTasks = [];
+  todoistProjects = {};
+  if (todoistRefreshTimer) { clearInterval(todoistRefreshTimer); todoistRefreshTimer = null; }
+  todoistInit();
+}
+
+async function todoistInit() {
+  const token = todoistGetToken();
+  const loginEl = document.getElementById('todoist-login');
+  const contentEl = document.getElementById('todoist-content');
+  if (!loginEl || !contentEl) return;
+  if (!token) {
+    loginEl.style.display = '';
+    contentEl.style.display = 'none';
+    const badgeEl = document.getElementById('todoist-badge');
+    if (badgeEl) badgeEl.textContent = 'NI POVEZANO';
+    return;
+  }
+  loginEl.style.display = 'none';
+  contentEl.style.display = '';
+  await todoistFetchAll();
+  if (!todoistRefreshTimer) {
+    todoistRefreshTimer = setInterval(todoistFetchAll, 5 * 60 * 1000); // osvežitev vsakih 5 min
   }
 }
 
-function filterTasks(el, filter) {
-  document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.task-item').forEach(item => {
-    const proj = item.dataset.proj || '';
-    item.style.display = (filter === 'all' || proj.includes(filter)) ? 'flex' : 'none';
+async function todoistFetchTasksPaged(filter) {
+  const token = todoistGetToken();
+  const headers = { 'Authorization': 'Bearer ' + token };
+  let all = [];
+  let cursor = null;
+  do {
+    const url = new URL(TODOIST_API + '/tasks');
+    url.searchParams.set('filter', filter);
+    url.searchParams.set('limit', '200');
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(url, { headers, signal: ctrl.signal }).then(r => {
+      if (!r.ok) throw new Error('Todoist API ' + r.status);
+      return r.json();
+    });
+    clearTimeout(to);
+    const results = Array.isArray(res) ? res : (res.results || []);
+    all = all.concat(results);
+    cursor = Array.isArray(res) ? null : (res.next_cursor || null);
+  } while (cursor);
+  return all;
+}
+
+async function todoistFetchProjects() {
+  const token = todoistGetToken();
+  const headers = { 'Authorization': 'Bearer ' + token };
+  let all = [];
+  let cursor = null;
+  do {
+    const url = new URL(TODOIST_API + '/projects');
+    url.searchParams.set('limit', '200');
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(url, { headers, signal: ctrl.signal }).then(r => {
+      if (!r.ok) throw new Error('Todoist API ' + r.status);
+      return r.json();
+    });
+    clearTimeout(to);
+    const results = Array.isArray(res) ? res : (res.results || []);
+    all = all.concat(results);
+    cursor = Array.isArray(res) ? null : (res.next_cursor || null);
+  } while (cursor);
+  return all;
+}
+
+async function todoistFetchAll() {
+  const statusEl = document.getElementById('todoist-status');
+  const listEl = document.getElementById('task-list');
+  const errEl = document.getElementById('todoist-login-err');
+  if (statusEl) statusEl.textContent = '⟳ nalagam...';
+  try {
+    const [projects, tasks] = await Promise.all([
+      todoistFetchProjects(),
+      todoistFetchTasksPaged('(today | overdue) & !p4')
+    ]);
+    todoistProjects = {};
+    projects.forEach(p => { todoistProjects[p.id] = p; });
+    todoistTasks = tasks;
+    todoistBuildTabs();
+    todoistRenderList();
+    todoistUpdateBadge();
+    if (statusEl) statusEl.textContent = '✓ posodobljeno ' + new Date().toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    console.warn('Todoist fetch error:', e);
+    if (statusEl) statusEl.textContent = '⚠ napaka povezave';
+    if (listEl && todoistTasks.length === 0) {
+      listEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:10px">Napaka pri povezavi s Todoist.<br>Preveri API token.</div>';
+    }
+    if (e.message && e.message.indexOf('401') !== -1 && errEl) {
+      // Neveljaven token — vrni na login
+      localStorage.removeItem('todoist_token');
+      todoistInit();
+    }
+  }
+}
+
+function todoistBuildTabs() {
+  const tabsEl = document.getElementById('todoist-tabs');
+  if (!tabsEl) return;
+  tabsEl.querySelectorAll('.proj-tab[data-dynamic]').forEach(t => t.remove());
+  const projList = Object.values(todoistProjects).sort((a, b) => (a.child_order || a.childOrder || 0) - (b.child_order || b.childOrder || 0));
+  projList.forEach(p => {
+    const tab = document.createElement('div');
+    tab.className = 'proj-tab';
+    tab.dataset.dynamic = '1';
+    tab.dataset.pid = p.id;
+    tab.textContent = p.name;
+    tab.onclick = function () { todoistFilter(tab, p.id); };
+    tabsEl.appendChild(tab);
   });
+}
+
+function todoistFilter(el, key) {
+  const tabsEl = document.getElementById('todoist-tabs');
+  if (tabsEl) tabsEl.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  todoistActiveFilter = key;
+  todoistRenderList();
+}
+
+function todoistTodayStr() {
+  return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD v lokalnem času
+}
+
+function todoistEscape(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function todoistContentLabel(content) {
+  // odstrani markdown povezave [tekst](url) -> tekst
+  const stripped = (content || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  return todoistEscape(stripped);
+}
+
+function todoistRenderList() {
+  const listEl = document.getElementById('task-list');
+  if (!listEl) return;
+  const todayStr = todoistTodayStr();
+  let tasks = todoistTasks;
+  if (todoistActiveFilter === 'danes') {
+    tasks = tasks.filter(t => t.due && t.due.date === todayStr);
+  } else if (todoistActiveFilter !== 'all') {
+    tasks = tasks.filter(t => (t.project_id || t.projectId) === todoistActiveFilter);
+  }
+  tasks = tasks.slice().sort((a, b) => {
+    const da = (a.due && a.due.date) || '9999-99-99';
+    const db = (b.due && b.due.date) || '9999-99-99';
+    if (da !== db) return da < db ? -1 : 1;
+    return (b.priority || 1) - (a.priority || 1);
+  });
+  if (tasks.length === 0) {
+    listEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:10px">Ni nalog.</div>';
+    return;
+  }
+  listEl.innerHTML = tasks.map(t => {
+    const proj = todoistProjects[t.project_id || t.projectId];
+    const projName = proj ? proj.name : '';
+    const apiPrio = t.priority || 1; // 1 (p4) .. 4 (p1)
+    const cssPrio = 'p' + (5 - apiPrio);
+    let dueLabel = '';
+    let dueClass = '';
+    if (t.due && t.due.date) {
+      if (t.due.date === todayStr) {
+        const timeStr = t.due.datetime ? new Date(t.due.datetime).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) : '';
+        dueLabel = 'DANES' + (timeStr ? ' ' + timeStr : '');
+        dueClass = 'task-due-today';
+      } else if (t.due.date < todayStr) {
+        dueLabel = 'ZAMUDA';
+        dueClass = 'task-due-overdue';
+      } else {
+        dueLabel = t.due.date;
+        dueClass = 'task-due-future';
+      }
+    }
+    const metaParts = [];
+    if (projName) metaParts.push(todoistEscape(projName));
+    if (dueLabel) metaParts.push('<span class="' + dueClass + '">' + dueLabel + '</span>');
+    return '<div class="task-item" data-tid="' + t.id + '">'
+      + '<div class="task-priority ' + cssPrio + '"></div>'
+      + '<div class="task-check" onclick="todoistToggleTask(this,\'' + t.id + '\')"></div>'
+      + '<div class="task-content">'
+      + '<div class="task-name">' + todoistContentLabel(t.content) + '</div>'
+      + '<div class="task-meta"><span class="task-proj">' + metaParts.join(' · ') + '</span></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function todoistUpdateBadge() {
+  const badgeEl = document.getElementById('todoist-badge');
+  if (!badgeEl) return;
+  const todayStr = todoistTodayStr();
+  const danesCount = todoistTasks.filter(t => t.due && t.due.date === todayStr).length;
+  const zamudaCount = todoistTasks.filter(t => t.due && t.due.date < todayStr).length;
+  const projCount = new Set(todoistTasks.map(t => t.project_id || t.projectId)).size;
+  badgeEl.textContent = projCount + ' PROJEKTOV · ' + danesCount + ' DANES' + (zamudaCount ? ' · ' + zamudaCount + ' ZAMUDA' : '');
+}
+
+async function todoistToggleTask(el, taskId) {
+  const token = todoistGetToken();
+  const item = el.closest('.task-item');
+  // optimistični prikaz
+  el.innerHTML = '✓';
+  el.style.background = 'var(--orange)';
+  el.style.borderColor = 'var(--orange)';
+  el.style.color = '#000';
+  el.style.fontSize = '9px';
+  if (item) item.classList.add('done-anim');
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(TODOIST_API + '/tasks/' + taskId + '/close', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    clearTimeout(to);
+    if (!res.ok) throw new Error('close failed: ' + res.status);
+    todoistTasks = todoistTasks.filter(t => t.id !== taskId);
+    setTimeout(() => { todoistRenderList(); todoistUpdateBadge(); }, 250);
+  } catch (e) {
+    console.warn('Todoist close error:', e);
+    if (item) item.classList.remove('done-anim');
+    el.innerHTML = ''; el.style.background = ''; el.style.borderColor = ''; el.style.color = ''; el.style.fontSize = '';
+    alert('Napaka pri zapiranju naloge v Todoistu. Poskusi znova.');
+  }
 }
 
 // ===== KNJIŽNICA =====
@@ -10137,33 +10341,11 @@ function renderTodayTraining() {
 window.renderTodayTraining = renderTodayTraining;
 
 // ===== ŠPORTNE PRIREDITVE =====
-let events = [];
+let events = JSON.parse(localStorage.getItem('borisEvents') || '[]');
 let editingEventId = null;
 let resultEventId = null;
 
-const EVENTS_FB_URL = 'https://placila-ebbba-default-rtdb.europe-west1.firebasedatabase.app/sportEvents.json';
-
-async function saveEvents() {
-  try {
-    await fetch(EVENTS_FB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(events)
-    });
-  } catch(e) { console.error('[EVENTS] Shranjevanje neuspešno:', e); }
-}
-
-async function loadEvents() {
-  try {
-    const res = await fetch(EVENTS_FB_URL);
-    const data = await res.json();
-    events = Array.isArray(data) ? data : [];
-  } catch(e) {
-    console.error('[EVENTS] Nalaganje neuspešno:', e);
-    events = [];
-  }
-  renderEvents();
-}
+function saveEvents() { localStorage.setItem('borisEvents', JSON.stringify(events)); }
 
 const EVENT_TYPE_LABELS = { run:'🏃 Tek', trail:'🏔 Trail', bike:'🚴 Kolesarjenje', swim:'🏊 Plavanje', tri:'🏅 Triatlon', other:'🎯 Drugo' };
 const EVENT_TYPE_TAGS   = { run:'tag-run', trail:'tag-trail', bike:'tag-bike', swim:'tag-swim', tri:'tag-tri', other:'tag-other' };
@@ -10321,7 +10503,7 @@ function addMilestoneRow(text='', date='') {
   document.getElementById('milestones-form-list').appendChild(row);
 }
 
-async function saveEvent() {
+function saveEvent() {
   const name = document.getElementById('ev-name').value.trim();
   const date = document.getElementById('ev-date').value;
   if (!name || !date) { alert('Naziv in datum sta obvezna!'); return; }
@@ -10366,19 +10548,19 @@ async function saveEvent() {
     });
   }
 
-  await saveEvents(); renderEvents(); closeModal('modal-event');
+  saveEvents(); renderEvents(); closeModal('modal-event');
 }
 
-async function toggleMilestone(eventId, idx) {
+function toggleMilestone(eventId, idx) {
   const ev = events.find(e => e.id === eventId); if (!ev) return;
   ev.milestones[idx].done = !ev.milestones[idx].done;
-  await saveEvents(); renderEvents();
+  saveEvents(); renderEvents();
 }
 
-async function deleteEvent(id) {
+function deleteEvent(id) {
   if (!confirm('Izbriši to prireditev?')) return;
   events = events.filter(e => e.id !== id);
-  await saveEvents(); renderEvents();
+  saveEvents(); renderEvents();
 }
 
 function openResultModal(id) {
@@ -10392,17 +10574,43 @@ function openResultModal(id) {
   openModal('modal-event-result');
 }
 
-async function saveResult() {
+function saveResult() {
   const ev = events.find(e => e.id === resultEventId); if (!ev) return;
   ev.result = {
     time: document.getElementById('result-time').value.trim(),
     place: document.getElementById('result-place').value.trim(),
     note: document.getElementById('result-note').value.trim()
   };
-  await saveEvents(); renderEvents(); closeModal('modal-event-result');
+  saveEvents(); renderEvents(); closeModal('modal-event-result');
 }
 
-loadEvents();
+// Seed — Maraton treh src kot primer
+function seedEvents() {
+  if (events.length > 0) return;
+  events = [{
+    id: 'e1',
+    name: 'Maraton treh src',
+    date: '2026-09-13',
+    location: 'Radenci',
+    type: 'run',
+    distance: '21,1 km',
+    goalTime: '2:00:00',
+    note: 'Polmaraton — prvi nastop v Radencih',
+    milestones: [
+      { text: 'Prva teka 10 km brez postanka', date: '2026-06-15', done: false },
+      { text: 'Dolga teka 15 km', date: '2026-07-06', done: false },
+      { text: 'Teka 18 km — testni čas', date: '2026-07-27', done: false },
+      { text: 'Zadnja dolga teka pred tapering', date: '2026-08-16', done: false },
+      { text: 'Tapering teden — lažje teke', date: '2026-09-06', done: false },
+      { text: 'Prevzem štartne številke', date: '2026-09-12', done: false },
+    ],
+    result: null
+  }];
+  saveEvents();
+}
+
+seedEvents();
+renderEvents();
 
 // ===== ACCORDION =====
 function toggleAccordion(header, bodyId) {
@@ -11936,6 +12144,9 @@ if (typeof google !== 'undefined') {
 // Cilj Tek — naloži takoj ob zagonu (neodvisno od gcalFetchAll)
 setTimeout(function() { typeof updateCiljiTek === 'function' && updateCiljiTek(); }, 500);
 
+// Todoist naloge
+todoistInit();
+
 </script>
 
 <!-- POMOČ MODAL -->
@@ -11998,9 +12209,10 @@ setTimeout(function() { typeof updateCiljiTek === 'function' && updateCiljiTek()
           <span class="help-section-num">04 //</span> TODOIST NALOGE
           <span class="help-tag help-tag-auto">● AUTO</span>
         </div>
-        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Prikaz nalog iz Todoist — kar je danes in kar je zamudilo.</div></div>
-        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Todoist MCP konektor — živi podatki direktno iz tvojega Todoist računa.</div></div>
-        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Naloge upravljaš v Todoist (app ali splet) — dashboard jih samo prikazuje. Nič vnosa v dashboardu.</div></div>
+        <div class="help-row"><div class="help-row-label">Cilj</div><div class="help-row-val">Prikaz nalog iz Todoist — kar je danes in kar je zamudilo (brez nizko-prioritetnih p4 nalog, npr. seznam za ogled).</div></div>
+        <div class="help-row"><div class="help-row-label">Vir podatkov</div><div class="help-row-val">Todoist REST API — živi podatki direktno iz tvojega Todoist računa, prek osebnega API tokena (shranjen v localStorage tega brskalnika).</div></div>
+        <div class="help-row"><div class="help-row-label">Prijava</div><div class="help-row-val">Ob prvem zagonu vnesi API token (Todoist → Nastavitve → Integracije → Developer). Zavihki: VSE, DANES in vsi tvoji projekti.</div></div>
+        <div class="help-row"><div class="help-row-label">Ročno</div><div class="help-row-val">Kljukica ob nalogi nalogo dejansko zaključi v Todoistu (zapis nazaj). Osveževanje samodejno vsakih 5 minut.</div></div>
       </div>
 
       <!-- 05 GOOGLE KOLEDAR -->
